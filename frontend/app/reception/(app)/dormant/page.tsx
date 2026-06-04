@@ -19,10 +19,10 @@ function daysAgo(d: string) {
   return Math.floor(diff);
 }
 
-function buildWa(name: string, phone: string) {
+function buildWa(name: string, phone: string | null | undefined) {
   return waLink(
     `Hi ${name.split(" ")[0]}, this is ${SALON.name}. It's been a while! We'd love to see you back at the salon. Reply here to book your next visit.`,
-    phone
+    phone ?? ""
   );
 }
 
