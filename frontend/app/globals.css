@@ -1,0 +1,98 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-cream-50 text-ink-900 antialiased;
+    font-feature-settings: "ss01", "cv11";
+  }
+
+  ::selection {
+    @apply bg-gold-400/30 text-ink-900;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply inline-flex items-center justify-center rounded-full bg-ink-900 px-7 py-3 text-xs font-semibold uppercase tracking-widest text-cream-50 transition hover:bg-gold-600 focus:outline-none focus:ring-2 focus:ring-gold-500 focus:ring-offset-2 focus:ring-offset-cream-50 disabled:cursor-not-allowed disabled:opacity-50;
+  }
+
+  .btn-outline {
+    @apply inline-flex items-center justify-center rounded-full border border-ink-900 px-7 py-3 text-xs font-semibold uppercase tracking-widest text-ink-900 transition hover:bg-ink-900 hover:text-cream-50;
+  }
+
+  .btn-ghost {
+    @apply inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-ink-900 transition hover:text-gold-600;
+  }
+
+  .container-page {
+    @apply mx-auto w-full max-w-7xl px-5 sm:px-8 lg:px-12;
+  }
+
+  .section {
+    @apply py-16 sm:py-24 lg:py-32;
+  }
+
+  .eyebrow {
+    @apply text-[0.7rem] font-semibold uppercase tracking-widest text-gold-600;
+  }
+
+  .display {
+    @apply font-serif text-4xl font-normal leading-[1.05] tracking-tight text-ink-900 sm:text-5xl lg:text-6xl;
+  }
+
+  .display-xl {
+    @apply font-serif text-5xl font-normal leading-[1.02] tracking-tight text-ink-900 sm:text-6xl lg:text-7xl;
+  }
+
+  .h2 {
+    @apply font-serif text-3xl font-normal leading-tight tracking-tight text-ink-900 sm:text-4xl;
+  }
+
+  .lead {
+    @apply text-base leading-relaxed text-ink-600 sm:text-lg;
+  }
+
+  .input-field {
+    @apply block w-full border-0 border-b border-ink-400 bg-transparent px-0 py-2.5 text-sm text-ink-900 placeholder:text-ink-400 focus:border-ink-900 focus:outline-none focus:ring-0;
+  }
+
+  .divider-gold {
+    @apply h-px w-12 bg-gold-500;
+  }
+
+  .prose-blog {
+    @apply text-ink-700;
+  }
+  .prose-blog p {
+    @apply my-4 leading-relaxed;
+  }
+  .prose-blog img {
+    @apply my-6 w-full rounded-xl;
+  }
+  .prose-blog a {
+    @apply text-gold-600 underline underline-offset-4 hover:text-ink-900;
+  }
+  .prose-blog ul {
+    @apply my-4 list-disc space-y-1 pl-6;
+  }
+  .prose-blog ol {
+    @apply my-4 list-decimal space-y-1 pl-6;
+  }
+  .prose-blog li::marker {
+    color: theme("colors.gold.600");
+  }
+}
+
+@layer utilities {
+  .grain {
+    background-image:
+      radial-gradient(circle at 1px 1px, rgba(31, 27, 22, 0.04) 1px, transparent 0);
+    background-size: 18px 18px;
+  }
+}

@@ -1,0 +1,9 @@
+Id,FullName,Role,PhoneNumber,IsActive,CreatedAt
+1,Maya D'Souza,Senior Hair Stylist,+919812340001,true,2026-01-01T08:00:00Z
+2,Rahul Khanna,Color Specialist,+919812340002,true,2026-01-01T08:00:00Z
+3,Ananya Bose,Bridal Makeup Artist,+919812340003,true,2026-01-01T08:00:00Z
+4,Imran Sheikh,Barber,+919812340004,true,2026-01-01T08:00:00Z
+5,Pooja Menon,Nail Technician,+919812340005,true,2026-01-01T08:00:00Z
+6,Sahil Bhat,Skin Therapist,+919812340006,true,2026-01-01T08:00:00Z
+7,Tanya Lobo,Junior Hair Stylist,+919812340007,true,2026-02-01T08:00:00Z
+8,Vivek Pillai,Massage Therapist,+919812340008,false,2026-01-01T08:00:00Z

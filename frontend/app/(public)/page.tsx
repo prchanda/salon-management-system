@@ -1,0 +1,141 @@
+import Link from "next/link";
+import { Hero } from "@/components/Hero";
+import { RotatingTestimonials } from "@/components/RotatingTestimonials";
+import { ServiceCard } from "@/components/ServiceCard";
+import { api } from "@/lib/api";
+import { FALLBACK_SERVICES } from "@/lib/fallbackServices";
+import { SALON, telLink, waLink } from "@/lib/salon";
+import type { Review, Service } from "@/lib/types";
+
+async function safeGetServices(): Promise<Service[]> {
+  try {
+    const services = await api.getServices();
+    return services.length > 0 ? services : FALLBACK_SERVICES;
+  } catch {
+    return FALLBACK_SERVICES;
+  }
+}
+
+async function safeGetReviews(): Promise<Review[]> {
+  try {
+    return await api.getReviews(20);
+  } catch {
+    return [];
+  }
+}
+
+const PILLARS = [
+  {
+    title: "Considered craft",
+    body: "Every cut, color and treatment is led by a senior specialist with at least seven years behind the chair.",
+  },
+  {
+    title: "Quiet hospitality",
+    body: "A calm room, single-use kits, fresh linen — the small things, done with care.",
+  },
+  {
+    title: "Honest pricing",
+    body: "What you see is what you pay. Consultations are always complimentary.",
+  },
+];
+
+export default async function HomePage() {
+  const [services, reviews] = await Promise.all([
+    safeGetServices().then((s) => s.slice(0, 6)),
+    safeGetReviews(),
+  ]);
+
+  return (
+    <>
+      <Hero reviews={reviews} />
+
+      <section className="border-y border-ink-900/10 bg-cream-100">
+        <div className="container-page grid gap-10 py-16 sm:grid-cols-3 sm:gap-12">
+          {PILLARS.map((p, i) => (
+            <div key={p.title}>
+              <p className="font-serif text-3xl text-gold-600">0{i + 1}</p>
+              <h3 className="mt-4 font-serif text-xl text-ink-900">{p.title}</h3>
+              <p className="mt-3 text-sm leading-relaxed text-ink-600">{p.body}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section className="section">
+        <div className="container-page">
+          <div className="grid gap-12 lg:grid-cols-12">
+            <div className="lg:col-span-4">
+              <span className="eyebrow">The menu</span>
+              <h2 className="h2 mt-4">Services & honest prices.</h2>
+              <p className="lead mt-5">
+                A curated edit of our most-loved treatments. Every visit begins
+                with a quiet consultation.
+              </p>
+              <Link href="/services" className="btn-ghost mt-8 inline-flex">
+                See full menu <span aria-hidden>→</span>
+              </Link>
+            </div>
+
+            <div className="lg:col-span-8">
+              {services.length === 0 ? (
+                <p className="rounded-xl bg-cream-100 p-8 text-center text-sm text-ink-500">
+                  Services will appear here once the atelier is open.
+                </p>
+              ) : (
+                <div className="grid gap-x-10 gap-y-8 sm:grid-cols-2">
+                  {services.map((s) => (
+                    <ServiceCard key={s.id} service={s} />
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="bg-ink-900 text-cream-50">
+        <div className="container-page py-20 text-center sm:py-24">
+          <RotatingTestimonials reviews={reviews} />
+          <Link
+            href="/reviews"
+            className="mt-10 inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-widest text-gold-400 hover:text-gold-300"
+          >
+            Read all reviews <span aria-hidden>→</span>
+          </Link>
+        </div>
+      </section>
+
+      <section className="section">
+        <div className="container-page text-center">
+          <span className="eyebrow">Reserve</span>
+          <h2 className="display mt-4 mx-auto max-w-2xl">
+            Your chair is <span className="italic text-gold-600">waiting.</span>
+          </h2>
+          <p className="lead mx-auto mt-5 max-w-xl">
+            Send us a WhatsApp or give us a call — we&apos;ll confirm your slot
+            in minutes.
+          </p>
+          <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
+            <a
+              href={waLink()}
+              target="_blank"
+              rel="noreferrer"
+              className="btn-primary whitespace-nowrap"
+            >
+              WhatsApp Us
+            </a>
+            <a
+              href={telLink()}
+              className="btn-outline whitespace-nowrap md:hidden"
+            >
+              Call {SALON.phoneDisplay}
+            </a>
+          </div>
+          <p className="mt-6 text-xs uppercase tracking-widest text-ink-500">
+            {SALON.hours} · {SALON.address}
+          </p>
+        </div>
+      </section>
+    </>
+  );
+}

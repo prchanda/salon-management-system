@@ -1,0 +1,13 @@
+Id,service_name,Description,duration_minutes,Price,IsActive,CreatedAt
+1,Signature Haircut,Consultation; wash and precision cut by a senior artist,60,1800,true,2026-01-01T09:00:00Z
+2,Global Hair Color,Single-tone permanent color using L'Oréal Inoa,120,4500,true,2026-01-01T09:00:00Z
+3,Balayage Highlights,Hand-painted highlights for a sun-kissed finish,180,7500,true,2026-01-01T09:00:00Z
+4,Keratin Smoothing,Frizz-control treatment lasting up to 4 months,210,9500,true,2026-01-01T09:00:00Z
+5,Hair Spa Ritual,Deep-conditioning scalp and hair therapy,75,2200,true,2026-01-01T09:00:00Z
+6,Beard Sculpt,Hot-towel shave and beard shaping,45,900,true,2026-01-01T09:00:00Z
+7,Classic Manicure,Nail care with cuticle work and polish,45,1200,true,2026-01-01T09:00:00Z
+8,Gel Pedicure,Pedicure finished with long-lasting gel polish,75,2000,true,2026-01-01T09:00:00Z
+9,Hydrafacial Glow,Three-step facial for instant radiance,60,3500,true,2026-01-01T09:00:00Z
+10,Bridal Makeup,Full bridal look with airbrush makeup and hair,240,25000,true,2026-01-01T09:00:00Z
+11,Threading & Waxing,Eyebrow threading combined with full-arm wax,40,800,true,2026-01-01T09:00:00Z
+12,Head Massage,Relaxing 30-minute Ayurvedic head massage,30,700,false,2026-01-01T09:00:00Z

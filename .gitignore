@@ -1,0 +1,39 @@
+# ---------- Secrets / local config ----------
+backend/local.settings.json
+**/appsettings.*.local.json
+*.env
+.env
+.env.*
+!.env.example
+
+# ---------- .NET ----------
+[Bb]in/
+[Oo]bj/
+*.user
+*.suo
+*.userprefs
+project.lock.json
+artifacts/
+
+# Azure Functions
+azure-functions-core-tools/
+.azurefunctions/
+
+# ---------- Node / Next.js ----------
+node_modules/
+.next/
+out/
+.vercel/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# ---------- Editor / OS ----------
+.vs/
+.vscode/*
+!.vscode/extensions.json
+.idea/
+.DS_Store
+Thumbs.db
+*.swp
