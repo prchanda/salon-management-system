@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { api } from "@/lib/api";
 import type { Customer } from "@/lib/types";
+import { NavSubmitButton } from "@/components/NavSubmitButton";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Customers — Reception" };
@@ -45,9 +46,7 @@ export default async function CustomersListPage({
           placeholder="Search by phone or name…"
           className="input-field w-full sm:w-80"
         />
-        <button type="submit" className="btn-outline !py-2 !px-4 text-[11px]">
-          Search
-        </button>
+        <NavSubmitButton pendingText="Searching…">Search</NavSubmitButton>
       </form>
 
       <div className="overflow-hidden rounded-2xl bg-cream-50 shadow-soft">

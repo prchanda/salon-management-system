@@ -6,6 +6,7 @@ import {
   RECEPTION_COOKIE,
   RECEPTION_USER_COOKIE,
   RECEPTION_STAFF_ID_COOKIE,
+  RECEPTION_MUST_CHANGE_COOKIE,
   canStaffAccess,
 } from "./roles";
 
@@ -20,19 +21,14 @@ const COOKIE_DEFAULTS = {
   maxAge: 60 * 60 * 12, // 12 hours
 };
 
-function ownerCredentials() {
-  const username = (process.env.RECEPTION_OWNER_USERNAME ?? "owner")
-    .trim()
-    .toLowerCase();
-  const password =
-    process.env.RECEPTION_OWNER_PASSWORD ??
-    process.env.RECEPTION_PASSWORD ??
-    "***REMOVED***";
-  return { username, password };
-}
-
 type StaffLoginResult =
-  | { kind: "ok"; fullName: string; staffId: number }
+  | {
+      kind: "ok";
+      fullName: string;
+      staffId: number;
+      mustChangePassword: boolean;
+      isOwner: boolean;
+    }
   | { kind: "credentials" }
   | { kind: "pending" }
   | { kind: "server" };
@@ -51,8 +47,19 @@ async function callStaffLogin(
     if (res.status === 401) return { kind: "credentials" };
     if (res.status === 403) return { kind: "pending" };
     if (!res.ok) return { kind: "server" };
-    const body = (await res.json()) as { id: number; fullName: string };
-    return { kind: "ok", fullName: body.fullName, staffId: body.id };
+    const body = (await res.json()) as {
+      id: number;
+      fullName: string;
+      mustChangePassword?: boolean;
+      isOwner?: boolean;
+    };
+    return {
+      kind: "ok",
+      fullName: body.fullName,
+      staffId: body.id,
+      mustChangePassword: body.mustChangePassword === true,
+      isOwner: body.isOwner === true,
+    };
   } catch {
     return { kind: "server" };
   }
@@ -113,9 +120,9 @@ async function callResetPassword(
 }
 
 /**
- * Unified reception login. Detects role from the username:
- *   • Reserved owner username (default "owner")  → owner login
- *   • Any other username                         → staff login (via backend)
+ * Unified reception login. Every account — including the owner — is a Staff
+ * row verified by the backend. The owner is distinguished by the isOwner flag
+ * returned from the login endpoint, which grants the elevated "owner" session.
  */
 export async function loginAction(formData: FormData) {
   const username = String(formData.get("username") ?? "")
@@ -131,20 +138,7 @@ export async function loginAction(formData: FormData) {
     redirect(failPath("credentials"));
   }
 
-  const owner = ownerCredentials();
-
-  // Owner login path
-  if (username === owner.username) {
-    if (password !== owner.password) {
-      redirect(failPath("credentials"));
-    }
-    cookies().set(RECEPTION_COOKIE, "owner", COOKIE_DEFAULTS);
-    cookies().delete(RECEPTION_USER_COOKIE);
-    cookies().delete(RECEPTION_STAFF_ID_COOKIE);
-    redirect(next || "/reception");
-  }
-
-  // Staff login path — fetch + classify before doing anything that redirects.
+  // Fetch + classify before doing anything that redirects.
   const result = await callStaffLogin(username, password);
 
   if (result.kind === "credentials") {
@@ -157,13 +151,29 @@ export async function loginAction(formData: FormData) {
     redirect(failPath("server"));
   }
 
-  cookies().set(RECEPTION_COOKIE, "staff", COOKIE_DEFAULTS);
+  cookies().set(
+    RECEPTION_COOKIE,
+    result.isOwner ? "owner" : "staff",
+    COOKIE_DEFAULTS
+  );
   cookies().set(RECEPTION_USER_COOKIE, result.fullName, {
     ...COOKIE_DEFAULTS,
     httpOnly: false,
   });
   cookies().set(RECEPTION_STAFF_ID_COOKIE, String(result.staffId), COOKIE_DEFAULTS);
 
+  // Accounts seeded/created with a temporary password must set their own
+  // password before doing anything (applies to the owner too).
+  if (result.mustChangePassword) {
+    cookies().set(RECEPTION_MUST_CHANGE_COOKIE, "1", COOKIE_DEFAULTS);
+    redirect("/reception/change-password");
+  }
+  cookies().delete(RECEPTION_MUST_CHANGE_COOKIE);
+
+  // The owner may go anywhere; staff are confined to their allowed routes.
+  if (result.isOwner) {
+    redirect(next || "/reception");
+  }
   const safeNext = canStaffAccess(next) ? next : "/reception";
   redirect(safeNext);
 }
@@ -171,7 +181,7 @@ export async function loginAction(formData: FormData) {
 /** Staff self-service registration — creates a new Staff row. */
 export async function staffRegisterAction(formData: FormData) {
   const fullName = String(formData.get("fullName") ?? "").trim();
-  const role = String(formData.get("role") ?? "").trim();
+  const roles = formData.getAll("roles").map((r) => String(r).trim()).filter(Boolean);
   const phone = String(formData.get("phone") ?? "").trim();
   const email = String(formData.get("email") ?? "").trim().toLowerCase();
   const username = String(formData.get("username") ?? "")
@@ -184,7 +194,7 @@ export async function staffRegisterAction(formData: FormData) {
     `/reception/register?error=${encodeURIComponent(reason)}`;
 
   if (fullName.length < 2) redirect(errorPath("Please enter your full name."));
-  if (role.length < 2) redirect(errorPath("Please enter your role."));
+  if (roles.length === 0) redirect(errorPath("Please select at least one role."));
   if (!/^\d{10}$/.test(phone)) {
     redirect(errorPath("Phone number must be exactly 10 digits."));
   }
@@ -193,13 +203,10 @@ export async function staffRegisterAction(formData: FormData) {
   }
   if (password.length < 8) redirect(errorPath("Password must be at least 8 characters."));
   if (password !== confirm) redirect(errorPath("Passwords do not match."));
-  if (username === ownerCredentials().username) {
-    redirect(errorPath("That username is reserved. Please choose another."));
-  }
 
   const result = await callStaffRegister({
     fullName,
-    role,
+    roles,
     phoneNumber: phone,
     email,
     username,
@@ -220,6 +227,7 @@ export async function logoutAction() {
   cookies().delete(RECEPTION_COOKIE);
   cookies().delete(RECEPTION_USER_COOKIE);
   cookies().delete(RECEPTION_STAFF_ID_COOKIE);
+  cookies().delete(RECEPTION_MUST_CHANGE_COOKIE);
   redirect("/reception/login");
 }
 
@@ -293,4 +301,76 @@ export async function completePasswordResetAction(formData: FormData) {
   if (kind === "server") redirect(errorPath("Could not reach the server. Please try again."));
 
   redirect("/reception/login?reset=1");
+}
+
+/**
+ * Forced first-login password change for owner-created staff accounts.
+ * Verifies the current (temporary) password via the backend, then clears
+ * the must-change cookie on success.
+ */
+export async function changePasswordAction(formData: FormData) {
+  const role = cookies().get(RECEPTION_COOKIE)?.value;
+  const staffIdRaw = cookies().get(RECEPTION_STAFF_ID_COOKIE)?.value;
+  const staffId = staffIdRaw ? Number(staffIdRaw) : NaN;
+
+  if (
+    (role !== "staff" && role !== "owner") ||
+    !Number.isFinite(staffId) ||
+    staffId <= 0
+  ) {
+    redirect("/reception/login");
+  }
+
+  const currentPassword = String(formData.get("currentPassword") ?? "");
+  const newPassword = String(formData.get("newPassword") ?? "");
+  const confirm = String(formData.get("confirm") ?? "");
+
+  const errorPath = (reason: string) =>
+    `/reception/change-password?error=${encodeURIComponent(reason)}`;
+
+  if (currentPassword.length === 0) {
+    redirect(errorPath("Enter your temporary password."));
+  }
+  if (newPassword.length < 8) {
+    redirect(errorPath("New password must be at least 8 characters."));
+  }
+  if (newPassword !== confirm) {
+    redirect(errorPath("Passwords do not match."));
+  }
+  if (newPassword === currentPassword) {
+    redirect(errorPath("Choose a password different from the temporary one."));
+  }
+
+  let kind: "ok" | "unauthorized" | "bad" | "server" = "ok";
+  let message = "";
+  try {
+    const res = await fetch(`${API_BASE_URL}/staff/change-password`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ staffId, currentPassword, newPassword }),
+      cache: "no-store",
+    });
+    if (res.ok) {
+      kind = "ok";
+    } else if (res.status === 401) {
+      kind = "unauthorized";
+    } else {
+      kind = "bad";
+      const body = (await res.json().catch(() => null)) as { message?: string } | null;
+      message = body?.message ?? "Could not update your password.";
+    }
+  } catch {
+    kind = "server";
+  }
+
+  if (kind === "unauthorized") {
+    redirect(errorPath("That temporary password is incorrect."));
+  }
+  if (kind === "bad") redirect(errorPath(message));
+  if (kind === "server") {
+    redirect(errorPath("Could not reach the server. Please try again."));
+  }
+
+  cookies().delete(RECEPTION_MUST_CHANGE_COOKIE);
+  redirect("/reception");
 }

@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { staffRegisterAction } from "../auth";
 import { SubmitButton } from "@/components/SubmitButton";
+import { RoleMultiSelect } from "@/components/reception/RoleMultiSelect";
+import { SALON_ROLES } from "@/lib/salon";
 
 export const metadata = {
   title: "Staff Registration — Mr. & Mrs. Cuts Salon",
@@ -37,12 +39,10 @@ export default function StaffRegisterPage({
             autoComplete="name"
             autoFocus
           />
-          <Field
-            id="role"
-            name="role"
-            label="Role (e.g. Stylist, Therapist)"
-            type="text"
-            autoComplete="organization-title"
+          <RoleMultiSelect
+            name="roles"
+            label="Roles (select one or more)"
+            options={SALON_ROLES}
           />
           <Field
             id="phone"

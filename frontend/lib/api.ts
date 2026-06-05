@@ -113,6 +113,7 @@ export const api = {
       fullName: string;
       role: string;
       username: string;
+      mustChangePassword?: boolean;
     }>("/staff/login", {
       method: "POST",
       body: JSON.stringify(payload),
@@ -173,6 +174,38 @@ export const api = {
 
   // Reception — staff account administration (owner only)
   getStaffAccounts: () => request<StaffAccount[]>("/staff/accounts"),
+  getStaffSessionStatus: (id: number) =>
+    request<{
+      id: number;
+      isActive: boolean;
+      isApproved: boolean;
+      mustChangePassword: boolean;
+    }>(`/staff/${id}/session-status`),
+  createStaffAccount: (payload: {
+    fullName: string;
+    roles: string[];
+    phoneNumber: string;
+    email?: string;
+    username: string;
+    password: string;
+  }) =>
+    request<StaffAccount>("/staff/accounts", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
+  updateStaffAccount: (
+    id: number,
+    payload: {
+      fullName: string;
+      roles: string[];
+      phoneNumber: string;
+      email?: string;
+    }
+  ) =>
+    request<StaffAccount>(`/staff/${id}/profile`, {
+      method: "PUT",
+      body: JSON.stringify(payload),
+    }),
   approveStaffAccount: (id: number) =>
     request<{ id: number; isApproved: boolean; approvedAt: string }>(
       `/staff/${id}/approve`,

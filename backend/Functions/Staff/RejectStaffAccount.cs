@@ -33,6 +33,13 @@ public class RejectStaffAccount
             return req.CreateResponse(HttpStatusCode.NotFound);
         }
 
+        // The owner account can never be revoked — doing so would lock the
+        // salon out of its own admin tools.
+        if (staff.IsOwner)
+        {
+            return req.CreateResponse(HttpStatusCode.Forbidden);
+        }
+
         var emailTo = staff.Email;
         var firstName = staff.FullName.Split(' ').FirstOrDefault() ?? "there";
         var wasApproved = staff.IsApproved;

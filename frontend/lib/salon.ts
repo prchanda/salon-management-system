@@ -26,3 +26,19 @@ export function telLink() {
   const sanitized = SALON.phone.replace(/[^\d+]/g, "");
   return `tel:${sanitized}`;
 }
+
+// Canonical staff job roles. Must stay in sync with the backend catalogue in
+// backend/Helpers/SalonRoles.cs. Staff pick one or more from this list.
+export const SALON_ROLES = [
+  "Hair Stylist",
+  "Barber",
+  "Colorist",
+  "Beautician",
+  "Makeup Artist",
+  "Nail Technician",
+  "Esthetician",
+  "Massage Therapist",
+  "Spa Therapist",
+  "Receptionist",
+  "Manager",
+] as const;

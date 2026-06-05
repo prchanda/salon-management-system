@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 
 const COOKIE = "reception_auth";
+const MUST_CHANGE_COOKIE = "reception_must_change";
+const CHANGE_PASSWORD_PATH = "/reception/change-password";
 
 const STAFF_ALLOWED_PREFIXES = [
   "/reception",
@@ -43,8 +45,25 @@ export function middleware(req: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  // Staff are confined to a subset of pages.
-  if (role === "staff" && !isStaffAllowed(pathname)) {
+  // Forced first-login password change: pin the staff member to the
+  // change-password page until they clear the flag. This is a fast-path
+  // based on the cookie; the reception layout and the change-password page
+  // also verify against the backend, so a deleted cookie cannot bypass it.
+  const mustChange = req.cookies.get(MUST_CHANGE_COOKIE)?.value === "1";
+  if (mustChange && pathname !== CHANGE_PASSWORD_PATH) {
+    const url = req.nextUrl.clone();
+    url.pathname = CHANGE_PASSWORD_PATH;
+    url.search = "";
+    return NextResponse.redirect(url);
+  }
+
+  // Staff are confined to a subset of pages (the change-password page is
+  // always reachable so the forced-change flow can complete).
+  if (
+    role === "staff" &&
+    pathname !== CHANGE_PASSWORD_PATH &&
+    !isStaffAllowed(pathname)
+  ) {
     const url = req.nextUrl.clone();
     url.pathname = "/reception";
     url.search = "";

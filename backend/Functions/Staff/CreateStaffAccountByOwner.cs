@@ -10,27 +10,29 @@ using StaffEntity = backend.Entities.Staff;
 namespace backend.Functions.Staff;
 
 /// <summary>
-/// Self-service staff signup. Creates a new Staff row with the
-/// supplied credentials. Username must be globally unique.
+/// Owner-only: manually create a staff account with login credentials.
+/// Used for staff members who have no email address and therefore
+/// cannot self-register. Email is optional and the account is
+/// approved immediately so the staff member can sign in right away.
 /// </summary>
-public class RegisterStaffAccount
+public class CreateStaffAccountByOwner
 {
     private readonly SalonDbContext _context;
 
-    public RegisterStaffAccount(SalonDbContext context)
+    public CreateStaffAccountByOwner(SalonDbContext context)
     {
         _context = context;
     }
 
-    [Function("RegisterStaffAccount")]
+    [Function("CreateStaffAccountByOwner")]
     public async Task<HttpResponseData> Run(
-        [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "staff/registration/register")]
+        [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "staff/accounts")]
         HttpRequestData req)
     {
-        StaffRegisterDto? dto;
+        OwnerCreateStaffAccountDto? dto;
         try
         {
-            dto = await req.ReadFromJsonAsync<StaffRegisterDto>();
+            dto = await req.ReadFromJsonAsync<OwnerCreateStaffAccountDto>();
         }
         catch
         {
@@ -73,8 +75,12 @@ public class RegisterStaffAccount
         {
             return await Bad(req, "Phone number must be exactly 10 digits.");
         }
-        if (email.Length == 0 || email.Length > 120 ||
-            !System.Text.RegularExpressions.Regex.IsMatch(email, @"^[^\s@]+@[^\s@]+\.[^\s@]+$"))
+
+        // Email is optional for owner-created accounts. Validate only when present.
+        var hasEmail = email.Length > 0;
+        if (hasEmail &&
+            (email.Length > 120 ||
+             !System.Text.RegularExpressions.Regex.IsMatch(email, @"^[^\s@]+@[^\s@]+\.[^\s@]+$")))
         {
             return await Bad(req, "Please provide a valid email address.");
         }
@@ -91,10 +97,13 @@ public class RegisterStaffAccount
             return await Bad(req, "That phone number is already registered.");
         }
 
-        var emailTaken = await _context.Staff.AnyAsync(s => s.Email == email && s.IsActive);
-        if (emailTaken)
+        if (hasEmail)
         {
-            return await Bad(req, "That email address is already registered.");
+            var emailTaken = await _context.Staff.AnyAsync(s => s.Email == email && s.IsActive);
+            if (emailTaken)
+            {
+                return await Bad(req, "That email address is already registered.");
+            }
         }
 
         var (hash, salt) = PasswordHasher.Hash(password);
@@ -105,22 +114,22 @@ public class RegisterStaffAccount
             FullName = fullName,
             Role = SalonRoles.Join(roles),
             PhoneNumber = phone,
-            Email = email,
+            Email = hasEmail ? email : null,
             IsActive = true,
             CreatedAt = now,
             Username = username,
             PasswordHash = hash,
             PasswordSalt = salt,
             RegisteredAt = now,
-            IsApproved = false,
-            ApprovedAt = null,
+            // Owner-created accounts are trusted and approved immediately.
+            IsApproved = true,
+            ApprovedAt = now,
+            // The owner sets a temporary password; force a change on first login.
+            MustChangePassword = true,
         };
 
         _context.Staff.Add(staff);
         await _context.SaveChangesAsync();
-
-        // Best-effort owner notification — don't fail registration if email fails.
-        await NotifyOwnerAsync(staff);
 
         var response = req.CreateResponse(HttpStatusCode.OK);
         await response.WriteAsJsonAsync(new
@@ -128,37 +137,17 @@ public class RegisterStaffAccount
             staff.Id,
             staff.FullName,
             staff.Role,
+            Roles = roles,
             staff.Username,
-            pending = true,
+            staff.Email,
+            staff.PhoneNumber,
+            staff.IsActive,
+            staff.IsApproved,
+            staff.MustChangePassword,
+            staff.RegisteredAt,
+            staff.ApprovedAt,
         });
         return response;
-    }
-
-    private static async Task NotifyOwnerAsync(StaffEntity staff)
-    {
-        var ownerEmail = Environment.GetEnvironmentVariable("OWNER_EMAIL");
-        if (string.IsNullOrWhiteSpace(ownerEmail)) return;
-
-        var frontendBase = Environment.GetEnvironmentVariable("FRONTEND_BASE_URL")
-            ?.TrimEnd('/') ?? "http://localhost:3000";
-        var reviewUrl = $"{frontendBase}/reception/staff";
-
-        var html = $@"
-<p>A new staff member just requested an account.</p>
-<ul>
-  <li><strong>Name:</strong> {System.Net.WebUtility.HtmlEncode(staff.FullName)}</li>
-  <li><strong>Role:</strong> {System.Net.WebUtility.HtmlEncode(staff.Role)}</li>
-  <li><strong>Username:</strong> {System.Net.WebUtility.HtmlEncode(staff.Username)}</li>
-  <li><strong>Email:</strong> {System.Net.WebUtility.HtmlEncode(staff.Email ?? "")}</li>
-  <li><strong>Phone:</strong> {System.Net.WebUtility.HtmlEncode(staff.PhoneNumber ?? "")}</li>
-</ul>
-<p>They cannot sign in until you approve them.</p>
-<p><a href=""{reviewUrl}"">Review pending accounts</a></p>";
-
-        await EmailSender.SendAsync(
-            ownerEmail,
-            $"New staff signup: {staff.FullName}",
-            html);
     }
 
     private static async Task<HttpResponseData> Bad(HttpRequestData req, string message)

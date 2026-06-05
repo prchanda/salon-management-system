@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
 import type { Customer, Service, Staff } from "@/lib/types";
+import { Spinner } from "@/components/Spinner";
 
 function todayIso() {
   const d = new Date();
@@ -40,6 +41,7 @@ export default function NewAppointmentPage() {
   const [remarks, setRemarks] = useState("");
 
   const [submitting, setSubmitting] = useState(false);
+  const [lookingUp, setLookingUp] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -51,12 +53,15 @@ export default function NewAppointmentPage() {
     setLookupTried(true);
     setLookup(null);
     if (!phone.trim()) return;
+    setLookingUp(true);
     try {
       const c = await api.getCustomerByPhone(phone.trim());
       setLookup(c);
       setFullName(c.fullName);
     } catch {
       setLookup(null);
+    } finally {
+      setLookingUp(false);
     }
   }
 
@@ -75,7 +80,7 @@ export default function NewAppointmentPage() {
 
     setSubmitting(true);
     try {
-      const res = await api.createAppointment({
+      await api.createAppointment({
         customerId: lookup?.id,
         phoneNumber: walkIn || lookup ? undefined : phone.trim() || undefined,
         fullName:
@@ -88,11 +93,10 @@ export default function NewAppointmentPage() {
         appointmentTime: `${time}:00`,
         remarks: remarks.trim() || undefined,
       });
-      if (res.customer) {
-        router.push(`/reception/customers/${res.customer.id}`);
-      } else {
-        router.push("/reception");
-      }
+      router.push("/reception");
+      // Invalidate the Router Cache so the bookings list re-fetches and
+      // shows the appointment we just created without a manual refresh.
+      router.refresh();
     } catch (err) {
       setError((err as Error).message);
     } finally {
@@ -132,10 +136,11 @@ export default function NewAppointmentPage() {
             <button
               type="button"
               onClick={doLookup}
-              disabled={walkIn}
-              className="btn-outline !py-2 !px-4 text-[11px]"
+              disabled={walkIn || lookingUp}
+              className="btn-outline inline-flex items-center gap-1.5 !py-2 !px-4 text-[11px] disabled:cursor-progress disabled:opacity-70"
             >
-              Look up
+              {lookingUp && <Spinner className="h-3 w-3" />}
+              {lookingUp ? "Looking up…" : "Look up"}
             </button>
           </div>
           {lookup && (
@@ -271,8 +276,9 @@ export default function NewAppointmentPage() {
           <button
             type="submit"
             disabled={submitting}
-            className="btn-primary !py-2 !px-4 text-[11px]"
+            className="btn-primary inline-flex items-center gap-1.5 !py-2 !px-4 text-[11px] disabled:cursor-progress disabled:opacity-70"
           >
+            {submitting && <Spinner light className="h-3 w-3" />}
             {submitting ? "Saving…" : "Save booking"}
           </button>
         </div>

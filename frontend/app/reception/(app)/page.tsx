@@ -91,8 +91,10 @@ export default async function ReceptionTodayPage({
   const date = searchParams.date ?? today;
   const isToday = date === today;
   const role = getRole();
-  const staffId = getStaffId();
   const staffName = getDisplayName();
+
+  // Staff see only their own bookings; the owner sees the whole day.
+  const filterStaffId = role === "staff" ? getStaffId() : null;
 
   return (
     <div className="space-y-8">
@@ -128,8 +130,8 @@ export default async function ReceptionTodayPage({
         />
       </div>
 
-      <Suspense key={`${date}-${staffId ?? "all"}`} fallback={<TodaySkeleton />}>
-        <TodayContent date={date} isToday={isToday} staffId={staffId} />
+      <Suspense key={`${date}-${filterStaffId ?? "all"}`} fallback={<TodaySkeleton />}>
+        <TodayContent date={date} isToday={isToday} staffId={filterStaffId} />
       </Suspense>
     </div>
   );

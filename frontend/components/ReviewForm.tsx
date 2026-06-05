@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { api } from "@/lib/api";
+import { Spinner } from "@/components/Spinner";
 
 const QUOTE_MIN = 10;
 const QUOTE_MAX = 500;
@@ -163,8 +164,9 @@ export function ReviewForm() {
         <button
           type="submit"
           disabled={submitting}
-          className="btn-primary disabled:cursor-not-allowed disabled:opacity-60"
+          className="btn-primary inline-flex items-center gap-2 disabled:cursor-progress disabled:opacity-60"
         >
+          {submitting && <Spinner light className="h-4 w-4" />}
           {submitting ? "Sending…" : "Send review"}
         </button>
         <Link href="/" className="text-sm text-ink-500 hover:text-ink-900">

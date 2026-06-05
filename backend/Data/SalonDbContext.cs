@@ -124,15 +124,25 @@ public class SalonDbContext : DbContext
             .HasDefaultValue(false);
         modelBuilder.Entity<Staff>().Property(x => x.ApprovedAt)
             .HasColumnName("approved_at");
+        modelBuilder.Entity<Staff>().Property(x => x.MustChangePassword)
+            .HasColumnName("must_change_password")
+            .HasDefaultValue(false);
+
+        modelBuilder.Entity<Staff>().Property(x => x.IsOwner)
+            .HasColumnName("is_owner")
+            .HasDefaultValue(false);
 
         modelBuilder.Entity<Staff>()
             .HasIndex(x => x.Username)
             .IsUnique()
             .HasFilter("username IS NOT NULL");
 
+        // Email must be unique only among active staff. A revoked account keeps
+        // its email but is deactivated, so it must not block a fresh sign-up
+        // that reuses the same address.
         modelBuilder.Entity<Staff>()
             .HasIndex(x => x.Email)
             .IsUnique()
-            .HasFilter("email IS NOT NULL");
+            .HasFilter("email IS NOT NULL AND \"IsActive\"");
     }
 }

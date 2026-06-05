@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { api } from "@/lib/api";
 import type { Customer } from "@/lib/types";
+import { Spinner } from "@/components/Spinner";
 
 interface Props {
   /** The customer being kept. The chosen duplicate is merged into this one. */
@@ -138,8 +139,9 @@ export function MergeCustomerTool({ targetId, targetName }: Props) {
                   type="button"
                   onClick={doMerge}
                   disabled={merging}
-                  className="btn-primary !py-1.5 !px-4 text-[10px] disabled:opacity-60"
+                  className="btn-primary inline-flex items-center gap-1.5 !py-1.5 !px-4 text-[10px] disabled:cursor-progress disabled:opacity-60"
                 >
+                  {merging && <Spinner light className="h-3 w-3" />}
                   {merging ? "Merging…" : "Confirm merge"}
                 </button>
                 <button

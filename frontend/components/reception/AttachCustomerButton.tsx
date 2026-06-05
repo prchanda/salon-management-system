@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { api } from "@/lib/api";
+import { Spinner } from "@/components/Spinner";
 
 interface Props {
   appointmentId: number;
@@ -77,8 +78,9 @@ export function AttachCustomerButton({ appointmentId, defaultName }: Props) {
             type="button"
             onClick={submit}
             disabled={busy}
-            className="btn-primary !py-1.5 !px-3 text-[11px]"
+            className="btn-primary inline-flex items-center gap-1.5 !py-1.5 !px-3 text-[11px] disabled:cursor-progress disabled:opacity-70"
           >
+            {busy && <Spinner light className="h-3 w-3" />}
             {busy ? "Saving…" : "Save"}
           </button>
           <button

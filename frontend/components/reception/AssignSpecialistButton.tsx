@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/api";
 import type { Staff } from "@/lib/types";
+import { Spinner } from "@/components/Spinner";
 
 interface Props {
   appointmentId: number;
@@ -82,8 +83,9 @@ export function AssignSpecialistButton({ appointmentId }: Props) {
             type="button"
             onClick={submit}
             disabled={busy}
-            className="btn-primary !py-1.5 !px-3 text-[11px]"
+            className="btn-primary inline-flex items-center gap-1.5 !py-1.5 !px-3 text-[11px] disabled:cursor-progress disabled:opacity-70"
           >
+            {busy && <Spinner light className="h-3 w-3" />}
             {busy ? "Saving…" : "Save"}
           </button>
           <button

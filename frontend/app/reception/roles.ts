@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 export const RECEPTION_COOKIE = "reception_auth";
 export const RECEPTION_USER_COOKIE = "reception_user";
 export const RECEPTION_STAFF_ID_COOKIE = "reception_staff_id";
+export const RECEPTION_MUST_CHANGE_COOKIE = "reception_must_change";
 export type Role = "owner" | "staff";
 
 const STAFF_PATH_PREFIXES = [
@@ -29,17 +30,22 @@ export function getRole(): Role | null {
   return null;
 }
 
-/** Display name of the signed-in user (the staff's full name, or "Owner"). */
+/** Display name of the signed-in user (their full name, or a role fallback). */
 export function getDisplayName(): string | null {
   const role = getRole();
   if (!role) return null;
-  if (role === "owner") return "Owner";
-  return cookies().get(RECEPTION_USER_COOKIE)?.value ?? "Staff";
+  return (
+    cookies().get(RECEPTION_USER_COOKIE)?.value ??
+    (role === "owner" ? "Owner" : "Staff")
+  );
 }
 
-/** Numeric staff id for the signed-in staff member (null for owner). */
+/**
+ * Numeric staff id for the signed-in user. The owner is also a Staff row, so
+ * this resolves for owners too (used by the forced password-change flow and
+ * to let the owner book herself as a specialist).
+ */
 export function getStaffId(): number | null {
-  if (getRole() !== "staff") return null;
   const raw = cookies().get(RECEPTION_STAFF_ID_COOKIE)?.value;
   const n = raw ? Number(raw) : NaN;
   return Number.isFinite(n) && n > 0 ? n : null;

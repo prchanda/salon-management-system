@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { api } from "@/lib/api";
+import { Spinner } from "@/components/Spinner";
 
 interface Props {
   customerId: number;
@@ -50,8 +51,9 @@ export function CustomerNotesEditor({ customerId, initial }: Props) {
           type="button"
           onClick={save}
           disabled={saving}
-          className="btn-outline !py-1.5 !px-4 text-[10px]"
+          className="btn-outline inline-flex items-center gap-1.5 !py-1.5 !px-4 text-[10px] disabled:cursor-progress disabled:opacity-70"
         >
+          {saving && <Spinner className="h-3 w-3" />}
           {saving ? "Saving…" : "Save notes"}
         </button>
       </div>

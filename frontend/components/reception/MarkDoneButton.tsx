@@ -3,11 +3,14 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { api } from "@/lib/api";
+import { Spinner } from "@/components/Spinner";
 
 interface Props {
   appointmentId: number;
   suggestedAmount: number;
 }
+
+type CloseStatus = "Done" | "NoShow" | "Cancelled";
 
 export function MarkDoneButton({ appointmentId, suggestedAmount }: Props) {
   const router = useRouter();
@@ -15,10 +18,12 @@ export function MarkDoneButton({ appointmentId, suggestedAmount }: Props) {
   const [amount, setAmount] = useState(String(suggestedAmount || ""));
   const [method, setMethod] = useState("UPI");
   const [submitting, setSubmitting] = useState(false);
+  const [pending, setPending] = useState<CloseStatus | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  async function close(status: "Done" | "NoShow" | "Cancelled") {
+  async function close(status: CloseStatus) {
     setSubmitting(true);
+    setPending(status);
     setError(null);
     try {
       await api.markAppointmentDone(appointmentId, {
@@ -32,6 +37,7 @@ export function MarkDoneButton({ appointmentId, suggestedAmount }: Props) {
       setError((e as Error).message);
     } finally {
       setSubmitting(false);
+      setPending(null);
     }
   }
 
@@ -75,25 +81,28 @@ export function MarkDoneButton({ appointmentId, suggestedAmount }: Props) {
           type="button"
           disabled={submitting}
           onClick={() => close("Done")}
-          className="btn-primary !py-1.5 !px-3 text-[10px]"
+          className="btn-primary inline-flex items-center gap-1.5 !py-1.5 !px-3 text-[10px] disabled:cursor-progress disabled:opacity-70"
         >
-          Mark Done
+          {pending === "Done" && <Spinner light className="h-3 w-3" />}
+          {pending === "Done" ? "Saving…" : "Mark Done"}
         </button>
         <button
           type="button"
           disabled={submitting}
           onClick={() => close("NoShow")}
-          className="text-[10px] font-semibold uppercase tracking-widest text-amber-700 hover:underline"
+          className="inline-flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-widest text-amber-700 hover:underline disabled:cursor-progress disabled:opacity-70"
         >
-          No-show
+          {pending === "NoShow" && <Spinner className="h-3 w-3" />}
+          {pending === "NoShow" ? "Saving…" : "No-show"}
         </button>
         <button
           type="button"
           disabled={submitting}
           onClick={() => close("Cancelled")}
-          className="text-[10px] font-semibold uppercase tracking-widest text-ink-500 hover:underline"
+          className="inline-flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-widest text-ink-500 hover:underline disabled:cursor-progress disabled:opacity-70"
         >
-          Cancel
+          {pending === "Cancelled" && <Spinner className="h-3 w-3" />}
+          {pending === "Cancelled" ? "Saving…" : "Cancel"}
         </button>
         <button
           type="button"

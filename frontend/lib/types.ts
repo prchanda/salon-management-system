@@ -14,6 +14,7 @@ export interface Staff {
   id: number;
   fullName: string;
   role: string;
+  roles: string[];
   phoneNumber?: string | null;
   isActive: boolean;
   createdAt: string;
@@ -114,6 +115,7 @@ export interface StaffAccount {
   id: number;
   fullName: string;
   role: string;
+  roles: string[];
   username: string;
   email?: string | null;
   phoneNumber?: string | null;

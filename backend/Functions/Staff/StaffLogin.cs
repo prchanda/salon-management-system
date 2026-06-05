@@ -90,6 +90,8 @@ public class StaffLogin
             staff.FullName,
             staff.Role,
             staff.Username,
+            staff.MustChangePassword,
+            staff.IsOwner,
         });
         return response;
     }

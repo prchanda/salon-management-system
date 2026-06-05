@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { api } from "@/lib/api";
 import { SALON, waLink } from "@/lib/salon";
+import { NavSubmitButton } from "@/components/NavSubmitButton";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Re-engage — Reception" };
@@ -63,9 +64,7 @@ export default async function DormantPage({
           defaultValue={days}
           className="w-24 rounded-md border border-ink-900/15 bg-cream-50 px-3 py-2 text-sm"
         />
-        <button type="submit" className="btn-outline !py-2 !px-4 text-[11px]">
-          Update
-        </button>
+        <NavSubmitButton pendingText="Loading…">Show guests</NavSubmitButton>
       </form>
 
       <div className="overflow-hidden rounded-2xl bg-cream-50 shadow-soft">

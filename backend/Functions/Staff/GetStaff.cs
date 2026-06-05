@@ -1,4 +1,5 @@
 using backend.Data;
+using backend.Helpers;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.EntityFrameworkCore;
@@ -23,11 +24,33 @@ public class GetStaff
         var staff = await _context.Staff
             .Where(x => x.IsActive)
             .OrderBy(x => x.FullName)
+            .Select(x => new
+            {
+                x.Id,
+                x.FullName,
+                x.Role,
+                x.PhoneNumber,
+                x.IsActive,
+                x.CreatedAt,
+            })
             .ToListAsync();
+
+        // Project to a public-safe shape (no credentials/secrets) and split
+        // the stored role string into a roles array for the UI.
+        var result = staff.Select(s => new
+        {
+            s.Id,
+            s.FullName,
+            s.Role,
+            Roles = SalonRoles.Split(s.Role),
+            s.PhoneNumber,
+            s.IsActive,
+            s.CreatedAt,
+        });
 
         var response = req.CreateResponse(HttpStatusCode.OK);
 
-        await response.WriteAsJsonAsync(staff);
+        await response.WriteAsJsonAsync(result);
 
         return response;
     }
