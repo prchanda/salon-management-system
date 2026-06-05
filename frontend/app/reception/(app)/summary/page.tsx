@@ -121,7 +121,7 @@ async function SummaryContent({ date }: { date: string }) {
     { label: "Booked (open)", value: t.booked },
     { label: "No-show", value: t.noShow },
     { label: "Cancelled", value: t.cancelled },
-    { label: "New guests", value: t.newCustomers },
+    { label: "New customers", value: t.newCustomers },
   ];
 
   return (

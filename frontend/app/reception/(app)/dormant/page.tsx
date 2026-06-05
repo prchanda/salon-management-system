@@ -46,7 +46,7 @@ export default async function DormantPage({
       <div>
         <p className="eyebrow">Re-engage</p>
         <h1 className="mt-2 font-serif text-3xl text-ink-900">
-          Guests we haven&apos;t seen in {data.daysThreshold}+ days
+          Customers we haven&apos;t seen in {data.daysThreshold}+ days
         </h1>
         <p className="mt-2 text-sm text-ink-600">
           {data.customers.length} on the list. One WhatsApp brings most of them
@@ -64,14 +64,14 @@ export default async function DormantPage({
           defaultValue={days}
           className="w-24 rounded-md border border-ink-900/15 bg-cream-50 px-3 py-2 text-sm"
         />
-        <NavSubmitButton pendingText="Loading…">Show guests</NavSubmitButton>
+        <NavSubmitButton pendingText="Loading…">Show customers</NavSubmitButton>
       </form>
 
       <div className="overflow-hidden rounded-2xl bg-cream-50 shadow-soft">
         <table className="w-full text-sm">
           <thead className="border-b border-ink-900/10 bg-cream-100 text-left text-[10px] uppercase tracking-widest text-ink-500">
             <tr>
-              <th className="px-5 py-3">Guest</th>
+              <th className="px-5 py-3">Customer</th>
               <th className="px-5 py-3">Phone</th>
               <th className="px-5 py-3">Last visit</th>
               <th className="px-5 py-3 text-right">Action</th>
@@ -81,7 +81,7 @@ export default async function DormantPage({
             {data.customers.length === 0 && (
               <tr>
                 <td colSpan={4} className="px-5 py-10 text-center text-ink-500">
-                  No dormant guests in this window. 🎉
+                  No dormant customers in this window. 🎉
                 </td>
               </tr>
             )}

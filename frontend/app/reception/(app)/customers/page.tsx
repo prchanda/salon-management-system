@@ -35,7 +35,7 @@ export default async function CustomersListPage({
       <div>
         <p className="eyebrow">Customers</p>
         <h1 className="mt-2 font-serif text-3xl text-ink-900">
-          {all.length} guest{all.length === 1 ? "" : "s"}
+          {all.length} customer{all.length === 1 ? "" : "s"}
         </h1>
       </div>
 

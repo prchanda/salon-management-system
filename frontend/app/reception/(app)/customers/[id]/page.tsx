@@ -62,7 +62,7 @@ export default async function CustomerProfilePage({
           {customer.email ? ` · ${customer.email}` : ""}
         </p>
         <p className="mt-1 text-xs uppercase tracking-widest text-ink-500">
-          Guest since {fmtDate(customer.createdAt)}
+          Customer since {fmtDate(customer.createdAt)}
         </p>
 
         <div className="mt-5">
