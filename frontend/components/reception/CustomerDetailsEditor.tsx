@@ -81,7 +81,7 @@ export function CustomerDetailsEditor({
   }
 
   return (
-    <div className="mt-4 rounded-xl border border-ink-900/10 bg-cream-100 p-4">
+    <div className="rounded-xl border border-ink-900/10 bg-cream-100 p-4">
       <p className="text-[10px] font-semibold uppercase tracking-widest text-ink-600">
         Edit customer details
       </p>

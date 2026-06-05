@@ -65,12 +65,14 @@ export default async function CustomerProfilePage({
           Guest since {fmtDate(customer.createdAt)}
         </p>
 
-        <CustomerDetailsEditor
-          customerId={customer.id}
-          fullName={customer.fullName}
-          phoneNumber={customer.phoneNumber}
-          email={customer.email}
-        />
+        <div className="mt-5">
+          <CustomerDetailsEditor
+            customerId={customer.id}
+            fullName={customer.fullName}
+            phoneNumber={customer.phoneNumber}
+            email={customer.email}
+          />
+        </div>
 
         <dl className="mt-6 grid grid-cols-3 gap-4 border-t border-ink-900/10 pt-5">
           <div>
