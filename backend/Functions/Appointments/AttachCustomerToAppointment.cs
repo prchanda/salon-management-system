@@ -37,6 +37,15 @@ public class AttachCustomerToAppointment
             return bad;
         }
 
+        var phone = dto.PhoneNumber.Trim();
+
+        if (!System.Text.RegularExpressions.Regex.IsMatch(phone, @"^\d{10}$"))
+        {
+            var bad = req.CreateResponse(HttpStatusCode.BadRequest);
+            await bad.WriteStringAsync("Phone number must be exactly 10 digits.");
+            return bad;
+        }
+
         var appointment = await _context.Appointments
             .FirstOrDefaultAsync(x => x.Id == id);
 
@@ -45,7 +54,6 @@ public class AttachCustomerToAppointment
             return req.CreateResponse(HttpStatusCode.NotFound);
         }
 
-        var phone = dto.PhoneNumber.Trim();
         var name = string.IsNullOrWhiteSpace(dto.FullName) ? null : dto.FullName!.Trim();
 
         var customer = await _context.Customers

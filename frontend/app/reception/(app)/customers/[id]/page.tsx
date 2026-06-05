@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { api } from "@/lib/api";
 import { CustomerNotesEditor } from "@/components/reception/CustomerNotesEditor";
+import { CustomerDetailsEditor } from "@/components/reception/CustomerDetailsEditor";
 import { MergeCustomerTool } from "@/components/reception/MergeCustomerTool";
 
 export const dynamic = "force-dynamic";
@@ -63,6 +64,13 @@ export default async function CustomerProfilePage({
         <p className="mt-1 text-xs uppercase tracking-widest text-ink-500">
           Guest since {fmtDate(customer.createdAt)}
         </p>
+
+        <CustomerDetailsEditor
+          customerId={customer.id}
+          fullName={customer.fullName}
+          phoneNumber={customer.phoneNumber}
+          email={customer.email}
+        />
 
         <dl className="mt-6 grid grid-cols-3 gap-4 border-t border-ink-900/10 pt-5">
           <div>

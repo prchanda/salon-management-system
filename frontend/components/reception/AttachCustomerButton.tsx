@@ -24,14 +24,19 @@ export function AttachCustomerButton({ appointmentId, defaultName }: Props) {
 
   async function submit() {
     setError(null);
-    if (!phone.trim()) {
+    const trimmedPhone = phone.trim();
+    if (!trimmedPhone) {
       setError("Phone is required.");
+      return;
+    }
+    if (!/^\d{10}$/.test(trimmedPhone)) {
+      setError("Phone number must be exactly 10 digits.");
       return;
     }
     setBusy(true);
     try {
       await api.attachCustomerToAppointment(appointmentId, {
-        phoneNumber: phone.trim(),
+        phoneNumber: trimmedPhone,
         fullName: fullName.trim() || undefined,
       });
       setOpen(false);
@@ -65,6 +70,8 @@ export function AttachCustomerButton({ appointmentId, defaultName }: Props) {
           value={phone}
           onChange={(e) => setPhone(e.target.value)}
           placeholder="Phone"
+          inputMode="numeric"
+          maxLength={10}
           className="input-field !py-1.5 text-sm"
         />
         <input

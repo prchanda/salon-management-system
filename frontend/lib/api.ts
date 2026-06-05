@@ -159,6 +159,14 @@ export const api = {
     request<Customer>(`/customers/by-phone/${encodeURIComponent(phone)}`),
   getCustomerHistory: (id: number) =>
     request<CustomerHistory>(`/customers/${id}/history`),
+  updateCustomer: (
+    id: number,
+    payload: { fullName: string; phoneNumber?: string | null; email?: string | null }
+  ) =>
+    request<Customer>(`/customers/${id}`, {
+      method: "PUT",
+      body: JSON.stringify(payload),
+    }),
   updateCustomerNotes: (id: number, notes: string | null) =>
     request<Customer>(`/customers/${id}/notes`, {
       method: "PUT",
