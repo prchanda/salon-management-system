@@ -15,6 +15,35 @@
   ::selection {
     @apply bg-gold-400/30 text-ink-900;
   }
+
+  /*
+   * Native <select> defaults look broken on iOS / Android: the platform's
+   * own double-chevron icon overlaps the value text and Safari auto-zooms
+   * the viewport when the font is < 16px. Strip the native chrome, draw
+   * our own chevron, and bump the mobile font-size to 16px so the page
+   * never zooms when the picker opens. text-sm is restored from sm: up.
+   */
+  select {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8' fill='none'><path d='M1 1.5L6 6.5L11 1.5' stroke='%231F1B16' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+    background-size: 0.75rem 0.5rem;
+    padding-right: 2rem;
+    font-size: 16px;
+  }
+
+  @media (min-width: 640px) {
+    select {
+      font-size: 0.875rem; /* text-sm */
+    }
+  }
+
+  select::-ms-expand {
+    display: none;
+  }
 }
 
 @layer components {
