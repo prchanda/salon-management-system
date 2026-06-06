@@ -9,7 +9,7 @@
 //   4. If still too large, scale down again and retry.
 //   5. Upload to Supabase Storage bucket "blog" with a 1-year cache header.
 
-import { BLOG_BUCKET, getSupabase } from "./supabase";
+import { BLOG_BUCKET, PRODUCTS_BUCKET, getSupabase } from "./supabase";
 
 const MAX_DIM = 1600; // px on longest side
 const TARGET_BYTES = 220 * 1024; // ~220 KB — looks great, mobile-friendly
@@ -109,12 +109,28 @@ function randomId(): string {
  * Returns the public URL to persist on the post row.
  */
 export async function uploadBlogImage(file: File): Promise<string> {
+  return uploadCompressedImage(file, BLOG_BUCKET, "covers");
+}
+
+/**
+ * Compresses then uploads a product photo to the public "products" bucket.
+ * Returns the public URL to persist on the product row.
+ */
+export async function uploadProductImage(file: File): Promise<string> {
+  return uploadCompressedImage(file, PRODUCTS_BUCKET, "items");
+}
+
+async function uploadCompressedImage(
+  file: File,
+  bucket: string,
+  folder: string
+): Promise<string> {
   const blob = await compressImage(file);
-  const path = `covers/${randomId()}.webp`;
+  const path = `${folder}/${randomId()}.webp`;
 
   const supabase = getSupabase();
   const { error } = await supabase.storage
-    .from(BLOG_BUCKET)
+    .from(bucket)
     .upload(path, blob, {
       contentType: "image/webp",
       cacheControl: "31536000",
@@ -122,6 +138,6 @@ export async function uploadBlogImage(file: File): Promise<string> {
     });
   if (error) throw error;
 
-  const { data } = supabase.storage.from(BLOG_BUCKET).getPublicUrl(path);
+  const { data } = supabase.storage.from(bucket).getPublicUrl(path);
   return data.publicUrl;
 }

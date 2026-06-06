@@ -1,11 +1,12 @@
 import Link from "next/link";
 import { Hero } from "@/components/Hero";
+import { ProductCard } from "@/components/ProductCard";
 import { RotatingTestimonials } from "@/components/RotatingTestimonials";
 import { ServiceCard } from "@/components/ServiceCard";
 import { api } from "@/lib/api";
 import { FALLBACK_SERVICES } from "@/lib/fallbackServices";
 import { SALON, telLink, waLink } from "@/lib/salon";
-import type { Review, Service } from "@/lib/types";
+import type { Product, Review, Service } from "@/lib/types";
 
 async function safeGetServices(): Promise<Service[]> {
   try {
@@ -19,6 +20,14 @@ async function safeGetServices(): Promise<Service[]> {
 async function safeGetReviews(): Promise<Review[]> {
   try {
     return await api.getReviews(20);
+  } catch {
+    return [];
+  }
+}
+
+async function safeGetProducts(): Promise<Product[]> {
+  try {
+    return await api.getProducts(8);
   } catch {
     return [];
   }
@@ -44,6 +53,7 @@ export default async function HomePage() {
     safeGetServices().then((s) => s.slice(0, 6)),
     safeGetReviews(),
   ]);
+  const products = (await safeGetProducts()).slice(0, 8);
 
   return (
     <>
@@ -92,6 +102,39 @@ export default async function HomePage() {
           </div>
         </div>
       </section>
+
+      {products.length > 0 && (
+        <section className="border-t border-ink-900/10 bg-cream-100">
+          <div className="container-page section">
+            <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+              <div className="max-w-xl">
+                <span className="eyebrow">The Shop</span>
+                <h2 className="h2 mt-4">
+                  Salon-curated{" "}
+                  <span className="italic text-gold-600">essentials.</span>
+                </h2>
+                <p className="lead mt-5">
+                  Skin, hair &amp; styling products our specialists actually
+                  reach for. Browse the catalogue and place an order — we&apos;ll
+                  call to confirm.
+                </p>
+              </div>
+              <Link
+                href="/shop"
+                className="btn-ghost shrink-0 self-start lg:self-auto"
+              >
+                Shop everything <span aria-hidden>→</span>
+              </Link>
+            </div>
+
+            <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              {products.map((p) => (
+                <ProductCard key={p.id} product={p} />
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
 
       <section className="bg-ink-900 text-cream-50">
         <div className="container-page py-20 text-center sm:py-24">

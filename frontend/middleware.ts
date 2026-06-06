@@ -9,6 +9,7 @@ const STAFF_ALLOWED_PREFIXES = [
   "/reception/new",
   "/reception/customers",
   "/reception/dormant",
+  "/reception/orders",
 ];
 
 function isStaffAllowed(pathname: string): boolean {

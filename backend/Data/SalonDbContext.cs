@@ -22,6 +22,10 @@ public class SalonDbContext : DbContext
 
     public DbSet<Post> Posts => Set<Post>();
 
+    public DbSet<Product> Products => Set<Product>();
+
+    public DbSet<ProductOrder> ProductOrders => Set<ProductOrder>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Customer>().ToTable("customers");
@@ -30,6 +34,8 @@ public class SalonDbContext : DbContext
         modelBuilder.Entity<Staff>().ToTable("staff");
         modelBuilder.Entity<Review>().ToTable("reviews");
         modelBuilder.Entity<Post>().ToTable("posts");
+        modelBuilder.Entity<Product>().ToTable("products");
+        modelBuilder.Entity<ProductOrder>().ToTable("product_orders");
 
         modelBuilder.Entity<Post>().Property(x => x.CoverImageUrl)
             .HasColumnName("cover_image_url");
@@ -144,5 +150,63 @@ public class SalonDbContext : DbContext
             .HasIndex(x => x.Email)
             .IsUnique()
             .HasFilter("email IS NOT NULL AND \"IsActive\"");
+
+        // Products — retail catalogue.
+        modelBuilder.Entity<Product>().Property(x => x.ShortDescription)
+            .HasColumnName("short_description");
+        modelBuilder.Entity<Product>().Property(x => x.ImageUrl)
+            .HasColumnName("image_url");
+        modelBuilder.Entity<Product>().Property(x => x.StockQuantity)
+            .HasColumnName("stock_quantity");
+        modelBuilder.Entity<Product>().Property(x => x.IsActive)
+            .HasColumnName("is_active")
+            .HasDefaultValue(true);
+        modelBuilder.Entity<Product>().Property(x => x.CreatedAt)
+            .HasColumnName("created_at");
+        modelBuilder.Entity<Product>().Property(x => x.UpdatedAt)
+            .HasColumnName("updated_at");
+
+        modelBuilder.Entity<Product>()
+            .HasIndex(x => x.IsActive);
+
+        modelBuilder.Entity<Product>()
+            .HasIndex(x => x.Slug)
+            .IsUnique();
+
+        // Product orders — customer-placed retail orders.
+        modelBuilder.Entity<ProductOrder>().Property(x => x.CustomerName)
+            .HasColumnName("customer_name");
+        modelBuilder.Entity<ProductOrder>().Property(x => x.CustomerPhone)
+            .HasColumnName("customer_phone");
+        modelBuilder.Entity<ProductOrder>().Property(x => x.CustomerEmail)
+            .HasColumnName("customer_email");
+        modelBuilder.Entity<ProductOrder>().Property(x => x.DeliveryAddress)
+            .HasColumnName("delivery_address");
+        modelBuilder.Entity<ProductOrder>().Property(x => x.ProductId)
+            .HasColumnName("product_id");
+        modelBuilder.Entity<ProductOrder>().Property(x => x.ProductName)
+            .HasColumnName("product_name");
+        modelBuilder.Entity<ProductOrder>().Property(x => x.UnitPrice)
+            .HasColumnName("unit_price");
+        modelBuilder.Entity<ProductOrder>().Property(x => x.TotalAmount)
+            .HasColumnName("total_amount");
+        modelBuilder.Entity<ProductOrder>().Property(x => x.CreatedAt)
+            .HasColumnName("created_at");
+        modelBuilder.Entity<ProductOrder>().Property(x => x.UpdatedAt)
+            .HasColumnName("updated_at");
+
+        // Set null on the order row if its product is later deleted, so historical
+        // orders survive (the product_name + unit_price snapshot still tells the
+        // story of what was sold).
+        modelBuilder.Entity<ProductOrder>()
+            .HasOne(o => o.Product)
+            .WithMany()
+            .HasForeignKey(o => o.ProductId)
+            .OnDelete(DeleteBehavior.SetNull);
+
+        modelBuilder.Entity<ProductOrder>()
+            .HasIndex(x => x.Status);
+        modelBuilder.Entity<ProductOrder>()
+            .HasIndex(x => x.CreatedAt);
     }
 }

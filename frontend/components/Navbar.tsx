@@ -9,6 +9,7 @@ import { SALON, telLink, waLink } from "@/lib/salon";
 const navLinks = [
   { href: "/", label: "Home" },
   { href: "/services", label: "Services" },
+  { href: "/shop", label: "Shop" },
   { href: "/reviews", label: "Reviews" },
   { href: "/blog", label: "Journal" },
   { href: "/book", label: "Book" },

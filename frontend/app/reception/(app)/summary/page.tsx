@@ -114,6 +114,14 @@ async function SummaryContent({ date }: { date: string }) {
   }
 
   const t = data.totals;
+  // Defensive fallbacks so a stale backend (missing the new shop fields) won't crash the page.
+  const byProduct = data.byProduct ?? [];
+  const productOrdersPlaced = t.productOrdersPlaced ?? 0;
+  const productOrdersCompleted = t.productOrdersCompleted ?? 0;
+  const productOrdersPending = t.productOrdersPending ?? 0;
+  const productRevenue = t.productRevenue ?? 0;
+  const productUnitsSold = t.productUnitsSold ?? 0;
+  const totalRevenue = t.totalRevenue ?? t.revenue + productRevenue;
 
   const stats = [
     { label: "Appointments", value: t.appointments },
@@ -122,28 +130,45 @@ async function SummaryContent({ date }: { date: string }) {
     { label: "No-show", value: t.noShow },
     { label: "Cancelled", value: t.cancelled },
     { label: "New customers", value: t.newCustomers },
+    { label: "Orders placed", value: productOrdersPlaced },
+    { label: "Units sold", value: productUnitsSold },
+    { label: "Orders open", value: productOrdersPending },
   ];
 
   return (
     <div className="space-y-8">
-      <section className="grid gap-4 sm:grid-cols-[2fr_1fr]">
+      <section className="grid gap-4 lg:grid-cols-3">
         <div className="rounded-2xl bg-ink-900 p-8 text-cream-50 shadow-soft">
           <p className="text-[11px] uppercase tracking-widest text-cream-100/70">
-            Revenue collected
+            Service revenue
           </p>
-          <p className="mt-2 font-serif text-5xl">{formatINR(t.revenue)}</p>
+          <p className="mt-2 font-serif text-4xl">{formatINR(t.revenue)}</p>
           <p className="mt-3 text-xs text-cream-100/70">
-            {t.done} {t.done === 1 ? "bill" : "bills"} closed today
+            {t.done} {t.done === 1 ? "bill" : "bills"} closed · avg{" "}
+            {formatINR(t.avgTicket)}
+          </p>
+        </div>
+        <div className="rounded-2xl bg-gold-600 p-8 text-ink-900 shadow-soft">
+          <p className="text-[11px] uppercase tracking-widest text-ink-900/70">
+            Shop revenue
+          </p>
+          <p className="mt-2 font-serif text-4xl">
+            {formatINR(productRevenue)}
+          </p>
+          <p className="mt-3 text-xs text-ink-900/70">
+            {productOrdersCompleted}{" "}
+            {productOrdersCompleted === 1 ? "order" : "orders"} completed ·{" "}
+            {productUnitsSold} {productUnitsSold === 1 ? "unit" : "units"}
           </p>
         </div>
         <div className="rounded-2xl bg-cream-50 p-8 shadow-soft">
           <p className="text-[11px] uppercase tracking-widest text-ink-500">
-            Avg bill
+            Combined revenue
           </p>
           <p className="mt-2 font-serif text-4xl text-ink-900">
-            {formatINR(t.avgTicket)}
+            {formatINR(totalRevenue)}
           </p>
-          <p className="mt-3 text-xs text-ink-500">across completed visits</p>
+          <p className="mt-3 text-xs text-ink-500">services + shop</p>
         </div>
       </section>
 
@@ -297,6 +322,60 @@ async function SummaryContent({ date }: { date: string }) {
           </div>
         </div>
       </section>
+
+      <section>
+        <div className="flex items-baseline justify-between gap-4">
+          <h2 className="font-serif text-xl text-ink-900">Shop sales</h2>
+          <p className="text-[11px] uppercase tracking-widest text-ink-400">
+            Completed orders only
+          </p>
+        </div>
+        <div className="mt-4 overflow-hidden rounded-2xl bg-cream-50 shadow-soft">
+          <table className="w-full text-sm">
+            <thead className="border-b border-ink-900/10 bg-cream-100 text-left text-[10px] uppercase tracking-widest text-ink-500">
+              <tr>
+                <th className="px-5 py-3">Product</th>
+                <th className="px-5 py-3 text-right">Orders</th>
+                <th className="px-5 py-3 text-right">Units</th>
+                <th className="px-5 py-3 text-right">Revenue</th>
+              </tr>
+            </thead>
+            <tbody>
+              {byProduct.length === 0 && (
+                <tr>
+                  <td
+                    colSpan={4}
+                    className="px-5 py-10 text-center text-ink-500"
+                  >
+                    {productOrdersPlaced === 0
+                      ? "No orders placed today."
+                      : `${productOrdersPlaced} order${
+                          productOrdersPlaced === 1 ? "" : "s"
+                        } placed today, none completed yet.`}
+                  </td>
+                </tr>
+              )}
+              {byProduct.map((row) => (
+                <tr
+                  key={`${row.productId ?? "x"}-${row.productName}`}
+                  className="border-b border-ink-900/5 last:border-b-0"
+                >
+                  <td className="px-5 py-3 text-ink-900">{row.productName}</td>
+                  <td className="px-5 py-3 text-right text-ink-700">
+                    {row.orders}
+                  </td>
+                  <td className="px-5 py-3 text-right text-ink-700">
+                    {row.units}
+                  </td>
+                  <td className="px-5 py-3 text-right font-semibold text-ink-900">
+                    {formatINR(row.revenue)}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
     </div>
   );
 }
@@ -304,13 +383,14 @@ async function SummaryContent({ date }: { date: string }) {
 function SummarySkeleton() {
   return (
     <div className="animate-pulse space-y-8">
-      <section className="grid gap-4 sm:grid-cols-[2fr_1fr]">
+      <section className="grid gap-4 lg:grid-cols-3">
         <div className="h-40 rounded-2xl bg-ink-900/80" />
+        <div className="h-40 rounded-2xl bg-gold-600/60" />
         <div className="h-40 rounded-2xl bg-cream-50 shadow-soft" />
       </section>
 
       <section className="grid gap-4 sm:grid-cols-3">
-        {Array.from({ length: 6 }).map((_, i) => (
+        {Array.from({ length: 9 }).map((_, i) => (
           <div key={i} className="rounded-2xl bg-cream-50 p-5 shadow-soft">
             <div className="h-3 w-20 rounded bg-ink-900/10" />
             <div className="mt-4 h-8 w-16 rounded bg-ink-900/10" />

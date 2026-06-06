@@ -23,3 +23,4 @@ export function getSupabase(): SupabaseClient {
 }
 
 export const BLOG_BUCKET = "blog";
+export const PRODUCTS_BUCKET = "products";

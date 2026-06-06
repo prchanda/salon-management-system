@@ -88,6 +88,29 @@ public class GetDaySummary
         var revenue = appointments.Where(x => x.Status == "Done").Sum(x => x.AmountPaid ?? 0);
         var avgTicket = doneCount > 0 ? Math.Round(revenue / doneCount, 2) : 0m;
 
+        // Shop / product orders placed on this date (UTC window mirrors customer count).
+        var productOrders = await _context.ProductOrders
+            .Where(o => o.CreatedAt >= dayStartUtc && o.CreatedAt <= dayEndUtc)
+            .ToListAsync();
+
+        var completedOrders = productOrders.Where(o => o.Status == "Completed").ToList();
+        var productRevenue = completedOrders.Sum(o => o.TotalAmount);
+        var productUnitsSold = completedOrders.Sum(o => o.Quantity);
+
+        var byProduct = completedOrders
+            .GroupBy(o => new { o.ProductId, o.ProductName })
+            .Select(g => new
+            {
+                ProductId = g.Key.ProductId,
+                ProductName = g.Key.ProductName,
+                Orders = g.Count(),
+                Units = g.Sum(x => x.Quantity),
+                Revenue = g.Sum(x => x.TotalAmount)
+            })
+            .OrderByDescending(x => x.Revenue)
+            .ThenByDescending(x => x.Units)
+            .ToList();
+
         var response = req.CreateResponse(HttpStatusCode.OK);
 
         await response.WriteAsJsonAsync(new
@@ -102,11 +125,19 @@ public class GetDaySummary
                 Cancelled = appointments.Count(x => x.Status == "Cancelled"),
                 Revenue = revenue,
                 AvgTicket = avgTicket,
-                NewCustomers = newCustomers
+                NewCustomers = newCustomers,
+                ProductOrdersPlaced = productOrders.Count,
+                ProductOrdersCompleted = completedOrders.Count,
+                ProductOrdersPending = productOrders.Count(o => o.Status == "Pending" || o.Status == "Confirmed"),
+                ProductOrdersCancelled = productOrders.Count(o => o.Status == "Cancelled"),
+                ProductRevenue = productRevenue,
+                ProductUnitsSold = productUnitsSold,
+                TotalRevenue = revenue + productRevenue
             },
             ByStaff = byStaff,
             ByService = byService,
-            ByPaymentMethod = byPaymentMethod
+            ByPaymentMethod = byPaymentMethod,
+            ByProduct = byProduct
         });
 
         return response;

@@ -4,6 +4,8 @@ import type {
   AttachCustomerPayload,
   CreateAppointmentPayload,
   CreatePostPayload,
+  CreateProductOrderPayload,
+  CreateProductPayload,
   CreateReviewPayload,
   Customer,
   CustomerHistory,
@@ -14,12 +16,15 @@ import type {
   AdminPostSummary,
   Post,
   PostSummary,
+  Product,
+  ProductOrder,
   Review,
   Service,
   Staff,
   StaffAccount,
   TodayAppointments,
   UpdatePostPayload,
+  UpdateProductPayload,
 } from "./types";
 
 const API_BASE_URL =
@@ -87,6 +92,62 @@ export const api = {
     }),
   deletePost: (id: number) =>
     request<void>(`/posts/${id}`, { method: "DELETE" }),
+
+  // Public — shop / products
+  getProducts: (limit?: number, category?: string) => {
+    const params = new URLSearchParams();
+    if (limit) params.set("limit", String(limit));
+    if (category) params.set("category", category);
+    const qs = params.toString();
+    return request<Product[]>(`/products${qs ? `?${qs}` : ""}`);
+  },
+  getProductBySlug: (slug: string) =>
+    request<Product>(`/products/${encodeURIComponent(slug)}`),
+  createProductOrder: (payload: CreateProductOrderPayload) =>
+    request<ProductOrder>("/product-orders", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
+
+  // Reception — products
+  getAdminProducts: () => request<Product[]>("/products/admin/list"),
+  getAdminProductById: (id: number) =>
+    request<Product>(`/products/admin/${id}`),
+  createProduct: (payload: CreateProductPayload) =>
+    request<Product>("/products", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
+  updateProduct: (id: number, payload: UpdateProductPayload) =>
+    request<Product>(`/products/${id}`, {
+      method: "PUT",
+      body: JSON.stringify(payload),
+    }),
+  deleteProduct: (id: number) =>
+    request<void>(`/products/${id}`, { method: "DELETE" }),
+
+  // Reception — product orders
+  getProductOrders: (status?: string) =>
+    request<ProductOrder[]>(
+      `/product-orders${status ? `?status=${encodeURIComponent(status)}` : ""}`
+    ),
+  /**
+   * Advance an order through its lifecycle by sending a lifecycle action.
+   * Valid actions depend on the current status:
+   *   Pending   → "confirm" | "cancel"
+   *   Confirmed → "complete" | "cancel"
+   *   Completed → (none — terminal)
+   *   Cancelled → (none — terminal)
+   * The server rejects illegal transitions with 409 Conflict.
+   */
+  updateProductOrderStatus: (
+    id: number,
+    action: "confirm" | "complete" | "cancel"
+  ) =>
+    request<ProductOrder>(`/product-orders/${id}/status`, {
+      method: "PUT",
+      body: JSON.stringify({ action }),
+    }),
 
   // Reception — staff accounts (self-registration + login)
   getStaffAvailableForRegistration: () =>

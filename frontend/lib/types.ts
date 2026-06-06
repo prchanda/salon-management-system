@@ -182,6 +182,82 @@ export interface UpdatePostPayload {
   isPublished?: boolean;
 }
 
+// ─── Products & Orders ────────────────────────────────────────────────
+
+export interface Product {
+  id: number;
+  slug: string;
+  name: string;
+  category?: string | null;
+  shortDescription?: string | null;
+  description: string;
+  price: number;
+  imageUrl?: string | null;
+  stockQuantity?: number | null;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt?: string;
+}
+
+export interface CreateProductPayload {
+  name: string;
+  category?: string | null;
+  shortDescription?: string | null;
+  description: string;
+  price: number;
+  imageUrl?: string | null;
+  stockQuantity?: number | null;
+  isActive?: boolean;
+}
+
+export interface UpdateProductPayload {
+  name?: string;
+  category?: string | null;
+  shortDescription?: string | null;
+  description?: string;
+  price?: number;
+  imageUrl?: string | null;
+  stockQuantity?: number | null;
+  isActive?: boolean;
+  /** Send true to clear an inventory count back to "untracked". */
+  clearStock?: boolean;
+}
+
+export type ProductOrderStatus =
+  | "Pending"
+  | "Confirmed"
+  | "Completed"
+  | "Cancelled";
+
+export interface ProductOrder {
+  id: number;
+  customerName: string;
+  customerPhone: string;
+  customerEmail?: string | null;
+  deliveryAddress?: string | null;
+  notes?: string | null;
+  productId?: number | null;
+  productName: string;
+  unitPrice: number;
+  quantity: number;
+  totalAmount: number;
+  status: ProductOrderStatus | string;
+  createdAt: string;
+  updatedAt?: string;
+}
+
+export interface CreateProductOrderPayload {
+  productId: number;
+  quantity: number;
+  customerName: string;
+  customerPhone: string;
+  customerEmail?: string;
+  deliveryAddress?: string;
+  notes?: string;
+  /** Honeypot anti-spam field — left empty by real users. */
+  website?: string;
+}
+
 export interface DaySummary {
   date: string;
   totals: {
@@ -193,6 +269,13 @@ export interface DaySummary {
     revenue: number;
     avgTicket: number;
     newCustomers: number;
+    productOrdersPlaced: number;
+    productOrdersCompleted: number;
+    productOrdersPending: number;
+    productOrdersCancelled: number;
+    productRevenue: number;
+    productUnitsSold: number;
+    totalRevenue: number;
   };
   byStaff: {
     staffId: number | null;
@@ -211,6 +294,13 @@ export interface DaySummary {
   byPaymentMethod: {
     method: string;
     count: number;
+    revenue: number;
+  }[];
+  byProduct: {
+    productId: number | null;
+    productName: string;
+    orders: number;
+    units: number;
     revenue: number;
   }[];
 }
