@@ -185,8 +185,46 @@ async function SummaryContent({ date }: { date: string }) {
 
       <section>
         <h2 className="font-serif text-xl text-ink-900">By specialist</h2>
-        <div className="mt-4 overflow-x-auto rounded-2xl bg-cream-50 shadow-soft">
-          <table className="w-full min-w-[520px] text-sm">
+        <div className="mt-4 overflow-hidden rounded-2xl bg-cream-50 shadow-soft">
+          {/* Mobile: stacked cards */}
+          <ul className="divide-y divide-ink-900/5 md:hidden">
+            {data.byStaff.length === 0 && (
+              <li className="px-5 py-10 text-center text-sm text-ink-500">
+                Nothing booked yet.
+              </li>
+            )}
+            {data.byStaff.map((row) => (
+              <li
+                key={`${row.staffId ?? "x"}-${row.staffName}`}
+                className="px-5 py-4"
+              >
+                <p className="font-semibold text-ink-900">{row.staffName}</p>
+                <dl className="mt-2 grid grid-cols-3 gap-2 text-[11px] uppercase tracking-widest text-ink-500">
+                  <div>
+                    <dt>Total</dt>
+                    <dd className="mt-0.5 text-sm font-medium normal-case tracking-normal text-ink-700">
+                      {row.total}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt>Done</dt>
+                    <dd className="mt-0.5 text-sm font-medium normal-case tracking-normal text-ink-700">
+                      {row.done}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt>Revenue</dt>
+                    <dd className="mt-0.5 text-sm font-semibold normal-case tracking-normal text-ink-900">
+                      {formatINR(row.revenue)}
+                    </dd>
+                  </div>
+                </dl>
+              </li>
+            ))}
+          </ul>
+
+          {/* Desktop: table */}
+          <table className="hidden w-full text-sm md:table">
             <thead className="border-b border-ink-900/10 bg-cream-100 text-left text-[10px] uppercase tracking-widest text-ink-500">
               <tr>
                 <th className="px-5 py-3">Specialist</th>
@@ -228,8 +266,44 @@ async function SummaryContent({ date }: { date: string }) {
       <section className="grid gap-6 lg:grid-cols-2">
         <div>
           <h2 className="font-serif text-xl text-ink-900">By service</h2>
-          <div className="mt-4 overflow-x-auto rounded-2xl bg-cream-50 shadow-soft">
-            <table className="w-full min-w-[520px] text-sm">
+          <div className="mt-4 overflow-hidden rounded-2xl bg-cream-50 shadow-soft">
+            <ul className="divide-y divide-ink-900/5 md:hidden">
+              {data.byService.length === 0 && (
+                <li className="px-5 py-10 text-center text-sm text-ink-500">
+                  No services yet.
+                </li>
+              )}
+              {data.byService.map((row) => (
+                <li
+                  key={`${row.serviceId ?? "x"}-${row.serviceName}`}
+                  className="px-5 py-4"
+                >
+                  <p className="font-semibold text-ink-900">{row.serviceName}</p>
+                  <dl className="mt-2 grid grid-cols-3 gap-2 text-[11px] uppercase tracking-widest text-ink-500">
+                    <div>
+                      <dt>Total</dt>
+                      <dd className="mt-0.5 text-sm font-medium normal-case tracking-normal text-ink-700">
+                        {row.total}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt>Done</dt>
+                      <dd className="mt-0.5 text-sm font-medium normal-case tracking-normal text-ink-700">
+                        {row.done}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt>Revenue</dt>
+                      <dd className="mt-0.5 text-sm font-semibold normal-case tracking-normal text-ink-900">
+                        {formatINR(row.revenue)}
+                      </dd>
+                    </div>
+                  </dl>
+                </li>
+              ))}
+            </ul>
+
+            <table className="hidden w-full text-sm md:table">
               <thead className="border-b border-ink-900/10 bg-cream-100 text-left text-[10px] uppercase tracking-widest text-ink-500">
                 <tr>
                   <th className="px-5 py-3">Service</th>
@@ -273,8 +347,47 @@ async function SummaryContent({ date }: { date: string }) {
 
         <div>
           <h2 className="font-serif text-xl text-ink-900">Payments</h2>
-          <div className="mt-4 overflow-x-auto rounded-2xl bg-cream-50 shadow-soft">
-            <table className="w-full min-w-[520px] text-sm">
+          <div className="mt-4 overflow-hidden rounded-2xl bg-cream-50 shadow-soft">
+            <ul className="divide-y divide-ink-900/5 md:hidden">
+              {data.byPaymentMethod.length === 0 && (
+                <li className="px-5 py-10 text-center text-sm text-ink-500">
+                  Nothing collected yet.
+                </li>
+              )}
+              {data.byPaymentMethod.map((row) => {
+                const share =
+                  t.revenue > 0
+                    ? Math.round((row.revenue / t.revenue) * 100)
+                    : 0;
+                return (
+                  <li key={row.method} className="px-5 py-4">
+                    <p className="font-semibold text-ink-900">{row.method}</p>
+                    <dl className="mt-2 grid grid-cols-3 gap-2 text-[11px] uppercase tracking-widest text-ink-500">
+                      <div>
+                        <dt>Bills</dt>
+                        <dd className="mt-0.5 text-sm font-medium normal-case tracking-normal text-ink-700">
+                          {row.count}
+                        </dd>
+                      </div>
+                      <div>
+                        <dt>Revenue</dt>
+                        <dd className="mt-0.5 text-sm font-semibold normal-case tracking-normal text-ink-900">
+                          {formatINR(row.revenue)}
+                        </dd>
+                      </div>
+                      <div>
+                        <dt>Share</dt>
+                        <dd className="mt-0.5 text-sm font-medium normal-case tracking-normal text-ink-500">
+                          {share}%
+                        </dd>
+                      </div>
+                    </dl>
+                  </li>
+                );
+              })}
+            </ul>
+
+            <table className="hidden w-full text-sm md:table">
               <thead className="border-b border-ink-900/10 bg-cream-100 text-left text-[10px] uppercase tracking-widest text-ink-500">
                 <tr>
                   <th className="px-5 py-3">Method</th>
@@ -324,14 +437,54 @@ async function SummaryContent({ date }: { date: string }) {
       </section>
 
       <section>
-        <div className="flex items-baseline justify-between gap-4">
+        <div className="flex flex-wrap items-baseline justify-between gap-2">
           <h2 className="font-serif text-xl text-ink-900">Shop sales</h2>
           <p className="text-[11px] uppercase tracking-widest text-ink-400">
             Completed orders only
           </p>
         </div>
-        <div className="mt-4 overflow-x-auto rounded-2xl bg-cream-50 shadow-soft">
-          <table className="w-full min-w-[520px] text-sm">
+        <div className="mt-4 overflow-hidden rounded-2xl bg-cream-50 shadow-soft">
+          <ul className="divide-y divide-ink-900/5 md:hidden">
+            {byProduct.length === 0 && (
+              <li className="px-5 py-10 text-center text-sm text-ink-500">
+                {productOrdersPlaced === 0
+                  ? "No orders placed today."
+                  : `${productOrdersPlaced} order${
+                      productOrdersPlaced === 1 ? "" : "s"
+                    } placed today, none completed yet.`}
+              </li>
+            )}
+            {byProduct.map((row) => (
+              <li
+                key={`${row.productId ?? "x"}-${row.productName}`}
+                className="px-5 py-4"
+              >
+                <p className="font-semibold text-ink-900">{row.productName}</p>
+                <dl className="mt-2 grid grid-cols-3 gap-2 text-[11px] uppercase tracking-widest text-ink-500">
+                  <div>
+                    <dt>Orders</dt>
+                    <dd className="mt-0.5 text-sm font-medium normal-case tracking-normal text-ink-700">
+                      {row.orders}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt>Units</dt>
+                    <dd className="mt-0.5 text-sm font-medium normal-case tracking-normal text-ink-700">
+                      {row.units}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt>Revenue</dt>
+                    <dd className="mt-0.5 text-sm font-semibold normal-case tracking-normal text-ink-900">
+                      {formatINR(row.revenue)}
+                    </dd>
+                  </div>
+                </dl>
+              </li>
+            ))}
+          </ul>
+
+          <table className="hidden w-full text-sm md:table">
             <thead className="border-b border-ink-900/10 bg-cream-100 text-left text-[10px] uppercase tracking-widest text-ink-500">
               <tr>
                 <th className="px-5 py-3">Product</th>
