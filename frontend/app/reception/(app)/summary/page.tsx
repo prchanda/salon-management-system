@@ -1,7 +1,7 @@
 import { Suspense } from "react";
-import Link from "next/link";
 import { api } from "@/lib/api";
 import type { DaySummary } from "@/lib/types";
+import { SummaryDateNav } from "@/components/reception/SummaryDateNav";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Day summary — Reception" };
@@ -57,42 +57,12 @@ export default function SummaryPage({
             })}
           </h1>
         </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <Link
-            href={`/reception/summary?date=${prev}`}
-            className="btn-outline !py-2 !px-3 text-[11px]"
-          >
-            ← Prev
-          </Link>
-          {date !== today && (
-            <Link
-              href="/reception/summary"
-              className="btn-outline !py-2 !px-3 text-[11px]"
-            >
-              Today
-            </Link>
-          )}
-          <Link
-            href={`/reception/summary?date=${next}`}
-            className="btn-outline !py-2 !px-3 text-[11px]"
-          >
-            Next →
-          </Link>
-          <form className="flex items-center gap-2">
-            <input
-              type="date"
-              name="date"
-              defaultValue={date}
-              className="rounded-md border border-ink-900/15 bg-cream-50 px-3 py-2 text-sm"
-            />
-            <button
-              type="submit"
-              className="btn-outline !py-2 !px-4 text-[11px]"
-            >
-              Go
-            </button>
-          </form>
-        </div>
+        <SummaryDateNav
+          date={date}
+          today={today}
+          prevDate={prev}
+          nextDate={next}
+        />
       </div>
 
       <Suspense key={date} fallback={<SummarySkeleton />}>
