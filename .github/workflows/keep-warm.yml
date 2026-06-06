@@ -1,0 +1,47 @@
+name: Keep backend warm
+
+# Cold starts on the Azure Functions Consumption plan can add 3–5s to the
+# first request after ~5 min of idle. We ping a cheap, cached endpoint
+# every 5 minutes to keep the worker warm. The endpoint we hit returns
+# in <100ms once warm so this costs essentially nothing in execution time.
+#
+# Note: GitHub Actions cron has a minimum interval of 5 minutes and
+# scheduled runs are best-effort (can be delayed by several minutes during
+# heavy load). For tighter SLAs, use Azure App Service Always On or a
+# Premium plan.
+
+on:
+  schedule:
+    # Every 5 minutes
+    - cron: "*/5 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Warm /api/services
+        run: |
+          set -e
+          URL="https://mrmrscuts-api.azurewebsites.net/api/services"
+          # Up to 3 attempts; first call may pay the full cold start.
+          for attempt in 1 2 3; do
+            echo "Attempt $attempt → $URL"
+            HTTP_CODE=$(curl -sS -o /tmp/body -w "%{http_code}" \
+              --max-time 30 \
+              -H "User-Agent: mrmrscuts-keepwarm-action" \
+              "$URL" || echo "000")
+            echo "HTTP $HTTP_CODE"
+            if [ "$HTTP_CODE" = "200" ]; then
+              wc -c < /tmp/body | awk '{ printf "Response: %d bytes\n", $1 }'
+              exit 0
+            fi
+            sleep 5
+          done
+          echo "::warning::Keep-warm ping failed after 3 attempts (last code: $HTTP_CODE)"
+          # Don't fail the workflow — a transient blip shouldn't spam alerts.
+          exit 0
