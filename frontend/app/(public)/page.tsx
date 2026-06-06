@@ -179,9 +179,10 @@ export default async function HomePage() {
               Call {SALON.phoneDisplay}
             </a>
           </div>
-          <p className="mt-6 text-xs uppercase tracking-widest text-ink-500">
-            {SALON.hours} · {SALON.address}
-          </p>
+          <div className="mt-6 space-y-1 text-xs uppercase tracking-widest text-ink-500">
+            <p>{SALON.hours}</p>
+            <p className="mx-auto max-w-md">{SALON.address}</p>
+          </div>
         </div>
       </section>
     </>

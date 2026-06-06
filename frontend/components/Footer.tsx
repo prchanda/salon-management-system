@@ -127,7 +127,7 @@ export function Footer() {
       </div>
 
       <div className="border-t border-cream-100/10">
-        <div className="container-page flex flex-col items-center justify-between gap-2 py-6 text-[11px] uppercase tracking-widest text-cream-100/50 sm:flex-row">
+        <div className="container-page flex flex-col items-center justify-between gap-2 py-6 text-center text-[11px] uppercase tracking-widest text-cream-100/50 sm:flex-row sm:text-left">
           <p>
             &copy; {new Date().getFullYear()} {SALON.name}. All rights reserved.
           </p>
