@@ -35,7 +35,7 @@ export default async function ReceptionProductsPage() {
 
   return (
     <div>
-      <div className="flex items-end justify-between gap-4">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <h1 className="font-serif text-3xl text-ink-900">Shop</h1>
           <p className="mt-1 text-sm text-ink-500">
@@ -45,7 +45,7 @@ export default async function ReceptionProductsPage() {
         </div>
         <Link
           href="/reception/products/new"
-          className="btn-primary whitespace-nowrap"
+          className="btn-primary self-start whitespace-nowrap sm:self-auto"
         >
           New product
         </Link>
@@ -75,76 +75,65 @@ export default async function ReceptionProductsPage() {
             first one.
           </div>
         ) : (
-          <table className="w-full text-sm">
-            <thead className="bg-cream-100 text-[11px] uppercase tracking-widest text-ink-500">
-              <tr>
-                <th className="px-5 py-3 text-left">Product</th>
-                <th className="px-5 py-3 text-left">Category</th>
-                <th className="px-5 py-3 text-right">Price</th>
-                <th className="px-5 py-3 text-right">Stock</th>
-                <th className="px-5 py-3 text-left">Status</th>
-                <th className="px-5 py-3 text-left">Updated</th>
-                <th className="px-5 py-3" />
-              </tr>
-            </thead>
-            <tbody>
+          <>
+            {/* Mobile: stacked cards */}
+            <ul className="divide-y divide-ink-900/5 md:hidden">
               {products.map((p) => (
-                <tr key={p.id} className="border-t border-ink-900/5">
-                  <td className="px-5 py-4">
-                    <div className="flex items-center gap-3">
-                      {p.imageUrl ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img
-                          src={p.imageUrl}
-                          alt=""
-                          className="h-12 w-12 rounded-lg object-cover"
-                        />
-                      ) : (
-                        <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-cream-100 text-[10px] uppercase tracking-widest text-ink-400">
-                          —
-                        </div>
-                      )}
+                <li key={p.id} className="flex gap-3 p-4">
+                  {p.imageUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={p.imageUrl}
+                      alt=""
+                      className="h-14 w-14 shrink-0 rounded-lg object-cover"
+                    />
+                  ) : (
+                    <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-lg bg-cream-100 text-[10px] uppercase tracking-widest text-ink-400">
+                      —
+                    </div>
+                  )}
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-start justify-between gap-2">
                       <Link
                         href={`/reception/products/${p.id}/edit`}
-                        className="font-serif text-base text-ink-900 hover:text-gold-600"
+                        className="min-w-0 font-serif text-base text-ink-900 hover:text-gold-600"
                       >
-                        {p.name}
+                        <span className="break-words">{p.name}</span>
                       </Link>
+                      <span className="shrink-0 font-serif text-sm text-gold-600">
+                        ₹{formatPrice(p.price)}
+                      </span>
                     </div>
-                  </td>
-                  <td className="px-5 py-4 text-xs text-ink-500">
-                    {p.category || "—"}
-                  </td>
-                  <td className="px-5 py-4 text-right font-serif text-gold-600">
-                    ₹{formatPrice(p.price)}
-                  </td>
-                  <td className="px-5 py-4 text-right text-xs text-ink-600">
-                    {p.stockQuantity == null ? (
-                      <span className="text-ink-400">untracked</span>
-                    ) : p.stockQuantity === 0 ? (
-                      <span className="font-semibold text-red-700">0</span>
-                    ) : (
-                      p.stockQuantity
-                    )}
-                  </td>
-                  <td className="px-5 py-4">
-                    {p.isActive ? (
-                      <span className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-widest text-green-700">
-                        <span className="h-1.5 w-1.5 rounded-full bg-green-600" />
-                        Live
+                    <p className="mt-0.5 text-xs text-ink-500">
+                      {p.category || "—"}
+                    </p>
+                    <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-ink-600">
+                      <span>
+                        Stock:{" "}
+                        {p.stockQuantity == null ? (
+                          <span className="text-ink-400">untracked</span>
+                        ) : p.stockQuantity === 0 ? (
+                          <span className="font-semibold text-red-700">0</span>
+                        ) : (
+                          p.stockQuantity
+                        )}
                       </span>
-                    ) : (
-                      <span className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-widest text-ink-500">
-                        <span className="h-1.5 w-1.5 rounded-full bg-ink-400" />
-                        Hidden
+                      {p.isActive ? (
+                        <span className="inline-flex items-center gap-1.5 font-semibold uppercase tracking-widest text-green-700">
+                          <span className="h-1.5 w-1.5 rounded-full bg-green-600" />
+                          Live
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1.5 font-semibold uppercase tracking-widest text-ink-500">
+                          <span className="h-1.5 w-1.5 rounded-full bg-ink-400" />
+                          Hidden
+                        </span>
+                      )}
+                      <span className="text-ink-400">
+                        Updated {formatDate(p.updatedAt)}
                       </span>
-                    )}
-                  </td>
-                  <td className="px-5 py-4 text-xs text-ink-500">
-                    {formatDate(p.updatedAt)}
-                  </td>
-                  <td className="px-5 py-4 text-right">
-                    <div className="flex justify-end gap-3">
+                    </div>
+                    <div className="mt-3 flex flex-wrap gap-3">
                       {p.isActive && (
                         <Link
                           href={`/shop/${p.slug}`}
@@ -161,11 +150,106 @@ export default async function ReceptionProductsPage() {
                         Edit
                       </Link>
                     </div>
-                  </td>
-                </tr>
+                  </div>
+                </li>
               ))}
-            </tbody>
-          </table>
+            </ul>
+
+            {/* Desktop: table */}
+            <div className="hidden md:block md:overflow-x-auto">
+              <table className="w-full min-w-[760px] text-sm">
+                <thead className="bg-cream-100 text-[11px] uppercase tracking-widest text-ink-500">
+                  <tr>
+                    <th className="px-5 py-3 text-left">Product</th>
+                    <th className="px-5 py-3 text-left">Category</th>
+                    <th className="px-5 py-3 text-right">Price</th>
+                    <th className="px-5 py-3 text-right">Stock</th>
+                    <th className="px-5 py-3 text-left">Status</th>
+                    <th className="px-5 py-3 text-left">Updated</th>
+                    <th className="px-5 py-3" />
+                  </tr>
+                </thead>
+                <tbody>
+                  {products.map((p) => (
+                    <tr key={p.id} className="border-t border-ink-900/5">
+                      <td className="px-5 py-4">
+                        <div className="flex items-center gap-3">
+                          {p.imageUrl ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img
+                              src={p.imageUrl}
+                              alt=""
+                              className="h-12 w-12 rounded-lg object-cover"
+                            />
+                          ) : (
+                            <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-cream-100 text-[10px] uppercase tracking-widest text-ink-400">
+                              —
+                            </div>
+                          )}
+                          <Link
+                            href={`/reception/products/${p.id}/edit`}
+                            className="font-serif text-base text-ink-900 hover:text-gold-600"
+                          >
+                            {p.name}
+                          </Link>
+                        </div>
+                      </td>
+                      <td className="px-5 py-4 text-xs text-ink-500">
+                        {p.category || "—"}
+                      </td>
+                      <td className="px-5 py-4 text-right font-serif text-gold-600">
+                        ₹{formatPrice(p.price)}
+                      </td>
+                      <td className="px-5 py-4 text-right text-xs text-ink-600">
+                        {p.stockQuantity == null ? (
+                          <span className="text-ink-400">untracked</span>
+                        ) : p.stockQuantity === 0 ? (
+                          <span className="font-semibold text-red-700">0</span>
+                        ) : (
+                          p.stockQuantity
+                        )}
+                      </td>
+                      <td className="px-5 py-4">
+                        {p.isActive ? (
+                          <span className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-widest text-green-700">
+                            <span className="h-1.5 w-1.5 rounded-full bg-green-600" />
+                            Live
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-widest text-ink-500">
+                            <span className="h-1.5 w-1.5 rounded-full bg-ink-400" />
+                            Hidden
+                          </span>
+                        )}
+                      </td>
+                      <td className="px-5 py-4 text-xs text-ink-500">
+                        {formatDate(p.updatedAt)}
+                      </td>
+                      <td className="px-5 py-4 text-right">
+                        <div className="flex justify-end gap-3">
+                          {p.isActive && (
+                            <Link
+                              href={`/shop/${p.slug}`}
+                              target="_blank"
+                              className="text-[11px] font-semibold uppercase tracking-widest text-ink-500 hover:text-ink-900"
+                            >
+                              View
+                            </Link>
+                          )}
+                          <Link
+                            href={`/reception/products/${p.id}/edit`}
+                            className="text-[11px] font-semibold uppercase tracking-widest text-gold-600 hover:text-ink-900"
+                          >
+                            Edit
+                          </Link>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </>
         )}
       </div>
     </div>
