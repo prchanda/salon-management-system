@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { Inter, Playfair_Display } from "next/font/google";
+import { Suspense } from "react";
+import { NavigationProgress } from "@/components/NavigationProgress";
 import "./globals.css";
 
 const inter = Inter({
@@ -27,7 +29,12 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={`${inter.variable} ${playfair.variable}`}>
-      <body className="flex min-h-screen flex-col font-sans">{children}</body>
+      <body className="flex min-h-screen flex-col font-sans">
+        <Suspense fallback={null}>
+          <NavigationProgress />
+        </Suspense>
+        {children}
+      </body>
     </html>
   );
 }
