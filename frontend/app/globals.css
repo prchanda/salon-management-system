@@ -44,6 +44,37 @@
   select::-ms-expand {
     display: none;
   }
+
+  /*
+   * iOS Safari renders <input type="date"> through its own native widget.
+   * When the surrounding CSS sets font-size < 16px, the internal value
+   * pseudo-element (::-webkit-date-and-time-value) can collapse and the
+   * date displays as a single "?" character. Two fixes, both required:
+   *   1. Force 16px on mobile so the widget has room (also stops the
+   *      page from auto-zooming when the picker opens).
+   *   2. Left-align the value pseudo-element so the formatted date isn't
+   *      pushed off-screen by the calendar indicator on the right.
+   */
+  input[type="date"],
+  input[type="time"],
+  input[type="datetime-local"] {
+    font-size: 16px;
+    min-height: 2.75rem;
+  }
+
+  input[type="date"]::-webkit-date-and-time-value,
+  input[type="time"]::-webkit-date-and-time-value,
+  input[type="datetime-local"]::-webkit-date-and-time-value {
+    text-align: left;
+  }
+
+  @media (min-width: 640px) {
+    input[type="date"],
+    input[type="time"],
+    input[type="datetime-local"] {
+      font-size: 0.875rem; /* text-sm */
+    }
+  }
 }
 
 @layer components {
