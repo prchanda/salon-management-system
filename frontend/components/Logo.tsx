@@ -32,7 +32,6 @@ export function Logo({
         alt={ariaLabel}
         width={size * 2}
         height={size * 2}
-        priority
         className="h-full w-full object-cover"
       />
     </span>

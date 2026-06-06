@@ -7,7 +7,9 @@ export const metadata = {
   description: "Honest words from the people who've sat in our chairs.",
 };
 
-export const dynamic = "force-dynamic";
+// Reviews are slow-moving; let the CDN serve a cached HTML page and
+// regenerate at most every 10 min.
+export const revalidate = 600;
 
 async function safeGetReviews(): Promise<Review[]> {
   try {

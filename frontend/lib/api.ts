@@ -31,13 +31,20 @@ const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:7071/api";
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
+  // Callers may opt into ISR-friendly caching by passing `cache` or
+  // `next: { revalidate, tags }`. If neither is provided we keep the
+  // historical no-store behaviour so mutating / admin endpoints never
+  // serve stale data.
+  const hasCacheOverride =
+    !!init?.cache || (init as RequestInit & { next?: unknown })?.next != null;
+
   const res = await fetch(`${API_BASE_URL}${path}`, {
     ...init,
     headers: {
       "Content-Type": "application/json",
       ...(init?.headers ?? {}),
     },
-    cache: "no-store",
+    ...(hasCacheOverride ? {} : { cache: "no-store" as RequestCache }),
   });
 
   if (!res.ok) {
@@ -54,12 +61,25 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   return (await res.json()) as T;
 }
 
+// Default revalidate window (in seconds) for public read endpoints. Chosen
+// to balance freshness (catalogue / reviews edits show up within minutes)
+// against backend load and CDN hit-rate.
+const PUBLIC_REVALIDATE = 300;
+
 export const api = {
   // Public
-  getServices: () => request<Service[]>("/services"),
-  getStaff: () => request<Staff[]>("/staff"),
+  getServices: () =>
+    request<Service[]>("/services", {
+      next: { revalidate: PUBLIC_REVALIDATE },
+    }),
+  getStaff: () =>
+    request<Staff[]>("/staff", {
+      next: { revalidate: PUBLIC_REVALIDATE },
+    }),
   getReviews: (limit?: number) =>
-    request<Review[]>(`/reviews${limit ? `?limit=${limit}` : ""}`),
+    request<Review[]>(`/reviews${limit ? `?limit=${limit}` : ""}`, {
+      next: { revalidate: PUBLIC_REVALIDATE },
+    }),
   submitReview: (payload: CreateReviewPayload) =>
     request<Review>("/reviews", {
       method: "POST",
@@ -72,10 +92,14 @@ export const api = {
     if (limit) params.set("limit", String(limit));
     if (tag) params.set("tag", tag);
     const qs = params.toString();
-    return request<PostSummary[]>(`/posts${qs ? `?${qs}` : ""}`);
+    return request<PostSummary[]>(`/posts${qs ? `?${qs}` : ""}`, {
+      next: { revalidate: PUBLIC_REVALIDATE },
+    });
   },
   getPostBySlug: (slug: string) =>
-    request<Post>(`/posts/${encodeURIComponent(slug)}`),
+    request<Post>(`/posts/${encodeURIComponent(slug)}`, {
+      next: { revalidate: PUBLIC_REVALIDATE },
+    }),
 
   // Reception — blog
   getAdminPosts: () => request<AdminPostSummary[]>("/posts/admin/list"),
@@ -99,10 +123,14 @@ export const api = {
     if (limit) params.set("limit", String(limit));
     if (category) params.set("category", category);
     const qs = params.toString();
-    return request<Product[]>(`/products${qs ? `?${qs}` : ""}`);
+    return request<Product[]>(`/products${qs ? `?${qs}` : ""}`, {
+      next: { revalidate: PUBLIC_REVALIDATE },
+    });
   },
   getProductBySlug: (slug: string) =>
-    request<Product>(`/products/${encodeURIComponent(slug)}`),
+    request<Product>(`/products/${encodeURIComponent(slug)}`, {
+      next: { revalidate: PUBLIC_REVALIDATE },
+    }),
   createProductOrder: (payload: CreateProductOrderPayload) =>
     request<ProductOrder>("/product-orders", {
       method: "POST",

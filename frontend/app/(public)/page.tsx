@@ -8,6 +8,11 @@ import { FALLBACK_SERVICES } from "@/lib/fallbackServices";
 import { SALON, telLink, waLink } from "@/lib/salon";
 import type { Product, Review, Service } from "@/lib/types";
 
+// Services / reviews / featured products change slowly. Let the CDN serve
+// a pre-rendered page and revalidate at most every 5 minutes so first
+// paint is fast on both desktop and mobile.
+export const revalidate = 300;
+
 async function safeGetServices(): Promise<Service[]> {
   try {
     const services = await api.getServices();
