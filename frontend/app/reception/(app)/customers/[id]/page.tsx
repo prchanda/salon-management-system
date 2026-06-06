@@ -103,46 +103,91 @@ export default async function CustomerProfilePage({
       <section>
         <h2 className="font-serif text-xl text-ink-900">Visit history</h2>
         <div className="mt-4 overflow-hidden rounded-2xl bg-cream-50 shadow-soft">
-          <table className="w-full text-sm">
-            <thead className="border-b border-ink-900/10 bg-cream-100 text-left text-[10px] uppercase tracking-widest text-ink-500">
-              <tr>
-                <th className="px-5 py-3">Date</th>
-                <th className="px-5 py-3">Service</th>
-                <th className="px-5 py-3">Specialist</th>
-                <th className="px-5 py-3">Status</th>
-                <th className="px-5 py-3 text-right">Paid</th>
-              </tr>
-            </thead>
-            <tbody>
-              {appointments.length === 0 && (
-                <tr>
-                  <td colSpan={5} className="px-5 py-10 text-center text-ink-500">
-                    No visits yet.
-                  </td>
-                </tr>
-              )}
-              {appointments.map((a) => (
-                <tr key={a.id} className="border-b border-ink-900/5 last:border-b-0">
-                  <td className="px-5 py-3 text-ink-700">
-                    {fmtDate(a.appointmentDate)}
-                    <span className="ml-2 text-xs text-ink-500">
-                      {fmtTime(a.appointmentTime)}
-                    </span>
-                  </td>
-                  <td className="px-5 py-3">{a.service?.serviceName ?? "—"}</td>
-                  <td className="px-5 py-3 text-ink-600">
-                    {a.staff?.fullName ?? "—"}
-                  </td>
-                  <td className="px-5 py-3 text-ink-600">{a.status}</td>
-                  <td className="px-5 py-3 text-right text-ink-700">
-                    {a.amountPaid != null
-                      ? `₹${a.amountPaid.toLocaleString("en-IN")}`
-                      : "—"}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          {appointments.length === 0 ? (
+            <p className="px-5 py-10 text-center text-sm text-ink-500">
+              No visits yet.
+            </p>
+          ) : (
+            <>
+              {/* Mobile: stacked card list (< md) */}
+              <ul className="divide-y divide-ink-900/5 md:hidden">
+                {appointments.map((a) => (
+                  <li key={a.id} className="space-y-2 p-4">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <p className="text-sm font-semibold text-ink-900">
+                          {fmtDate(a.appointmentDate)}
+                        </p>
+                        <p className="text-xs text-ink-500">
+                          {fmtTime(a.appointmentTime)}
+                        </p>
+                      </div>
+                      <div className="shrink-0 text-right">
+                        <p className="font-serif text-base text-gold-600">
+                          {a.amountPaid != null
+                            ? `₹${a.amountPaid.toLocaleString("en-IN")}`
+                            : "—"}
+                        </p>
+                        <p className="text-[10px] uppercase tracking-widest text-ink-400">
+                          {a.status}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="text-sm text-ink-700 break-words">
+                      {a.service?.serviceName ?? "—"}
+                    </div>
+                    {a.staff?.fullName && (
+                      <div className="text-xs text-ink-500">
+                        with {a.staff.fullName}
+                      </div>
+                    )}
+                  </li>
+                ))}
+              </ul>
+
+              {/* Desktop: full table (md+) */}
+              <div className="hidden md:block md:overflow-x-auto">
+                <table className="w-full min-w-[640px] text-sm">
+                  <thead className="border-b border-ink-900/10 bg-cream-100 text-left text-[10px] uppercase tracking-widest text-ink-500">
+                    <tr>
+                      <th className="px-5 py-3">Date</th>
+                      <th className="px-5 py-3">Service</th>
+                      <th className="px-5 py-3">Specialist</th>
+                      <th className="px-5 py-3">Status</th>
+                      <th className="px-5 py-3 text-right">Paid</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {appointments.map((a) => (
+                      <tr
+                        key={a.id}
+                        className="border-b border-ink-900/5 last:border-b-0"
+                      >
+                        <td className="px-5 py-3 text-ink-700">
+                          {fmtDate(a.appointmentDate)}
+                          <span className="ml-2 text-xs text-ink-500">
+                            {fmtTime(a.appointmentTime)}
+                          </span>
+                        </td>
+                        <td className="px-5 py-3">
+                          {a.service?.serviceName ?? "—"}
+                        </td>
+                        <td className="px-5 py-3 text-ink-600">
+                          {a.staff?.fullName ?? "—"}
+                        </td>
+                        <td className="px-5 py-3 text-ink-600">{a.status}</td>
+                        <td className="px-5 py-3 text-right text-ink-700">
+                          {a.amountPaid != null
+                            ? `₹${a.amountPaid.toLocaleString("en-IN")}`
+                            : "—"}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </>
+          )}
         </div>
       </section>
     </div>

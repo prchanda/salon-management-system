@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { HeroReviewCard } from "@/components/HeroReviewCard";
-import { telLink, waLink } from "@/lib/salon";
+import { waLink } from "@/lib/salon";
 import type { Review } from "@/lib/types";
 
 export function Hero({ reviews }: { reviews?: Review[] }) {
@@ -36,12 +36,6 @@ export function Hero({ reviews }: { reviews?: Review[] }) {
               className="btn-outline whitespace-nowrap"
             >
               WhatsApp to Book
-            </a>
-            <a
-              href={telLink()}
-              className="btn-ghost whitespace-nowrap md:hidden"
-            >
-              Call Us
             </a>
           </div>
 
