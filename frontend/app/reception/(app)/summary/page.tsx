@@ -185,8 +185,8 @@ async function SummaryContent({ date }: { date: string }) {
 
       <section>
         <h2 className="font-serif text-xl text-ink-900">By specialist</h2>
-        <div className="mt-4 overflow-hidden rounded-2xl bg-cream-50 shadow-soft">
-          <table className="w-full text-sm">
+        <div className="mt-4 overflow-x-auto rounded-2xl bg-cream-50 shadow-soft">
+          <table className="w-full min-w-[520px] text-sm">
             <thead className="border-b border-ink-900/10 bg-cream-100 text-left text-[10px] uppercase tracking-widest text-ink-500">
               <tr>
                 <th className="px-5 py-3">Specialist</th>
@@ -228,8 +228,8 @@ async function SummaryContent({ date }: { date: string }) {
       <section className="grid gap-6 lg:grid-cols-2">
         <div>
           <h2 className="font-serif text-xl text-ink-900">By service</h2>
-          <div className="mt-4 overflow-hidden rounded-2xl bg-cream-50 shadow-soft">
-            <table className="w-full text-sm">
+          <div className="mt-4 overflow-x-auto rounded-2xl bg-cream-50 shadow-soft">
+            <table className="w-full min-w-[520px] text-sm">
               <thead className="border-b border-ink-900/10 bg-cream-100 text-left text-[10px] uppercase tracking-widest text-ink-500">
                 <tr>
                   <th className="px-5 py-3">Service</th>
@@ -273,8 +273,8 @@ async function SummaryContent({ date }: { date: string }) {
 
         <div>
           <h2 className="font-serif text-xl text-ink-900">Payments</h2>
-          <div className="mt-4 overflow-hidden rounded-2xl bg-cream-50 shadow-soft">
-            <table className="w-full text-sm">
+          <div className="mt-4 overflow-x-auto rounded-2xl bg-cream-50 shadow-soft">
+            <table className="w-full min-w-[520px] text-sm">
               <thead className="border-b border-ink-900/10 bg-cream-100 text-left text-[10px] uppercase tracking-widest text-ink-500">
                 <tr>
                   <th className="px-5 py-3">Method</th>
@@ -330,8 +330,8 @@ async function SummaryContent({ date }: { date: string }) {
             Completed orders only
           </p>
         </div>
-        <div className="mt-4 overflow-hidden rounded-2xl bg-cream-50 shadow-soft">
-          <table className="w-full text-sm">
+        <div className="mt-4 overflow-x-auto rounded-2xl bg-cream-50 shadow-soft">
+          <table className="w-full min-w-[520px] text-sm">
             <thead className="border-b border-ink-900/10 bg-cream-100 text-left text-[10px] uppercase tracking-widest text-ink-500">
               <tr>
                 <th className="px-5 py-3">Product</th>
