@@ -66,7 +66,13 @@ export function Hero({ reviews }: { reviews?: Review[] }) {
               alt="Specialist working on a guest in a calm salon interior"
               fill
               priority
-              sizes="(min-width: 1024px) 50vw, 100vw"
+              quality={70}
+              // Cap the rendered width so the browser never asks for the
+              // ultra-wide srcSet variant on large monitors. 720 CSS px is
+              // the largest size this image is ever drawn at on desktop;
+              // 2× DPR resolves to a 1280-wide source — which matches our
+              // capped `deviceSizes` in next.config.mjs.
+              sizes="(min-width: 1024px) 720px, 100vw"
               className="object-cover"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-ink-900/15 via-transparent to-transparent" />
