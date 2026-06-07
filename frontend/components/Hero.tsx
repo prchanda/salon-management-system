@@ -4,7 +4,16 @@ import { HeroReviewCard } from "@/components/HeroReviewCard";
 import { waLink } from "@/lib/salon";
 import type { Review } from "@/lib/types";
 
-export function Hero({ reviews }: { reviews?: Review[] }) {
+export function Hero({
+  reviews,
+  specialistCount,
+}: {
+  reviews?: Review[];
+  specialistCount?: number;
+}) {
+  // Fall back to a sensible default if the staff list is unavailable so the
+  // stat never renders as 0 or blank.
+  const specialists = specialistCount && specialistCount > 0 ? specialistCount : 3;
   return (
     <section className="relative overflow-hidden bg-cream-50">
       <div className="container-page grid items-center gap-12 py-16 sm:py-20 lg:grid-cols-12 lg:gap-16 lg:py-28">
@@ -50,7 +59,9 @@ export function Hero({ reviews }: { reviews?: Review[] }) {
             </div>
             <div>
               <dt className="eyebrow">Specialists</dt>
-              <dd className="mt-1 font-serif text-2xl text-ink-900">3</dd>
+              <dd className="mt-1 font-serif text-2xl text-ink-900">
+                {specialists}
+              </dd>
             </div>
             <div>
               <dt className="eyebrow">Open</dt>

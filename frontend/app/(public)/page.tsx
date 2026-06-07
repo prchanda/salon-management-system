@@ -6,7 +6,19 @@ import { ServiceCard } from "@/components/ServiceCard";
 import { api } from "@/lib/api";
 import { FALLBACK_SERVICES } from "@/lib/fallbackServices";
 import { SALON, telLink, waLink } from "@/lib/salon";
-import type { Product, Review, Service } from "@/lib/types";
+import type { Product, Review, Service, Staff } from "@/lib/types";
+
+// Roles that don't sit behind the chair and shouldn't be counted as
+// client-facing "specialists" in the hero stat.
+const NON_SPECIALIST_ROLES = new Set(["receptionist", "manager"]);
+
+function countSpecialists(staff: Staff[]): number {
+  return staff.filter(
+    (s) =>
+      s.isActive &&
+      s.roles.some((r) => !NON_SPECIALIST_ROLES.has(r.toLowerCase()))
+  ).length;
+}
 
 // Services / reviews / featured products change slowly. Let the CDN serve
 // a pre-rendered page and revalidate at most every 5 minutes so first
@@ -38,6 +50,14 @@ async function safeGetProducts(): Promise<Product[]> {
   }
 }
 
+async function safeGetStaff(): Promise<Staff[]> {
+  try {
+    return await api.getStaff();
+  } catch {
+    return [];
+  }
+}
+
 const PILLARS = [
   {
     title: "Considered craft",
@@ -54,15 +74,17 @@ const PILLARS = [
 ];
 
 export default async function HomePage() {
-  const [services, reviews] = await Promise.all([
+  const [services, reviews, staff] = await Promise.all([
     safeGetServices().then((s) => s.slice(0, 6)),
     safeGetReviews(),
+    safeGetStaff(),
   ]);
   const products = (await safeGetProducts()).slice(0, 8);
+  const specialistCount = countSpecialists(staff);
 
   return (
     <>
-      <Hero reviews={reviews} />
+      <Hero reviews={reviews} specialistCount={specialistCount} />
 
       <section className="border-y border-ink-900/10 bg-cream-100">
         <div className="container-page grid gap-10 py-16 sm:grid-cols-3 sm:gap-12">

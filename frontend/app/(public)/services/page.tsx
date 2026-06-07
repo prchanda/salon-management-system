@@ -232,7 +232,7 @@ export default async function ServicesPage() {
               href={waLink()}
               target="_blank"
               rel="noreferrer"
-              className="btn-primary"
+              className="btn-primary bg-cream-50 text-ink-900 hover:bg-gold-600 hover:text-cream-50"
             >
               Book on WhatsApp
             </a>
