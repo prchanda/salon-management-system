@@ -7,9 +7,10 @@ export const metadata = {
   description: "Honest words from the people who've sat in our chairs.",
 };
 
-// Reviews are slow-moving; let the CDN serve a cached HTML page and
-// regenerate at most every 10 min.
-export const revalidate = 600;
+// Render per request so newly approved reviews appear immediately. Azure
+// Static Web Apps doesn't reliably honour on-demand revalidation, so ISR
+// would otherwise keep serving a stale list after the owner approves a review.
+export const dynamic = "force-dynamic";
 
 async function safeGetReviews(): Promise<Review[]> {
   try {

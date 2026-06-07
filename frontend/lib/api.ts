@@ -151,9 +151,12 @@ export const api = {
     request<Staff[]>("/staff", {
       next: { revalidate: PUBLIC_REVALIDATE },
     }),
+  // Reviews must reflect owner approval immediately. Azure Static Web Apps
+  // does not reliably support Next.js on-demand revalidation (revalidatePath),
+  // so we fetch fresh on every request rather than serving a stale ISR cache.
   getReviews: (limit?: number) =>
     request<Review[]>(`/reviews${limit ? `?limit=${limit}` : ""}`, {
-      next: { revalidate: PUBLIC_REVALIDATE },
+      cache: "no-store",
     }),
   submitReview: (payload: CreateReviewPayload) =>
     request<Review>("/reviews", {

@@ -20,10 +20,13 @@ function countSpecialists(staff: Staff[]): number {
   ).length;
 }
 
-// Services / reviews / featured products change slowly. Let the CDN serve
-// a pre-rendered page and revalidate at most every 5 minutes so first
-// paint is fast on both desktop and mobile.
-export const revalidate = 300;
+// Render per request so newly approved reviews appear immediately. Azure
+// Static Web Apps doesn't reliably honour on-demand revalidation, so ISR
+// would otherwise serve a stale testimonials list. Services / staff /
+// products keep their own fetch-level data cache (revalidate 300), so only
+// the reviews fetch hits the backend on each request and the hero image is
+// still served as a static CDN asset.
+export const dynamic = "force-dynamic";
 
 async function safeGetServices(): Promise<Service[]> {
   try {
