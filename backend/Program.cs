@@ -42,16 +42,20 @@ builder.Services.Configure<WorkerOptions>(workerOptions =>
 var host = builder.Build();
 
 // Bootstrap the salon-owner account from configuration (never from source).
-// Supabase can be briefly unreachable right as the host starts, so retry a
-// few times before giving up rather than leaving the owner unseeded.
-using (var scope = host.Services.CreateScope())
+// This runs in the background so it never blocks the host from accepting
+// traffic — seeding on the request path was adding seconds to cold start,
+// especially when Supabase was briefly slow and the retry loop kicked in.
+// The owner account only matters for sign-in, which already tolerates a brief
+// startup window, so eventual seeding is fine.
+_ = Task.Run(async () =>
 {
-    var db = scope.ServiceProvider.GetRequiredService<SalonDbContext>();
     const int maxAttempts = 5;
     for (var attempt = 1; attempt <= maxAttempts; attempt++)
     {
         try
         {
+            using var scope = host.Services.CreateScope();
+            var db = scope.ServiceProvider.GetRequiredService<SalonDbContext>();
             OwnerSeeder.Seed(db, builder.Configuration);
             break;
         }
@@ -59,7 +63,7 @@ using (var scope = host.Services.CreateScope())
         {
             if (attempt == maxAttempts)
             {
-                // Don't take the whole host down on a persistent seed failure.
+                // Don't crash the background task on a persistent seed failure.
                 Console.Error.WriteLine(
                     $"[OwnerSeeder] Failed to seed owner account after {maxAttempts} attempts: {ex.Message}");
                 break;
@@ -67,9 +71,9 @@ using (var scope = host.Services.CreateScope())
 
             Console.Error.WriteLine(
                 $"[OwnerSeeder] Seed attempt {attempt} failed ({ex.Message}); retrying…");
-            Thread.Sleep(TimeSpan.FromSeconds(2 * attempt));
+            await Task.Delay(TimeSpan.FromSeconds(2 * attempt));
         }
     }
-}
+});
 
 host.Run();
