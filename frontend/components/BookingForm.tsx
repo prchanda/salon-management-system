@@ -6,7 +6,7 @@ import { api } from "@/lib/api";
 import type { Service, Staff } from "@/lib/types";
 
 const inputClass =
-  "mt-2 w-full rounded-xl border border-ink-900/15 bg-cream-50 px-4 py-3 text-sm text-ink-900 outline-none ring-gold-600/30 transition focus:border-gold-600 focus:ring-2";
+  "mt-2 w-full rounded-xl border border-ink-900/15 bg-cream-50 px-4 py-3 text-ink-900 outline-none ring-gold-600/30 transition focus:border-gold-600 focus:ring-2";
 const labelClass =
   "block text-xs font-semibold uppercase tracking-widest text-ink-700";
 
