@@ -17,6 +17,10 @@ namespace backend.Functions.Staff;
 /// </summary>
 public class RequestPasswordReset
 {
+    private const int MaxRequestsPerIp = 5;
+    private const int MaxRequestsPerEmail = 3;
+    private static readonly TimeSpan ResetWindow = TimeSpan.FromHours(1);
+
     private readonly SalonDbContext _context;
 
     public RequestPasswordReset(SalonDbContext context)
@@ -41,6 +45,16 @@ public class RequestPasswordReset
 
         var email = (dto?.Email ?? string.Empty).Trim().ToLowerInvariant();
         if (email.Length == 0) return Ok(req);
+
+        // Throttle to curb token-spam / email bombing. Always return 200 so the
+        // throttle never reveals whether an email is registered.
+        var ip = ClientIp.From(req);
+        if (ip != null &&
+            (!RateLimiter.IsAllowed($"pwreset:ip:{ip}", MaxRequestsPerIp, ResetWindow) ||
+             !RateLimiter.IsAllowed($"pwreset:email:{email}", MaxRequestsPerEmail, ResetWindow)))
+        {
+            return Ok(req);
+        }
 
         var staff = await _context.Staff
             .FirstOrDefaultAsync(s => s.Email == email && s.IsActive);

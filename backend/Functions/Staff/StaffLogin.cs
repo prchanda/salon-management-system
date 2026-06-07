@@ -14,6 +14,10 @@ namespace backend.Functions.Staff;
 /// </summary>
 public class StaffLogin
 {
+    private const int MaxAttemptsPerIp = 10;
+    private const int MaxAttemptsPerUser = 5;
+    private static readonly TimeSpan LoginWindow = TimeSpan.FromMinutes(15);
+
     private readonly SalonDbContext _context;
 
     public StaffLogin(SalonDbContext context)
@@ -43,6 +47,21 @@ public class StaffLogin
         if (identifier.Length == 0 || password.Length == 0)
         {
             return Unauthorized(req);
+        }
+
+        // Throttle credential-stuffing / brute-force attempts (best-effort;
+        // skipped when no client IP is available, e.g. some local runs).
+        var ip = ClientIp.From(req);
+        if (ip != null)
+        {
+            var userKey = identifier.ToLowerInvariant();
+            if (!RateLimiter.IsAllowed($"login:ip:{ip}", MaxAttemptsPerIp, LoginWindow) ||
+                !RateLimiter.IsAllowed($"login:user:{userKey}", MaxAttemptsPerUser, LoginWindow))
+            {
+                var limited = req.CreateResponse(HttpStatusCode.TooManyRequests);
+                await limited.WriteStringAsync("Too many login attempts. Please try again later.");
+                return limited;
+            }
         }
 
         var usernameLookup = identifier.ToLowerInvariant();

@@ -1,6 +1,7 @@
 using backend.Data;
 using backend.DTOs;
 using backend.Entities;
+using backend.Helpers;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using System.Net;
@@ -12,6 +13,8 @@ public class SubmitReview
     private const int MinQuoteLength = 10;
     private const int MaxQuoteLength = 500;
     private const int MaxAuthorLength = 80;
+    private const int MaxReviewsPerIpPerWindow = 5;
+    private static readonly TimeSpan ReviewWindow = TimeSpan.FromHours(1);
 
     private readonly SalonDbContext _context;
 
@@ -30,6 +33,16 @@ public class SubmitReview
         if (dto == null)
         {
             return await Bad(req, "Request body is required.");
+        }
+
+        // Throttle review spam (best-effort; skipped when no client IP).
+        var ip = ClientIp.From(req);
+        if (ip != null &&
+            !RateLimiter.IsAllowed($"review:ip:{ip}", MaxReviewsPerIpPerWindow, ReviewWindow))
+        {
+            var limited = req.CreateResponse(HttpStatusCode.TooManyRequests);
+            await limited.WriteStringAsync("Too many reviews submitted. Please try again later.");
+            return limited;
         }
 
         var author = (dto.AuthorName ?? string.Empty).Trim();

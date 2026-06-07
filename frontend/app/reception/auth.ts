@@ -91,32 +91,15 @@ async function callStaffRegister(payload: object): Promise<RegisterResult> {
   }
 }
 
-type ResetResult =
-  | { kind: "ok" }
-  | { kind: "notFound" }
-  | { kind: "bad"; message: string }
-  | { kind: "server" };
-
-async function callResetPassword(
-  username: string,
-  newPassword: string
-): Promise<ResetResult> {
-  try {
-    const res = await fetch(`${API_BASE_URL}/staff/reset-password`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ username, newPassword }),
-      cache: "no-store",
-    });
-    if (res.ok) return { kind: "ok" };
-    if (res.status === 404) return { kind: "notFound" };
-    const data = (await res.json().catch(() => null)) as
-      | { message?: string }
-      | null;
-    return { kind: "bad", message: data?.message ?? "Reset failed." };
-  } catch {
-    return { kind: "server" };
-  }
+/**
+ * Guards against open-redirect: only allow same-site, absolute-path targets
+ * (must start with a single "/" and not "//" or "/\" which browsers treat as
+ * a protocol-relative URL to another host).
+ */
+function sanitizeNext(next: string, fallback = "/reception"): string {
+  if (!next.startsWith("/")) return fallback;
+  if (next.startsWith("//") || next.startsWith("/\\")) return fallback;
+  return next;
 }
 
 /**
@@ -170,11 +153,13 @@ export async function loginAction(formData: FormData) {
   }
   cookies().delete(RECEPTION_MUST_CHANGE_COOKIE);
 
-  // The owner may go anywhere; staff are confined to their allowed routes.
+  // The owner may go anywhere within the site; staff are confined to their
+  // allowed routes. Both branches reject off-site redirect targets.
+  const ownerNext = sanitizeNext(next);
   if (result.isOwner) {
-    redirect(next || "/reception");
+    redirect(ownerNext);
   }
-  const safeNext = canStaffAccess(next) ? next : "/reception";
+  const safeNext = canStaffAccess(ownerNext) ? ownerNext : "/reception";
   redirect(safeNext);
 }
 

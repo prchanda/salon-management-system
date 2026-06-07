@@ -37,12 +37,6 @@ public class StaffLoginDto
     public string Password { get; set; } = string.Empty;
 }
 
-public class StaffResetPasswordDto
-{
-    public string Username { get; set; } = string.Empty;
-    public string NewPassword { get; set; } = string.Empty;
-}
-
 public class ChangeStaffPasswordDto
 {
     public long StaffId { get; set; }
