@@ -44,7 +44,7 @@ export default async function StaffAccountsPage({
     editError?: string;
   };
 }) {
-  if (getRole() !== "owner") {
+  if ((await getRole()) !== "owner") {
     redirect("/reception");
   }
 

@@ -24,13 +24,13 @@ export default async function ReceptionLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const role = getRole();
-  const displayName = getDisplayName();
+  const role = await getRole();
+  const displayName = await getDisplayName();
 
   // Server-side enforcement of the forced first-login password change.
   // This closes the gap where a user could delete the must-change cookie
   // to bypass the middleware redirect. Applies to the owner too.
-  const staffId = getStaffId();
+  const staffId = await getStaffId();
   let mustChangePassword = false;
   if (staffId) {
     try {

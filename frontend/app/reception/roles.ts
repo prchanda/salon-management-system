@@ -1,4 +1,5 @@
 import { cookies } from "next/headers";
+import { verifyValue } from "@/lib/session-cookie";
 
 export const RECEPTION_COOKIE = "reception_auth";
 export const RECEPTION_USER_COOKIE = "reception_user";
@@ -20,19 +21,20 @@ export function canStaffAccess(pathname: string): boolean {
   );
 }
 
-/** Read the current reception role from the cookie. */
-export function getRole(): Role | null {
-  const value = cookies().get(RECEPTION_COOKIE)?.value;
+/**
+ * Read the current reception role from the signed cookie. Returns null if the
+ * cookie is missing or its signature does not verify (so a forged/edited
+ * cookie is treated as logged-out).
+ */
+export async function getRole(): Promise<Role | null> {
+  const value = await verifyValue(cookies().get(RECEPTION_COOKIE)?.value);
   if (value === "owner" || value === "staff") return value;
-  // Back-compat: an older "ok" cookie was used before roles existed —
-  // treat it as owner so existing sessions don't break.
-  if (value === "ok") return "owner";
   return null;
 }
 
 /** Display name of the signed-in user (their full name, or a role fallback). */
-export function getDisplayName(): string | null {
-  const role = getRole();
+export async function getDisplayName(): Promise<string | null> {
+  const role = await getRole();
   if (!role) return null;
   return (
     cookies().get(RECEPTION_USER_COOKIE)?.value ??
@@ -41,12 +43,13 @@ export function getDisplayName(): string | null {
 }
 
 /**
- * Numeric staff id for the signed-in user. The owner is also a Staff row, so
- * this resolves for owners too (used by the forced password-change flow and
- * to let the owner book herself as a specialist).
+ * Numeric staff id for the signed-in user, read from the signed cookie. The
+ * owner is also a Staff row, so this resolves for owners too (used by the
+ * forced password-change flow and to let the owner book herself as a
+ * specialist).
  */
-export function getStaffId(): number | null {
-  const raw = cookies().get(RECEPTION_STAFF_ID_COOKIE)?.value;
+export async function getStaffId(): Promise<number | null> {
+  const raw = await verifyValue(cookies().get(RECEPTION_STAFF_ID_COOKIE)?.value);
   const n = raw ? Number(raw) : NaN;
   return Number.isFinite(n) && n > 0 ? n : null;
 }

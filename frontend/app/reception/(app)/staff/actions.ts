@@ -5,14 +5,14 @@ import { redirect } from "next/navigation";
 import { api } from "@/lib/api";
 import { getRole } from "@/app/reception/roles";
 
-function assertOwner() {
-  if (getRole() !== "owner") {
+async function assertOwner() {
+  if ((await getRole()) !== "owner") {
     redirect("/reception/login");
   }
 }
 
 export async function createStaffAction(formData: FormData) {
-  assertOwner();
+  await assertOwner();
 
   const fullName = String(formData.get("fullName") ?? "").trim();
   const roles = formData.getAll("roles").map((r) => String(r).trim()).filter(Boolean);
@@ -66,7 +66,7 @@ export async function createStaffAction(formData: FormData) {
 }
 
 export async function updateStaffAction(formData: FormData) {
-  assertOwner();
+  await assertOwner();
 
   const id = Number(formData.get("id"));
   if (!Number.isFinite(id) || id <= 0) {
@@ -127,7 +127,7 @@ function extractApiMessage(error: unknown): string {
 }
 
 export async function approveStaffAction(formData: FormData) {
-  assertOwner();
+  await assertOwner();
   const id = Number(formData.get("id"));
   if (!Number.isFinite(id) || id <= 0) return;
   try {
@@ -140,7 +140,7 @@ export async function approveStaffAction(formData: FormData) {
 }
 
 export async function rejectStaffAction(formData: FormData) {
-  assertOwner();
+  await assertOwner();
   const id = Number(formData.get("id"));
   if (!Number.isFinite(id) || id <= 0) return;
   try {

@@ -1,5 +1,6 @@
 import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
+import { verifyValue } from "@/lib/session-cookie";
 
 // Always run server-side and never cache: this proxy carries the backend secret
 // and per-session privileged data.
@@ -10,7 +11,7 @@ const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:7071/api";
 
 const RECEPTION_COOKIE = "reception_auth";
-const ALLOWED_ROLES = new Set(["owner", "staff", "ok"]);
+const ALLOWED_ROLES = new Set(["owner", "staff"]);
 
 /**
  * Same-origin gateway for privileged backend calls made from the browser.
@@ -24,7 +25,7 @@ const ALLOWED_ROLES = new Set(["owner", "staff", "ok"]);
  * client.
  */
 async function proxy(req: NextRequest, path: string[]): Promise<NextResponse> {
-  const role = cookies().get(RECEPTION_COOKIE)?.value;
+  const role = await verifyValue(cookies().get(RECEPTION_COOKIE)?.value);
   if (!role || !ALLOWED_ROLES.has(role)) {
     return new NextResponse("Unauthorized", { status: 401 });
   }

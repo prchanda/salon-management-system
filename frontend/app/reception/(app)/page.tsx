@@ -90,11 +90,11 @@ export default async function ReceptionTodayPage({
   const today = todayIso();
   const date = searchParams.date ?? today;
   const isToday = date === today;
-  const role = getRole();
-  const staffName = getDisplayName();
+  const role = await getRole();
+  const staffName = await getDisplayName();
 
   // Staff see only their own bookings; the owner sees the whole day.
-  const filterStaffId = role === "staff" ? getStaffId() : null;
+  const filterStaffId = role === "staff" ? await getStaffId() : null;
 
   return (
     <div className="space-y-8">

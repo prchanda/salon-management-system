@@ -15,8 +15,8 @@ export default async function ChangePasswordPage({
 }: {
   searchParams: { error?: string };
 }) {
-  const role = getRole();
-  const staffId = getStaffId();
+  const role = await getRole();
+  const staffId = await getStaffId();
 
   // Only signed-in users with a pending forced change belong here. Verify
   // against the backend so the page can't be used by accounts that have
@@ -38,7 +38,7 @@ export default async function ChangePasswordPage({
   }
 
   const error = searchParams.error;
-  const name = getDisplayName();
+  const name = await getDisplayName();
 
   return (
     <main className="flex min-h-screen items-center justify-center bg-cream-100 p-6">

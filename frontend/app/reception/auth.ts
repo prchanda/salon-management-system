@@ -9,6 +9,7 @@ import {
   RECEPTION_MUST_CHANGE_COOKIE,
   canStaffAccess,
 } from "./roles";
+import { signValue, verifyValue } from "@/lib/session-cookie";
 
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:7071/api";
@@ -136,14 +137,18 @@ export async function loginAction(formData: FormData) {
 
   cookies().set(
     RECEPTION_COOKIE,
-    result.isOwner ? "owner" : "staff",
+    await signValue(result.isOwner ? "owner" : "staff"),
     COOKIE_DEFAULTS
   );
   cookies().set(RECEPTION_USER_COOKIE, result.fullName, {
     ...COOKIE_DEFAULTS,
     httpOnly: false,
   });
-  cookies().set(RECEPTION_STAFF_ID_COOKIE, String(result.staffId), COOKIE_DEFAULTS);
+  cookies().set(
+    RECEPTION_STAFF_ID_COOKIE,
+    await signValue(String(result.staffId)),
+    COOKIE_DEFAULTS
+  );
 
   // Accounts seeded/created with a temporary password must set their own
   // password before doing anything (applies to the owner too).
@@ -294,8 +299,10 @@ export async function completePasswordResetAction(formData: FormData) {
  * the must-change cookie on success.
  */
 export async function changePasswordAction(formData: FormData) {
-  const role = cookies().get(RECEPTION_COOKIE)?.value;
-  const staffIdRaw = cookies().get(RECEPTION_STAFF_ID_COOKIE)?.value;
+  const role = await verifyValue(cookies().get(RECEPTION_COOKIE)?.value);
+  const staffIdRaw = await verifyValue(
+    cookies().get(RECEPTION_STAFF_ID_COOKIE)?.value
+  );
   const staffId = staffIdRaw ? Number(staffIdRaw) : NaN;
 
   if (

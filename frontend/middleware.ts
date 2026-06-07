@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { verifyValue } from "@/lib/session-cookie";
 
 const COOKIE = "reception_auth";
 const MUST_CHANGE_COOKIE = "reception_must_change";
@@ -36,8 +37,12 @@ export function middleware(req: NextRequest) {
     return NextResponse.next();
   }
 
-  const role = req.cookies.get(COOKIE)?.value;
-  const authed = role === "owner" || role === "staff" || role === "ok";
+  return guard(req, pathname);
+}
+
+async function guard(req: NextRequest, pathname: string) {
+  const role = await verifyValue(req.cookies.get(COOKIE)?.value);
+  const authed = role === "owner" || role === "staff";
 
   if (!authed) {
     const url = req.nextUrl.clone();
