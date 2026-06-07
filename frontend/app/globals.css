@@ -75,6 +75,36 @@
       font-size: 0.875rem; /* text-sm */
     }
   }
+
+  /*
+   * Text-like inputs and textareas: match the select / date convention
+   * above — 16px on mobile so the field size is consistent with the date
+   * and select controls (and iOS never auto-zooms on focus), then drop to
+   * text-sm from sm: up so the desktop typography stays refined.
+   */
+  input[type="text"],
+  input[type="tel"],
+  input[type="email"],
+  input[type="password"],
+  input[type="search"],
+  input[type="number"],
+  input[type="url"],
+  textarea {
+    font-size: 16px;
+  }
+
+  @media (min-width: 640px) {
+    input[type="text"],
+    input[type="tel"],
+    input[type="email"],
+    input[type="password"],
+    input[type="search"],
+    input[type="number"],
+    input[type="url"],
+    textarea {
+      font-size: 0.875rem; /* text-sm */
+    }
+  }
 }
 
 @layer components {
