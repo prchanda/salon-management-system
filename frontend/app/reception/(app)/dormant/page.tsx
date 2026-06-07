@@ -32,7 +32,7 @@ export default async function DormantPage({
 }: {
   searchParams: { days?: string };
 }) {
-  const days = Number(searchParams.days ?? 60);
+  const days = Number(searchParams.days ?? 30);
 
   let data;
   try {

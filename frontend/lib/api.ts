@@ -266,7 +266,7 @@ export const api = {
       method: "POST",
       body: JSON.stringify({ sourceCustomerId }),
     }),
-  getDormantCustomers: (days = 60) =>
+  getDormantCustomers: (days = 30) =>
     request<DormantCustomersResponse>(`/customers/dormant?days=${days}`),
 
   // Reception — staff account administration (owner only)

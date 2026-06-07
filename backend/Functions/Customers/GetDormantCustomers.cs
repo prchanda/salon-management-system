@@ -8,7 +8,7 @@ using System.Web;
 namespace backend.Functions.Customers;
 
 /// <summary>
-/// Customers who haven't visited (status="Done") in the last N days (default 60).
+/// Customers who haven't visited (status="Done") in the last N days (default 30).
 /// Reception calls these guests to re-engage them.
 /// </summary>
 public class GetDormantCustomers
@@ -27,7 +27,7 @@ public class GetDormantCustomers
     {
         var query = HttpUtility.ParseQueryString(req.Url.Query);
 
-        var days = int.TryParse(query["days"], out var d) ? d : 60;
+        var days = int.TryParse(query["days"], out var d) ? d : 30;
 
         var cutoff = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(-days));
 
