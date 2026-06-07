@@ -161,6 +161,13 @@ export const api = {
       body: JSON.stringify(payload),
     }),
 
+  // Reception — review moderation (owner only)
+  getAdminReviews: () => request<Review[]>("/reviews/admin/list"),
+  approveReview: (id: number) =>
+    request<Review>(`/reviews/${id}/approve`, { method: "POST" }),
+  deleteReview: (id: number) =>
+    request<void>(`/reviews/${id}`, { method: "DELETE" }),
+
   // Public — blog
   getPosts: (limit?: number, tag?: string) => {
     const params = new URLSearchParams();

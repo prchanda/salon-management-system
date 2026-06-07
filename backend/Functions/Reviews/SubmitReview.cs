@@ -73,7 +73,8 @@ public class SubmitReview
             Quote = quote,
             Rating = rating,
             GuestSince = guestSince,
-            IsApproved = true,
+            // Held for moderation: reception must approve before it shows publicly.
+            IsApproved = false,
             CreatedAt = DateTime.UtcNow,
         };
 

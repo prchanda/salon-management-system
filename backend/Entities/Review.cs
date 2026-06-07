@@ -2,8 +2,8 @@ namespace backend.Entities;
 
 /// <summary>
 /// A customer-submitted review shown in the public rotating testimonials.
-/// Reviews are auto-approved on submit; <see cref="IsApproved"/> exists so
-/// staff can hide spam/inappropriate entries later (toggle in DB).
+/// Reviews are held for moderation on submit (<see cref="IsApproved"/> defaults
+/// to false); reception must approve them before they appear publicly.
 /// </summary>
 public class Review
 {
@@ -19,7 +19,7 @@ public class Review
     /// <summary>Optional year — e.g. "2022" → rendered as "guest since 2022".</summary>
     public string? GuestSince { get; set; }
 
-    public bool IsApproved { get; set; } = true;
+    public bool IsApproved { get; set; }
 
     public DateTime CreatedAt { get; set; }
 }

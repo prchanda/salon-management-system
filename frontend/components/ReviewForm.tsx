@@ -65,7 +65,8 @@ export function ReviewForm() {
         </p>
         <h2 className="mt-4 font-serif text-2xl text-ink-900">Thank you.</h2>
         <p className="mt-3 text-sm leading-relaxed text-ink-600">
-          Your review is in and may appear on our home page shortly.
+          Your review has been received. We read each one before publishing, so
+          it may appear on our site shortly.
         </p>
         <Link href="/" className="btn-ghost mt-6 inline-flex">
           ← Back to home
