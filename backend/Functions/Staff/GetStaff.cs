@@ -29,21 +29,19 @@ public class GetStaff
                 x.Id,
                 x.FullName,
                 x.Role,
-                x.PhoneNumber,
                 x.IsActive,
                 x.CreatedAt,
             })
             .ToListAsync();
 
-        // Project to a public-safe shape (no credentials/secrets) and split
-        // the stored role string into a roles array for the UI.
+        // Project to a public-safe shape (no credentials, no contact details)
+        // and split the stored role string into a roles array for the UI.
         var result = staff.Select(s => new
         {
             s.Id,
             s.FullName,
             s.Role,
             Roles = SalonRoles.Split(s.Role),
-            s.PhoneNumber,
             s.IsActive,
             s.CreatedAt,
         });

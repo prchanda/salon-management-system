@@ -3,6 +3,7 @@ using System.Text.Json.Serialization;
 using Azure.Core.Serialization;
 using backend.Data;
 using backend.Helpers;
+using backend.Middleware;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Builder;
 using Microsoft.EntityFrameworkCore;
@@ -12,6 +13,11 @@ using Microsoft.Extensions.Hosting;
 var builder = FunctionsApplication.CreateBuilder(args);
 
 builder.ConfigureFunctionsWebApplication();
+
+// Require the shared API key on every privileged endpoint (public endpoints are
+// allowed through). Registered before the function executes so unauthorized
+// requests are short-circuited with 401.
+builder.UseMiddleware<ApiKeyMiddleware>();
 
 var connectionString =
     builder.Configuration["ConnectionStrings:DefaultConnection"];

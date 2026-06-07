@@ -331,7 +331,13 @@ export async function changePasswordAction(formData: FormData) {
   try {
     const res = await fetch(`${API_BASE_URL}/staff/change-password`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        // Privileged endpoint: attach the server-only backend API key.
+        ...(process.env.BACKEND_API_KEY
+          ? { "X-Api-Key": process.env.BACKEND_API_KEY }
+          : {}),
+      },
       body: JSON.stringify({ staffId, currentPassword, newPassword }),
       cache: "no-store",
     });

@@ -30,6 +30,60 @@ import type {
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:7071/api";
 
+// Same-origin proxy that the browser uses to reach privileged endpoints. The
+// proxy verifies the reception session cookie and injects the backend API key
+// server-side, so the secret is never shipped to the client. (Kept off the
+// "/api" path, which Azure Static Web Apps reserves for its managed backend.)
+const SECURE_PROXY_BASE = "/bff";
+
+/**
+ * Endpoints anonymous visitors may call without the shared API key. Everything
+ * else is privileged (reception/owner only). Default-deny: an unlisted path is
+ * treated as privileged. Keep in sync with backend/Helpers/PublicEndpoints.cs.
+ */
+function isPublicEndpoint(method: string, rawPath: string): boolean {
+  const path = rawPath.split("?")[0].replace(/^\/+|\/+$/g, "");
+  const segments = path.split("/").filter(Boolean);
+  const m = (method ?? "GET").toUpperCase();
+
+  if (m === "GET") {
+    const publicGet = new Set([
+      "services",
+      "staff",
+      "reviews",
+      "posts",
+      "products",
+      "staff/registration/available",
+    ]);
+    if (publicGet.has(path)) return true;
+    // Single-segment slug reads: posts/{slug}, products/{slug}. The admin
+    // variants have an extra segment and stay privileged.
+    if (
+      segments.length === 2 &&
+      (segments[0] === "posts" || segments[0] === "products") &&
+      segments[1] !== "admin"
+    ) {
+      return true;
+    }
+    return false;
+  }
+
+  if (m === "POST") {
+    const publicPost = new Set([
+      "reviews",
+      "appointments",
+      "product-orders",
+      "staff/login",
+      "staff/registration/register",
+      "staff/password-reset/request",
+      "staff/password-reset/complete",
+    ]);
+    return publicPost.has(path);
+  }
+
+  return false;
+}
+
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   // Callers may opt into ISR-friendly caching by passing `cache` or
   // `next: { revalidate, tags }`. If neither is provided we keep the
@@ -38,10 +92,31 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const hasCacheOverride =
     !!init?.cache || (init as RequestInit & { next?: unknown })?.next != null;
 
-  const res = await fetch(`${API_BASE_URL}${path}`, {
+  const method = init?.method ?? "GET";
+  const isPublic = isPublicEndpoint(method, path);
+  const onServer = typeof window === "undefined";
+
+  // Resolve the target URL + auth header based on visibility and runtime:
+  //   public            -> backend directly, no key
+  //   privileged/server -> backend directly + X-Api-Key (server-only secret)
+  //   privileged/client -> same-origin proxy (it injects the key after a cookie check)
+  let url: string;
+  const authHeaders: Record<string, string> = {};
+  if (isPublic) {
+    url = `${API_BASE_URL}${path}`;
+  } else if (onServer) {
+    url = `${API_BASE_URL}${path}`;
+    const apiKey = process.env.BACKEND_API_KEY;
+    if (apiKey) authHeaders["X-Api-Key"] = apiKey;
+  } else {
+    url = `${SECURE_PROXY_BASE}${path}`;
+  }
+
+  const res = await fetch(url, {
     ...init,
     headers: {
       "Content-Type": "application/json",
+      ...authHeaders,
       ...(init?.headers ?? {}),
     },
     ...(hasCacheOverride ? {} : { cache: "no-store" as RequestCache }),
