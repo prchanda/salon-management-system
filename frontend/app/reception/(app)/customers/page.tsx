@@ -1,5 +1,7 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { api } from "@/lib/api";
+import { getRole } from "@/app/reception/roles";
 import type { Customer } from "@/lib/types";
 import { NavSubmitButton } from "@/components/NavSubmitButton";
 
@@ -19,6 +21,10 @@ export default async function CustomersListPage({
 }: {
   searchParams: { q?: string };
 }) {
+  if ((await getRole()) !== "owner") {
+    redirect("/reception");
+  }
+
   const q = (searchParams.q ?? "").trim().toLowerCase();
   const all = await safeGetCustomers();
 

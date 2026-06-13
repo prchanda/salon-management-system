@@ -146,6 +146,7 @@ async function TodayContent({
   isToday: boolean;
   staffId: number | null;
 }) {
+  const role = await getRole();
   const data = await safeGetToday(date, staffId);
   const appts = data.appointments;
 
@@ -230,13 +231,17 @@ async function TodayContent({
                       </div>
                       <div className="min-w-0 flex-1">
                         <div className="flex flex-wrap items-center gap-2">
-                          {a.customerId ? (
+                          {a.customerId && role === "owner" ? (
                             <Link
                               href={`/reception/customers/${a.customerId}`}
                               className="truncate text-sm font-semibold text-ink-900 hover:text-gold-600"
                             >
                               {a.customer?.fullName ?? "Guest"}
                             </Link>
+                          ) : a.customerId ? (
+                            <span className="truncate text-sm font-semibold text-ink-900">
+                              {a.customer?.fullName ?? "Guest"}
+                            </span>
                           ) : (
                             <span className="truncate text-sm font-semibold text-ink-900">
                               {a.guestName && a.guestName.trim().toLowerCase() !== "walk-in"

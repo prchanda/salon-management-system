@@ -1,6 +1,7 @@
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { api } from "@/lib/api";
+import { getRole } from "@/app/reception/roles";
 import { CustomerNotesEditor } from "@/components/reception/CustomerNotesEditor";
 import { CustomerDetailsEditor } from "@/components/reception/CustomerDetailsEditor";
 import { MergeCustomerTool } from "@/components/reception/MergeCustomerTool";
@@ -27,6 +28,10 @@ export default async function CustomerProfilePage({
 }: {
   params: { id: string };
 }) {
+  if ((await getRole()) !== "owner") {
+    redirect("/reception");
+  }
+
   const id = Number(params.id);
   if (!Number.isFinite(id)) notFound();
 

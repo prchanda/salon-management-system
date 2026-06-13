@@ -1,5 +1,7 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { api } from "@/lib/api";
+import { getRole } from "@/app/reception/roles";
 import { SALON, waLink } from "@/lib/salon";
 import { NavSubmitButton } from "@/components/NavSubmitButton";
 
@@ -32,6 +34,10 @@ export default async function DormantPage({
 }: {
   searchParams: { days?: string };
 }) {
+  if ((await getRole()) !== "owner") {
+    redirect("/reception");
+  }
+
   const days = Number(searchParams.days ?? 30);
 
   let data;

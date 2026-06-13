@@ -10,8 +10,8 @@ export const metadata = {
 const nav = [
   { href: "/reception", label: "Bookings", ownerOnly: false },
   { href: "/reception/new", label: "New booking", ownerOnly: false },
-  { href: "/reception/customers", label: "Customers", ownerOnly: false },
-  { href: "/reception/dormant", label: "Re-engage", ownerOnly: false },
+  { href: "/reception/customers", label: "Customers", ownerOnly: true },
+  { href: "/reception/dormant", label: "Re-engage", ownerOnly: true },
   { href: "/reception/orders", label: "Orders", ownerOnly: true },
   { href: "/reception/summary", label: "Day summary", ownerOnly: true },
   { href: "/reception/services", label: "Services", ownerOnly: true },
