@@ -39,6 +39,23 @@ function randomId(): string {
  * the file server-side, and performs the upload with the service-role key.
  */
 export async function POST(req: NextRequest): Promise<NextResponse> {
+  // TEMP DIAGNOSTIC: 5xx response bodies are stripped on Azure SWA, hiding the
+  // real upload error. Wrap everything and surface the actual message/stack as
+  // a pass-through 200 so we can see it from the client. REMOVE after diagnosis.
+  try {
+    return await handleUpload(req);
+  } catch (e) {
+    const message = e instanceof Error ? e.message : String(e);
+    const stack = e instanceof Error ? e.stack ?? "" : "";
+    console.error("[uploads] DIAG top-level throw", { message, stack });
+    return NextResponse.json(
+      { __diag: true, message, stack },
+      { status: 200 }
+    );
+  }
+}
+
+async function handleUpload(req: NextRequest): Promise<NextResponse> {
   const role = await verifyValue(cookies().get(RECEPTION_COOKIE)?.value);
   if (!role || !ALLOWED_ROLES.has(role)) {
     return new NextResponse("Unauthorized", { status: 401 });
@@ -66,55 +83,42 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   }
 
   const path = `${target.folder}/${randomId()}.webp`;
+  // DIAG: surface every failure mode as a pass-through 200 so the stripped-5xx
+  // problem doesn't hide it.
   let supabase;
   try {
     supabase = getSupabaseAdmin();
   } catch (e) {
-    console.error("[uploads] Supabase admin client unavailable", e);
-    return new NextResponse(
-      "Server is missing the Supabase service-role key.",
-      { status: 500 }
+    const message = e instanceof Error ? e.message : String(e);
+    return NextResponse.json(
+      { __diag: true, stage: "getSupabaseAdmin", message },
+      { status: 200 }
     );
   }
 
-  // Read the file into a Buffer before handing it to supabase-js. Passing a
-  // web `File`/`Blob` directly makes the storage client build a streaming
-  // fetch body, which throws an opaque (empty-body) error in the Azure SWA
-  // Node runtime. A Buffer uploads reliably across runtimes. The whole call
-  // is wrapped so a thrown error becomes a readable 502 instead of an
-  // unhandled 500 with no body (which the client could only show as a
-  // generic "please try again").
-  let publicUrl: string;
-  try {
-    const bytes = Buffer.from(await file.arrayBuffer());
-    const { error } = await supabase.storage
-      .from(target.bucket)
-      .upload(path, bytes, {
-        contentType: "image/webp",
-        cacheControl: "31536000",
-        upsert: false,
-      });
-    if (error) {
-      console.error("[uploads] Supabase upload failed", {
+  const bytes = Buffer.from(await file.arrayBuffer());
+  const { error } = await supabase.storage
+    .from(target.bucket)
+    .upload(path, bytes, {
+      contentType: "image/webp",
+      cacheControl: "31536000",
+      upsert: false,
+    });
+  if (error) {
+    return NextResponse.json(
+      {
+        __diag: true,
+        stage: "supabase.upload",
         bucket: target.bucket,
         path,
         message: error.message,
-      });
-      return new NextResponse(`Upload failed: ${error.message}`, {
-        status: 502,
-      });
-    }
-    publicUrl = supabase.storage.from(target.bucket).getPublicUrl(path).data
-      .publicUrl;
-  } catch (e) {
-    const message = e instanceof Error ? e.message : "unknown error";
-    console.error("[uploads] Unexpected upload exception", {
-      bucket: target.bucket,
-      path,
-      message,
-    });
-    return new NextResponse(`Upload failed: ${message}`, { status: 502 });
+        name: (error as { name?: string }).name,
+      },
+      { status: 200 }
+    );
   }
 
+  const publicUrl = supabase.storage.from(target.bucket).getPublicUrl(path).data
+    .publicUrl;
   return NextResponse.json({ url: publicUrl });
 }
