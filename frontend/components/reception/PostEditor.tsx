@@ -100,11 +100,12 @@ export function PostEditor({ initial }: Props) {
         // Bust the public ISR cache so changes appear immediately.
         await revalidateBlog(updated.slug);
         if (publish) {
+          // Navigating to the list already renders it fresh; no extra refresh.
           router.replace("/reception/blog");
         } else {
           router.replace(`/reception/blog/${initial.id}/edit`);
+          router.refresh();
         }
-        router.refresh();
       } else {
         const created = await api.createPost({
           title: t,
@@ -116,11 +117,12 @@ export function PostEditor({ initial }: Props) {
         });
         await revalidateBlog(created.slug);
         if (publish) {
+          // Navigating to the list already renders it fresh; no extra refresh.
           router.replace("/reception/blog");
         } else {
           router.replace(`/reception/blog/${created.id}/edit`);
+          router.refresh();
         }
-        router.refresh();
       }
     } catch (err) {
       setError(
@@ -140,8 +142,8 @@ export function PostEditor({ initial }: Props) {
     try {
       await api.deletePost(initial.id);
       await revalidateBlog(initial.slug);
+      // Navigating to the list already renders it fresh; no extra refresh.
       router.replace("/reception/blog");
-      router.refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Delete failed.");
       setSaving(false);
