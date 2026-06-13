@@ -39,23 +39,6 @@ function randomId(): string {
  * the file server-side, and performs the upload with the service-role key.
  */
 export async function POST(req: NextRequest): Promise<NextResponse> {
-  // TEMP DIAGNOSTIC: 5xx response bodies are stripped on Azure SWA, hiding the
-  // real upload error. Wrap everything and surface the actual message/stack as
-  // a pass-through 200 so we can see it from the client. REMOVE after diagnosis.
-  try {
-    return await handleUpload(req);
-  } catch (e) {
-    const message = e instanceof Error ? e.message : String(e);
-    const stack = e instanceof Error ? e.stack ?? "" : "";
-    console.error("[uploads] DIAG top-level throw", { message, stack });
-    return NextResponse.json(
-      { __diag: true, message, stack },
-      { status: 200 }
-    );
-  }
-}
-
-async function handleUpload(req: NextRequest): Promise<NextResponse> {
   const role = await verifyValue(cookies().get(RECEPTION_COOKIE)?.value);
   if (!role || !ALLOWED_ROLES.has(role)) {
     return new NextResponse("Unauthorized", { status: 401 });
@@ -71,8 +54,13 @@ async function handleUpload(req: NextRequest): Promise<NextResponse> {
     return new NextResponse("Unknown upload kind", { status: 400 });
   }
 
+  // NOTE: do NOT use `instanceof File`. The Azure SWA Next.js runtime is
+  // Node 18, where `File` is not a global (it only became global in Node 20),
+  // so referencing it throws `ReferenceError: File is not defined` and Next.js
+  // turns that into an opaque, empty-body 500. `Blob` *is* a global in Node 18
+  // and `File extends Blob`, so duck-type against Blob instead.
   const file = form.get("file");
-  if (!(file instanceof File)) {
+  if (!(file instanceof Blob)) {
     return new NextResponse("Missing file", { status: 400 });
   }
   if (file.type !== "image/webp") {
@@ -83,39 +71,47 @@ async function handleUpload(req: NextRequest): Promise<NextResponse> {
   }
 
   const path = `${target.folder}/${randomId()}.webp`;
-  // DIAG: surface every failure mode as a pass-through 200 so the stripped-5xx
-  // problem doesn't hide it.
   let supabase;
   try {
     supabase = getSupabaseAdmin();
   } catch (e) {
-    const message = e instanceof Error ? e.message : String(e);
-    return NextResponse.json(
-      { __diag: true, stage: "getSupabaseAdmin", message },
-      { status: 200 }
+    console.error("[uploads] Supabase admin client unavailable", e);
+    return new NextResponse(
+      "Server is missing the Supabase service-role key.",
+      { status: 500 }
     );
   }
 
-  const bytes = Buffer.from(await file.arrayBuffer());
-  const { error } = await supabase.storage
-    .from(target.bucket)
-    .upload(path, bytes, {
-      contentType: "image/webp",
-      cacheControl: "31536000",
-      upsert: false,
-    });
-  if (error) {
-    return NextResponse.json(
-      {
-        __diag: true,
-        stage: "supabase.upload",
+  // Read the file into a Buffer before handing it to supabase-js (reliable
+  // across runtimes). Wrap the call so any thrown error is logged with a
+  // readable message instead of bubbling up as an opaque 500.
+  try {
+    const bytes = Buffer.from(await file.arrayBuffer());
+    const { error } = await supabase.storage
+      .from(target.bucket)
+      .upload(path, bytes, {
+        contentType: "image/webp",
+        cacheControl: "31536000",
+        upsert: false,
+      });
+    if (error) {
+      console.error("[uploads] Supabase upload failed", {
         bucket: target.bucket,
         path,
         message: error.message,
-        name: (error as { name?: string }).name,
-      },
-      { status: 200 }
-    );
+      });
+      return new NextResponse(`Upload failed: ${error.message}`, {
+        status: 502,
+      });
+    }
+  } catch (e) {
+    const message = e instanceof Error ? e.message : "unknown error";
+    console.error("[uploads] Unexpected upload exception", {
+      bucket: target.bucket,
+      path,
+      message,
+    });
+    return new NextResponse(`Upload failed: ${message}`, { status: 502 });
   }
 
   const publicUrl = supabase.storage.from(target.bucket).getPublicUrl(path).data
