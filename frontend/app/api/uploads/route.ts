@@ -66,7 +66,16 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   }
 
   const path = `${target.folder}/${randomId()}.webp`;
-  const supabase = getSupabaseAdmin();
+  let supabase;
+  try {
+    supabase = getSupabaseAdmin();
+  } catch (e) {
+    console.error("[uploads] Supabase admin client unavailable", e);
+    return new NextResponse(
+      "Server is missing the Supabase service-role key.",
+      { status: 500 }
+    );
+  }
   const { error } = await supabase.storage
     .from(target.bucket)
     .upload(path, file, {
@@ -75,7 +84,12 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       upsert: false,
     });
   if (error) {
-    return new NextResponse("Upload failed", { status: 502 });
+    console.error("[uploads] Supabase upload failed", {
+      bucket: target.bucket,
+      path,
+      message: error.message,
+    });
+    return new NextResponse(`Upload failed: ${error.message}`, { status: 502 });
   }
 
   const { data } = supabase.storage.from(target.bucket).getPublicUrl(path);
