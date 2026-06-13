@@ -7,6 +7,7 @@ import type {
   CreateProductOrderPayload,
   CreateProductPayload,
   CreateReviewPayload,
+  CreateServicePayload,
   Customer,
   CustomerHistory,
   DaySummary,
@@ -25,6 +26,7 @@ import type {
   TodayAppointments,
   UpdatePostPayload,
   UpdateProductPayload,
+  UpdateServicePayload,
 } from "./types";
 
 const API_BASE_URL =
@@ -235,6 +237,19 @@ export const api = {
     }),
   deleteProduct: (id: number) =>
     request<void>(`/products/${id}`, { method: "DELETE" }),
+
+  // Reception — services (owner managed)
+  getAdminServices: () => request<Service[]>("/services/admin/list"),
+  createService: (payload: CreateServicePayload) =>
+    request<Service>("/services", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
+  updateService: (id: number, payload: UpdateServicePayload) =>
+    request<Service>(`/services/${id}`, {
+      method: "PUT",
+      body: JSON.stringify(payload),
+    }),
 
   // Reception — product orders
   getProductOrders: (status?: string) =>

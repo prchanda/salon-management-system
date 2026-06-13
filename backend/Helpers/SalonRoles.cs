@@ -20,8 +20,6 @@ public static class SalonRoles
         "Esthetician",
         "Massage Therapist",
         "Spa Therapist",
-        "Receptionist",
-        "Manager",
     };
 
     /// <summary>

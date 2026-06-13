@@ -3,11 +3,29 @@
 export interface Service {
   id: number;
   serviceName: string;
+  category?: string | null;
   description?: string | null;
   durationMinutes: number;
   price: number;
   isActive: boolean;
   createdAt: string;
+}
+
+export interface CreateServicePayload {
+  serviceName: string;
+  category?: string | null;
+  description?: string | null;
+  durationMinutes: number;
+  price: number;
+  isActive?: boolean;
+}
+
+export interface UpdateServicePayload {
+  serviceName?: string;
+  category?: string | null;
+  durationMinutes?: number;
+  price?: number;
+  isActive?: boolean;
 }
 
 export interface Staff {

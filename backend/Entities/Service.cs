@@ -6,6 +6,8 @@ public class Service
 
     public string ServiceName { get; set; } = string.Empty;
 
+    public string? Category { get; set; }
+
     public string? Description { get; set; }
 
     public int DurationMinutes { get; set; }

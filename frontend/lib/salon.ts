@@ -39,6 +39,4 @@ export const SALON_ROLES = [
   "Esthetician",
   "Massage Therapist",
   "Spa Therapist",
-  "Receptionist",
-  "Manager",
 ] as const;

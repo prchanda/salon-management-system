@@ -35,18 +35,37 @@ const nextConfig = {
   // SWA globalHeaders are not reliably applied to server-rendered responses.
   // Applying them at the Next.js layer covers every response (SSR and static).
   async headers() {
+    // In `next dev`, React's fast-refresh runtime relies on eval(), so the CSP
+    // must allow 'unsafe-eval' locally — otherwise client hydration is blocked
+    // and every interactive button becomes inert. Production builds never eval,
+    // so the deployed policy stays strict.
+    const scriptSrc =
+      process.env.NODE_ENV === "development"
+        ? "script-src 'self' 'unsafe-inline' 'unsafe-eval'"
+        : "script-src 'self' 'unsafe-inline'";
+
+    // Client components fetch public endpoints directly from the browser. In
+    // dev that backend is the local Functions host on http://localhost:7071,
+    // which must be whitelisted in connect-src (and we must not force-upgrade
+    // it to https). Production talks to the deployed API over https.
+    const isDev = process.env.NODE_ENV === "development";
+    const connectSrc = isDev
+      ? "connect-src 'self' http://localhost:7071 ws://localhost:* https://*.supabase.co https://mrmrscuts-api.azurewebsites.net"
+      : "connect-src 'self' https://*.supabase.co https://mrmrscuts-api.azurewebsites.net";
+
     const csp = [
       "default-src 'self'",
-      "script-src 'self' 'unsafe-inline'",
+      scriptSrc,
       "style-src 'self' 'unsafe-inline'",
       "img-src 'self' data: blob: https:",
       "font-src 'self' data:",
-      "connect-src 'self' https://*.supabase.co https://mrmrscuts-api.azurewebsites.net",
+      connectSrc,
       "frame-ancestors 'none'",
       "base-uri 'self'",
       "form-action 'self'",
       "object-src 'none'",
-      "upgrade-insecure-requests",
+      // Forcing https breaks the http://localhost:7071 backend in dev.
+      ...(isDev ? [] : ["upgrade-insecure-requests"]),
     ].join("; ");
 
     return [

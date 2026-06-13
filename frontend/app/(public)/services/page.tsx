@@ -2,6 +2,10 @@ import Link from "next/link";
 import { ServiceCard } from "@/components/ServiceCard";
 import { api } from "@/lib/api";
 import { FALLBACK_SERVICES } from "@/lib/fallbackServices";
+import {
+  SERVICE_CATEGORIES,
+  DEFAULT_SERVICE_CATEGORY,
+} from "@/lib/serviceCategories";
 import { SALON, waLink } from "@/lib/salon";
 import type { Service } from "@/lib/types";
 
@@ -20,40 +24,26 @@ async function safeGetServices(): Promise<Service[]> {
   }
 }
 
-const CATEGORIES = [
-  {
-    key: "hair",
-    label: "Hair",
-    tagline: "Cuts, colour and care",
-    blurb:
-      "Precision cuts, considered colour and restorative care, shaped to your hair's natural pattern.",
-    match: /hair|cut|color|colour|blow|style|trim/i,
-  },
-  {
-    key: "skin",
-    label: "Skin",
-    tagline: "Facials and clinical care",
-    blurb:
-      "Bespoke facials and targeted treatments using professional-grade actives — calming, brightening and resurfacing.",
-    match: /skin|facial|peel|glow|clean/i,
-  },
-  {
-    key: "nails",
-    label: "Nails",
-    tagline: "Manicures and pedicures",
-    blurb:
-      "Meticulous shaping, conditioning and long-wear finishes. Tools are sanitised between every guest.",
-    match: /nail|mani|pedi/i,
-  },
-  {
-    key: "spa",
-    label: "Spa",
-    tagline: "Body, massage and rituals",
-    blurb:
-      "Quiet, unhurried treatments designed to release tension and restore — from therapeutic massage to body rituals.",
-    match: /spa|massage|body|wax/i,
-  },
+// Keyword fallback for services that don't yet have a category assigned
+// (legacy rows / the static fallback list). New services set category
+// explicitly from the reception admin, which always takes precedence.
+const CATEGORY_KEYWORDS: { value: string; match: RegExp }[] = [
+  { value: "Hair", match: /hair|cut|color|colour|blow|style|trim/i },
+  { value: "Skin", match: /skin|facial|peel|glow|clean/i },
+  { value: "Nails", match: /nail|mani|pedi/i },
+  { value: "Spa", match: /spa|massage|body|wax/i },
 ];
+
+function categoryFor(service: Service): string {
+  // Prefer the explicit category when it maps to a known group.
+  const explicit = SERVICE_CATEGORIES.find(
+    (c) => c.value.toLowerCase() === (service.category ?? "").toLowerCase()
+  );
+  if (explicit) return explicit.value;
+  // Fall back to keyword matching on the name.
+  const guessed = CATEGORY_KEYWORDS.find((c) => c.match.test(service.serviceName));
+  return guessed?.value ?? DEFAULT_SERVICE_CATEGORY;
+}
 
 const EXPERIENCE = [
   {
@@ -78,14 +68,9 @@ export default async function ServicesPage() {
   const services = await safeGetServices();
 
   const groups: Record<string, Service[]> = {};
-  const other: Service[] = [];
   for (const s of services) {
-    const cat = CATEGORIES.find((c) => c.match.test(s.serviceName));
-    if (cat) {
-      (groups[cat.key] ||= []).push(s);
-    } else {
-      other.push(s);
-    }
+    const key = categoryFor(s);
+    (groups[key] ||= []).push(s);
   }
 
   return (
@@ -136,11 +121,11 @@ export default async function ServicesPage() {
             </p>
           )}
 
-          {CATEGORIES.map((cat, index) => {
-            const list = groups[cat.key];
+          {SERVICE_CATEGORIES.map((cat, index) => {
+            const list = groups[cat.value];
             if (!list || list.length === 0) return null;
             return (
-              <div key={cat.key} className="grid gap-12 lg:grid-cols-12">
+              <div key={cat.value} className="grid gap-12 lg:grid-cols-12">
                 <div className="lg:col-span-4">
                   <span className="eyebrow">{`0${index + 1} — ${cat.tagline}`}</span>
                   <h2 className="h2 mt-3">{cat.label}</h2>
@@ -158,26 +143,6 @@ export default async function ServicesPage() {
               </div>
             );
           })}
-
-          {other.length > 0 && (
-            <div className="grid gap-12 lg:grid-cols-12">
-              <div className="lg:col-span-4">
-                <span className="eyebrow">More — Add-ons</span>
-                <h2 className="h2 mt-3">Signature add-ons</h2>
-                <p className="mt-4 max-w-sm text-sm leading-relaxed text-ink-600">
-                  Small finishing touches that elevate any service. Mention
-                  these when you book and we&apos;ll set aside the time.
-                </p>
-              </div>
-              <div className="lg:col-span-8">
-                <div className="grid gap-x-10 gap-y-8 sm:grid-cols-2">
-                  {other.map((s) => (
-                    <ServiceCard key={s.id} service={s} />
-                  ))}
-                </div>
-              </div>
-            </div>
-          )}
         </div>
       </section>
 

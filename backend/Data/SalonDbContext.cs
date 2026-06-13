@@ -79,6 +79,9 @@ public class SalonDbContext : DbContext
         modelBuilder.Entity<Service>().Property(x => x.ServiceName)
             .HasColumnName("service_name");
 
+        modelBuilder.Entity<Service>().Property(x => x.Category)
+            .HasColumnName("category");
+
         modelBuilder.Entity<Service>().Property(x => x.DurationMinutes)
             .HasColumnName("duration_minutes");
 

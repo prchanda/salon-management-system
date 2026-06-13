@@ -60,17 +60,17 @@ export function MarkDoneButton({ appointmentId, suggestedAmount }: Props) {
           ₹
         </span>
         <input
-          type="number"
+          type="text"
           inputMode="numeric"
           value={amount}
-          onChange={(e) => setAmount(e.target.value)}
+          onChange={(e) => setAmount(e.target.value.replace(/\D/g, ""))}
           className="w-24 rounded-md border border-ink-900/15 bg-cream-50 px-2 py-1 text-sm"
           placeholder="Amount"
         />
         <select
           value={method}
           onChange={(e) => setMethod(e.target.value)}
-          className="rounded-md border border-ink-900/15 bg-cream-50 px-2 py-1 text-sm"
+          className="appearance-none rounded-md border border-ink-900/15 bg-cream-50 py-1 pl-2 pr-7 text-sm"
         >
           <option>UPI</option>
           <option>Cash</option>
