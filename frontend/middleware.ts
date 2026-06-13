@@ -57,23 +57,29 @@ async function guard(req: NextRequest, pathname: string) {
   // also verify against the backend, so a deleted cookie cannot bypass it.
   const mustChange = req.cookies.get(MUST_CHANGE_COOKIE)?.value === "1";
   if (mustChange && pathname !== CHANGE_PASSWORD_PATH) {
-    // The cookie can go stale (e.g. the password was changed via the email
-    // reset flow, which never touches this cookie). Without a backend check
-    // we'd bounce forever: here -> change-password page -> (backend says no
-    // change needed) -> back to /reception -> here again. Verify against the
-    // backend and self-heal by clearing the stale cookie if it's no longer
-    // needed; only redirect when the change is genuinely still pending (or
-    // the backend is unreachable, in which case we keep the gate closed).
-    const stillRequired = await backendRequiresChange(req);
-    if (stillRequired === false) {
-      const res = NextResponse.next();
-      res.cookies.delete({ name: MUST_CHANGE_COOKIE, path: "/" });
-      return res;
+    // The cookie can go stale or become orphaned, which previously caused an
+    // infinite /reception <-> /reception/change-password loop:
+    //   * stale: the password was already changed via the email reset flow,
+    //     which never clears this cookie; or
+    //   * orphaned: the signed staff-id cookie can't be resolved (e.g. the
+    //     signing secret rotated) while the unsigned must-change cookie
+    //     survives -> the change-password page bounces back to /reception
+    //     because it can't identify the user.
+    // Make the middleware authoritative: only pin to the change-password
+    // page when we can confirm the change is genuinely still pending.
+    const verdict = await mustChangeVerdict(req);
+    if (verdict === "required") {
+      const url = req.nextUrl.clone();
+      url.pathname = CHANGE_PASSWORD_PATH;
+      url.search = "";
+      return NextResponse.redirect(url);
     }
-    const url = req.nextUrl.clone();
-    url.pathname = CHANGE_PASSWORD_PATH;
-    url.search = "";
-    return NextResponse.redirect(url);
+    // "not-required" (backend says done) or "unknown" (no resolvable id, so
+    // the cookie is orphaned and the change-password page can't proceed
+    // anyway): self-heal by clearing the cookie and letting the request go.
+    const res = NextResponse.next();
+    res.cookies.delete({ name: MUST_CHANGE_COOKIE, path: "/" });
+    return res;
   }
 
   // Staff are confined to a subset of pages (the change-password page is
@@ -93,21 +99,25 @@ async function guard(req: NextRequest, pathname: string) {
 }
 
 /**
- * Authoritative check against the backend for whether the signed-in staff
- * member still has a pending forced password change. Returns:
- *   - true  -> change is still required (keep the gate closed)
- *   - false -> no change needed (the cookie is stale and can be cleared)
- *   - null  -> unknown (missing/invalid id or backend unreachable); callers
- *              should fail safe and keep the gate closed.
+ * Authoritative verdict on whether the signed-in staff member still has a
+ * pending forced password change:
+ *   - "required"     -> the backend confirms a change is still pending.
+ *   - "not-required" -> the backend says the password has been set.
+ *   - "unknown"      -> we can't resolve the staff id (orphaned cookie). The
+ *                       change-password page can't proceed without an id, so
+ *                       pinning there would loop; treat as clearable.
+ * If we have a valid id but the backend is unreachable we fail SAFE and keep
+ * the gate closed ("required"): the change-password page fails open to the
+ * form in that case, so there is no loop.
  */
-async function backendRequiresChange(
+async function mustChangeVerdict(
   req: NextRequest
-): Promise<boolean | null> {
+): Promise<"required" | "not-required" | "unknown"> {
   const staffIdRaw = await verifyValue(
     req.cookies.get(STAFF_ID_COOKIE)?.value
   );
   const staffId = staffIdRaw ? Number(staffIdRaw) : NaN;
-  if (!Number.isFinite(staffId) || staffId <= 0) return null;
+  if (!Number.isFinite(staffId) || staffId <= 0) return "unknown";
 
   const base =
     process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:7071/api";
@@ -115,11 +125,11 @@ async function backendRequiresChange(
     const res = await fetch(`${base}/staff/${staffId}/session-status`, {
       cache: "no-store",
     });
-    if (!res.ok) return null;
+    if (!res.ok) return "required"; // fail safe while we have a valid id
     const body = (await res.json()) as { mustChangePassword?: boolean };
-    return body.mustChangePassword === true;
+    return body.mustChangePassword === true ? "required" : "not-required";
   } catch {
-    return null;
+    return "required"; // backend unreachable: keep the gate closed
   }
 }
 
