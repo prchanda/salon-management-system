@@ -97,8 +97,10 @@ export function PostEditor({ initial }: Props) {
           coverImageUrl: coverImageUrl.trim() || null,
           isPublished: publish,
         });
-        // Bust the public ISR cache so changes appear immediately.
-        await revalidateBlog(updated.slug);
+        // Bust the public ISR cache so changes appear there too. This only
+        // affects the PUBLIC /blog pages (not this reception view), so don't
+        // block closing the editor on it — let it run in the background.
+        void revalidateBlog(updated.slug).catch(() => {});
         if (publish) {
           // Navigating to the list already renders it fresh; no extra refresh.
           router.replace("/reception/blog");
@@ -115,7 +117,7 @@ export function PostEditor({ initial }: Props) {
           coverImageUrl: coverImageUrl.trim() || undefined,
           publish,
         });
-        await revalidateBlog(created.slug);
+        void revalidateBlog(created.slug).catch(() => {});
         if (publish) {
           // Navigating to the list already renders it fresh; no extra refresh.
           router.replace("/reception/blog");
@@ -141,7 +143,7 @@ export function PostEditor({ initial }: Props) {
     setSaving(true);
     try {
       await api.deletePost(initial.id);
-      await revalidateBlog(initial.slug);
+      void revalidateBlog(initial.slug).catch(() => {});
       // Navigating to the list already renders it fresh; no extra refresh.
       router.replace("/reception/blog");
     } catch (err) {
