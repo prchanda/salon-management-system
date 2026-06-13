@@ -13,11 +13,12 @@ jobs:
     runs-on: ubuntu-latest
     name: Build and Deploy
     env:
-      # Public (NEXT_PUBLIC_*) build-time values. The Supabase anon key is
-      # designed to be exposed to the browser; the API URL is public too.
+      # Public (NEXT_PUBLIC_*) build-time values — safe to expose to the browser.
+      # The Supabase service-role key is NOT here: uploads run server-side via
+      # /api/uploads, and the key is supplied at runtime as an Azure Static Web
+      # Apps application setting (SUPABASE_SERVICE_ROLE_KEY).
       NEXT_PUBLIC_API_BASE_URL: https://mrmrscuts-api.azurewebsites.net/api
       NEXT_PUBLIC_SUPABASE_URL: https://ejfusrjqqhlorshtolee.supabase.co
-      NEXT_PUBLIC_SUPABASE_ANON_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVqZnVzcmpxcWhsb3JzaHRvbGVlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk1NTI4MTksImV4cCI6MjA5NTEyODgxOX0.Ox6wP3ap0MRUhzLEwdtUy6XHf_B0EcEwNbMbU9lI2PE
     steps:
       - uses: actions/checkout@v4
         with:

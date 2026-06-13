@@ -1,21 +1,26 @@
-// Supabase Storage client — used only for uploading blog cover images.
-// Loaded dynamically so the public bundle isn't bloated for read-only visitors.
+import "server-only";
+
+// Server-only Supabase client used for privileged Storage uploads.
+//
+// This uses the SERVICE ROLE key, which must never reach the browser. All
+// uploads go through the authenticated /api/uploads route handler, so the
+// anonymous (public) key is no longer used anywhere in the app.
 
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 let client: SupabaseClient | null = null;
 
-export function getSupabase(): SupabaseClient {
-  if (!url || !anonKey) {
+export function getSupabaseAdmin(): SupabaseClient {
+  if (!url || !serviceKey) {
     throw new Error(
-      "Supabase env vars missing. Set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY."
+      "Supabase admin env vars missing. Set NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY."
     );
   }
   if (!client) {
-    client = createClient(url, anonKey, {
+    client = createClient(url, serviceKey, {
       auth: { persistSession: false },
     });
   }

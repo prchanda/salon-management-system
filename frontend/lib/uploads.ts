@@ -7,9 +7,8 @@
 //   3. Encode to WebP and iteratively lower quality until the file fits a
 //      target size budget. Guarantees small uploads regardless of input.
 //   4. If still too large, scale down again and retry.
-//   5. Upload to Supabase Storage bucket "blog" with a 1-year cache header.
-
-import { BLOG_BUCKET, PRODUCTS_BUCKET, getSupabase } from "./supabase";
+//   5. POST the compressed file to the authenticated /api/uploads route, which
+//      uploads it to Supabase Storage server-side with the service-role key.
 
 const MAX_DIM = 1600; // px on longest side
 const TARGET_BYTES = 220 * 1024; // ~220 KB — looks great, mobile-friendly
@@ -96,20 +95,12 @@ export async function compressImage(file: File): Promise<Blob> {
   return last;
 }
 
-function randomId(): string {
-  return (
-    Date.now().toString(36) +
-    "-" +
-    Math.random().toString(36).slice(2, 10)
-  );
-}
-
 /**
  * Compresses then uploads an image to the public "blog" bucket.
  * Returns the public URL to persist on the post row.
  */
 export async function uploadBlogImage(file: File): Promise<string> {
-  return uploadCompressedImage(file, BLOG_BUCKET, "covers");
+  return uploadCompressedImage(file, "blog");
 }
 
 /**
@@ -117,27 +108,28 @@ export async function uploadBlogImage(file: File): Promise<string> {
  * Returns the public URL to persist on the product row.
  */
 export async function uploadProductImage(file: File): Promise<string> {
-  return uploadCompressedImage(file, PRODUCTS_BUCKET, "items");
+  return uploadCompressedImage(file, "product");
 }
 
 async function uploadCompressedImage(
   file: File,
-  bucket: string,
-  folder: string
+  kind: "blog" | "product"
 ): Promise<string> {
   const blob = await compressImage(file);
-  const path = `${folder}/${randomId()}.webp`;
 
-  const supabase = getSupabase();
-  const { error } = await supabase.storage
-    .from(bucket)
-    .upload(path, blob, {
-      contentType: "image/webp",
-      cacheControl: "31536000",
-      upsert: false,
-    });
-  if (error) throw error;
+  const form = new FormData();
+  form.append("kind", kind);
+  form.append("file", blob, "image.webp");
 
-  const { data } = supabase.storage.from(bucket).getPublicUrl(path);
-  return data.publicUrl;
+  const res = await fetch("/api/uploads", {
+    method: "POST",
+    body: form,
+  });
+  if (!res.ok) {
+    const message = await res.text().catch(() => "");
+    throw new Error(message || "Image upload failed. Please try again.");
+  }
+
+  const data = (await res.json()) as { url: string };
+  return data.url;
 }
