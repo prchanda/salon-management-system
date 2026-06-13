@@ -93,9 +93,12 @@ function renderEmbed(rawUrl: string): string | null {
       `https://www.facebook.com/plugins/video.php?href=${encodeURIComponent(url)}` +
       `&show_text=false`;
     if (isReel) {
+      // Use the padding-top percentage hack (not CSS aspect-ratio, which
+      // collapses to zero height on older mobile Safari) for a 9:16 frame:
+      // 16 / 9 * 100 = 177.78%.
       return (
         `<div class="my-8 flex justify-center">` +
-        `<div class="relative w-full max-w-[340px] overflow-hidden rounded-xl border border-ink-900/10" style="aspect-ratio:9/16">` +
+        `<div class="relative w-full max-w-[340px] overflow-hidden rounded-xl border border-ink-900/10" style="padding-top:177.78%">` +
         `<iframe src="${src}" title="Facebook reel" loading="lazy" frameborder="0" ` +
         `allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share" ` +
         `allowfullscreen class="absolute inset-0 h-full w-full"></iframe>` +
