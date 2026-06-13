@@ -86,9 +86,22 @@ function renderEmbed(rawUrl: string): string | null {
       url
     ) || /^https?:\/\/fb\.watch\/[A-Za-z0-9_-]+/i.test(url);
   if (isFacebook) {
+    // Reels (and /share/r/ short links) are vertical 9:16; regular videos are 16:9.
+    const isReel =
+      /\/reel\/\d+/i.test(url) || /\/share\/r\//i.test(url) || /fb\.watch\//i.test(url);
     const src =
       `https://www.facebook.com/plugins/video.php?href=${encodeURIComponent(url)}` +
       `&show_text=false`;
+    if (isReel) {
+      return (
+        `<div class="my-8 flex justify-center">` +
+        `<div class="relative w-full max-w-[340px] overflow-hidden rounded-xl border border-ink-900/10" style="aspect-ratio:9/16">` +
+        `<iframe src="${src}" title="Facebook reel" loading="lazy" frameborder="0" ` +
+        `allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share" ` +
+        `allowfullscreen class="absolute inset-0 h-full w-full"></iframe>` +
+        `</div></div>`
+      );
+    }
     return (
       `<div class="my-8 overflow-hidden rounded-xl border border-ink-900/10">` +
       `<div class="relative w-full" style="padding-top:56.25%">` +
