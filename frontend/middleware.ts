@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { verifyValue } from "@/lib/session-cookie";
 
 const COOKIE = "reception_auth";
+const STAFF_ID_COOKIE = "reception_staff_id";
 const MUST_CHANGE_COOKIE = "reception_must_change";
 const CHANGE_PASSWORD_PATH = "/reception/change-password";
 
@@ -56,6 +57,19 @@ async function guard(req: NextRequest, pathname: string) {
   // also verify against the backend, so a deleted cookie cannot bypass it.
   const mustChange = req.cookies.get(MUST_CHANGE_COOKIE)?.value === "1";
   if (mustChange && pathname !== CHANGE_PASSWORD_PATH) {
+    // The cookie can go stale (e.g. the password was changed via the email
+    // reset flow, which never touches this cookie). Without a backend check
+    // we'd bounce forever: here -> change-password page -> (backend says no
+    // change needed) -> back to /reception -> here again. Verify against the
+    // backend and self-heal by clearing the stale cookie if it's no longer
+    // needed; only redirect when the change is genuinely still pending (or
+    // the backend is unreachable, in which case we keep the gate closed).
+    const stillRequired = await backendRequiresChange(req);
+    if (stillRequired === false) {
+      const res = NextResponse.next();
+      res.cookies.delete({ name: MUST_CHANGE_COOKIE, path: "/" });
+      return res;
+    }
     const url = req.nextUrl.clone();
     url.pathname = CHANGE_PASSWORD_PATH;
     url.search = "";
@@ -76,6 +90,37 @@ async function guard(req: NextRequest, pathname: string) {
   }
 
   return NextResponse.next();
+}
+
+/**
+ * Authoritative check against the backend for whether the signed-in staff
+ * member still has a pending forced password change. Returns:
+ *   - true  -> change is still required (keep the gate closed)
+ *   - false -> no change needed (the cookie is stale and can be cleared)
+ *   - null  -> unknown (missing/invalid id or backend unreachable); callers
+ *              should fail safe and keep the gate closed.
+ */
+async function backendRequiresChange(
+  req: NextRequest
+): Promise<boolean | null> {
+  const staffIdRaw = await verifyValue(
+    req.cookies.get(STAFF_ID_COOKIE)?.value
+  );
+  const staffId = staffIdRaw ? Number(staffIdRaw) : NaN;
+  if (!Number.isFinite(staffId) || staffId <= 0) return null;
+
+  const base =
+    process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:7071/api";
+  try {
+    const res = await fetch(`${base}/staff/${staffId}/session-status`, {
+      cache: "no-store",
+    });
+    if (!res.ok) return null;
+    const body = (await res.json()) as { mustChangePassword?: boolean };
+    return body.mustChangePassword === true;
+  } catch {
+    return null;
+  }
 }
 
 export const config = {
