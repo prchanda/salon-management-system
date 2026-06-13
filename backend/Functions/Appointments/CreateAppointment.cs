@@ -29,7 +29,7 @@ public class CreateAppointment
     private const int MaxNameLength = 80;
     private const int MaxRemarksLength = 500;
     private const int MaxBookingDaysAhead = 180;
-    private static readonly Regex PhonePattern = new(@"^[0-9+\-\s]{7,15}$", RegexOptions.Compiled);
+    private static readonly Regex PhonePattern = new(@"^\d{10}$", RegexOptions.Compiled);
 
     private readonly SalonDbContext _context;
 
@@ -76,7 +76,7 @@ public class CreateAppointment
         // 3. Input validation.
         if (phone != null && !PhonePattern.IsMatch(phone))
         {
-            return await BadRequest(req, "Please provide a valid phone number.");
+            return await BadRequest(req, "Phone number must be exactly 10 digits.");
         }
 
         if (name != null && name.Length > MaxNameLength)

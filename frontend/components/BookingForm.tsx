@@ -67,8 +67,8 @@ export function BookingForm({
       setError("Please tell us your name.");
       return;
     }
-    if (!/^[0-9+\-\s]{7,15}$/.test(ph)) {
-      setError("Please enter a valid phone number so we can confirm.");
+    if (!/^\d{10}$/.test(ph)) {
+      setError("Phone number must be exactly 10 digits.");
       return;
     }
     if (!serviceId) {
@@ -176,12 +176,14 @@ export function BookingForm({
           <input
             id="phone"
             type="tel"
-            inputMode="tel"
+            inputMode="numeric"
             required
-            maxLength={15}
+            maxLength={10}
+            pattern="\d{10}"
+            title="Enter a 10-digit phone number (digits only)."
             value={phone}
-            onChange={(e) => setPhone(e.target.value)}
-            placeholder="e.g. 70032 32340"
+            onChange={(e) => setPhone(e.target.value.replace(/\D/g, ""))}
+            placeholder="e.g. 7003232340"
             className={inputClass}
           />
         </div>

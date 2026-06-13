@@ -35,6 +35,13 @@ public class CreateCustomer
 
         if (phone != null)
         {
+            if (!System.Text.RegularExpressions.Regex.IsMatch(phone, @"^\d{10}$"))
+            {
+                var badPhone = req.CreateResponse(HttpStatusCode.BadRequest);
+                await badPhone.WriteStringAsync("Phone number must be exactly 10 digits.");
+                return badPhone;
+            }
+
             var existing = await _context.Customers
                 .FirstOrDefaultAsync(x => x.PhoneNumber == phone);
 

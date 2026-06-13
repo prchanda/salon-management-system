@@ -77,6 +77,10 @@ export default function NewAppointmentPage() {
       setError("Add a phone number, or mark this as a walk-in.");
       return;
     }
+    if (!walkIn && !lookup && phone.trim() && !/^\d{10}$/.test(phone.trim())) {
+      setError("Phone number must be exactly 10 digits.");
+      return;
+    }
 
     setSubmitting(true);
     try {
@@ -124,12 +128,14 @@ export default function NewAppointmentPage() {
             <input
               value={phone}
               onChange={(e) => {
-                setPhone(e.target.value);
+                setPhone(e.target.value.replace(/\D/g, ""));
                 setLookup(null);
                 setLookupTried(false);
                 if (e.target.value.trim()) setWalkIn(false);
               }}
-              placeholder="+91 98765 12345"
+              inputMode="numeric"
+              maxLength={10}
+              placeholder="10-digit number"
               className="input-field flex-1"
               disabled={walkIn}
             />

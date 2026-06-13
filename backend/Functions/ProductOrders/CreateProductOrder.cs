@@ -49,10 +49,9 @@ public class CreateProductOrder
         if (string.IsNullOrWhiteSpace(phone))
             return await Bad(req, "customerPhone is required.");
 
-        // Allow digits, spaces, +, -, parens. Require at least 7 digits overall.
-        var digitsOnly = Regex.Replace(phone, @"\D", "");
-        if (digitsOnly.Length < 7 || digitsOnly.Length > 15)
-            return await Bad(req, "customerPhone must contain 7–15 digits.");
+        // Phone must be exactly 10 numeric digits.
+        if (!Regex.IsMatch(phone, @"^\d{10}$"))
+            return await Bad(req, "customerPhone must be exactly 10 digits.");
 
         if (email.Length > 0 && !Regex.IsMatch(email, @"^[^@\s]+@[^@\s]+\.[^@\s]+$"))
             return await Bad(req, "customerEmail is not a valid email address.");
