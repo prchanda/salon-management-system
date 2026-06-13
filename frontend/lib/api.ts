@@ -55,7 +55,6 @@ function isPublicEndpoint(method: string, rawPath: string): boolean {
       "reviews",
       "posts",
       "products",
-      "staff/registration/available",
     ]);
     if (publicGet.has(path)) return true;
     // Single-segment slug reads: posts/{slug}, products/{slug}. The admin
@@ -76,7 +75,6 @@ function isPublicEndpoint(method: string, rawPath: string): boolean {
       "appointments",
       "product-orders",
       "staff/login",
-      "staff/registration/register",
       "staff/password-reset/request",
       "staff/password-reset/complete",
     ]);
@@ -278,25 +276,7 @@ export const api = {
       body: JSON.stringify({ action, ...details }),
     }),
 
-  // Reception — staff accounts (self-registration + login)
-  getStaffAvailableForRegistration: () =>
-    request<{ id: number; fullName: string; role: string }[]>(
-      "/staff/registration/available"
-    ),
-  registerStaffAccount: (payload: {
-    staffId: number;
-    username: string;
-    password: string;
-  }) =>
-    request<{
-      id: number;
-      fullName: string;
-      role: string;
-      username: string;
-    }>("/staff/registration/register", {
-      method: "POST",
-      body: JSON.stringify(payload),
-    }),
+  // Reception — staff accounts (login)
   staffLogin: (payload: { username: string; password: string }) =>
     request<{
       id: number;

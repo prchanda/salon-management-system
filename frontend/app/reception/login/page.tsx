@@ -7,11 +7,10 @@ export const metadata = { title: "Reception Login — Mr. & Mrs. Cuts Salon" };
 export default function LoginPage({
   searchParams,
 }: {
-  searchParams: { error?: string; next?: string; registered?: string; reset?: string };
+  searchParams: { error?: string; next?: string; reset?: string };
 }) {
   const next = searchParams.next ?? "/reception";
   const error = searchParams.error;
-  const justRegistered = searchParams.registered === "pending";
   const justReset = searchParams.reset === "1";
 
   const errorMessage =
@@ -34,13 +33,6 @@ export default function LoginPage({
         <p className="mt-2 text-sm text-ink-600">
           Sign in with your account.
         </p>
-
-        {justRegistered && (
-          <p className="mt-5 rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-xs text-amber-800">
-            Account created. The owner has been notified — you&apos;ll get an
-            email when your access is approved.
-          </p>
-        )}
 
         {justReset && (
           <p className="mt-5 rounded-lg border border-emerald-300 bg-emerald-50 px-3 py-2 text-xs text-emerald-700">
@@ -75,15 +67,6 @@ export default function LoginPage({
               className="font-semibold text-ink-900 underline underline-offset-4 hover:text-gold-600"
             >
               Forgot password?
-            </Link>
-          </p>
-          <p className="text-center text-xs text-ink-500">
-            New staff member?{" "}
-            <Link
-              href="/reception/register"
-              className="font-semibold text-ink-900 underline underline-offset-4 hover:text-gold-600"
-            >
-              Register here
             </Link>
           </p>
         </form>

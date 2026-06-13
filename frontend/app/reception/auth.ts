@@ -66,32 +66,6 @@ async function callStaffLogin(
   }
 }
 
-type RegisterResult =
-  | { kind: "ok" }
-  | { kind: "bad"; message: string }
-  | { kind: "server" };
-
-async function callStaffRegister(payload: object): Promise<RegisterResult> {
-  try {
-    const res = await fetch(
-      `${API_BASE_URL}/staff/registration/register`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-        cache: "no-store",
-      }
-    );
-    if (res.ok) return { kind: "ok" };
-    const data = (await res.json().catch(() => null)) as
-      | { message?: string }
-      | null;
-    return { kind: "bad", message: data?.message ?? "Registration failed." };
-  } catch {
-    return { kind: "server" };
-  }
-}
-
 /**
  * Guards against open-redirect: only allow same-site, absolute-path targets
  * (must start with a single "/" and not "//" or "/\" which browsers treat as
@@ -166,51 +140,6 @@ export async function loginAction(formData: FormData) {
   }
   const safeNext = canStaffAccess(ownerNext) ? ownerNext : "/reception";
   redirect(safeNext);
-}
-
-/** Staff self-service registration — creates a new Staff row. */
-export async function staffRegisterAction(formData: FormData) {
-  const fullName = String(formData.get("fullName") ?? "").trim();
-  const roles = formData.getAll("roles").map((r) => String(r).trim()).filter(Boolean);
-  const phone = String(formData.get("phone") ?? "").trim();
-  const email = String(formData.get("email") ?? "").trim().toLowerCase();
-  const username = String(formData.get("username") ?? "")
-    .trim()
-    .toLowerCase();
-  const password = String(formData.get("password") ?? "");
-  const confirm = String(formData.get("confirm") ?? "");
-
-  const errorPath = (reason: string) =>
-    `/reception/register?error=${encodeURIComponent(reason)}`;
-
-  if (fullName.length < 2) redirect(errorPath("Please enter your full name."));
-  if (roles.length === 0) redirect(errorPath("Please select at least one role."));
-  if (!/^\d{10}$/.test(phone)) {
-    redirect(errorPath("Phone number must be exactly 10 digits."));
-  }
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-    redirect(errorPath("Please enter a valid email address."));
-  }
-  if (password.length < 8) redirect(errorPath("Password must be at least 8 characters."));
-  if (password !== confirm) redirect(errorPath("Passwords do not match."));
-
-  const result = await callStaffRegister({
-    fullName,
-    roles,
-    phoneNumber: phone,
-    email,
-    username,
-    password,
-  });
-
-  if (result.kind === "bad") {
-    redirect(errorPath(result.message));
-  }
-  if (result.kind === "server") {
-    redirect(errorPath("Could not reach the server. Please try again."));
-  }
-
-  redirect("/reception/login?registered=pending");
 }
 
 export async function logoutAction() {

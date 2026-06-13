@@ -18,7 +18,6 @@ public static class PublicEndpoints
         "reviews",
         "posts",
         "products",
-        "staff/registration/available",
     };
 
     private static readonly HashSet<string> PublicPost = new(StringComparer.OrdinalIgnoreCase)
@@ -27,7 +26,6 @@ public static class PublicEndpoints
         "appointments",
         "product-orders",
         "staff/login",
-        "staff/registration/register",
         "staff/password-reset/request",
         "staff/password-reset/complete",
     };

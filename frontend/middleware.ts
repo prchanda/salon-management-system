@@ -30,7 +30,6 @@ export function middleware(req: NextRequest) {
 
   if (
     pathname === "/reception/login" ||
-    pathname === "/reception/register" ||
     pathname === "/reception/forgot-password" ||
     pathname === "/reception/reset-password"
   ) {
