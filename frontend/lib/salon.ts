@@ -9,7 +9,7 @@ export const SALON = {
   address: "157/2, Monihar Apartment (Ground Floor), Gostotala, Garia, Kolkata, India, West Bengal",
   hours: "Mon – Sun · 10:30 AM — 8:30 PM (Thu\u00A0closed)",
   instagram: "https://www.instagram.com/shathi6584/",
-  facebook: "https://www.facebook.com/showstika",
+  facebook: "https://www.facebook.com/mrandmrscuts",
 };
 
 export function waLink(
