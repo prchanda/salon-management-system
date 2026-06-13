@@ -89,13 +89,15 @@ function renderEmbed(rawUrl: string): string | null {
     // Reels (and /share/r/ short links) are vertical 9:16; regular videos are 16:9.
     const isReel =
       /\/reel\/\d+/i.test(url) || /\/share\/r\//i.test(url) || /fb\.watch\//i.test(url);
-    // plugins/video.php needs an explicit width to render its player; without
-    // one the video area can come up blank on iOS. The iframe is still scaled
-    // responsively by its container, so this is just the plugin's render width.
+    // plugins/video.php needs explicit dimensions to render its player;
+    // without them the video area can come up blank/letterboxed. We pass the
+    // exact width AND height we render the iframe at so Facebook fills the box
+    // instead of leaving blank space below the video.
     const fbWidth = isReel ? 340 : 640;
+    const fbHeight = isReel ? 604 : 360; // 340*16/9 ≈ 604 (9:16); 640*9/16 = 360 (16:9)
     const src =
       `https://www.facebook.com/plugins/video.php?href=${encodeURIComponent(url)}` +
-      `&show_text=false&width=${fbWidth}`;
+      `&show_text=false&width=${fbWidth}&height=${fbHeight}`;
 
     // Facebook's plugin iframe is unreliable on iOS Safari (renders a blank
     // box). We can't detect the device server-side, so emit BOTH: the live
@@ -113,16 +115,16 @@ function renderEmbed(rawUrl: string): string | null {
       `</a>`;
 
     if (isReel) {
-      // Use the padding-top percentage hack (not CSS aspect-ratio, which
-      // collapses to zero height on older mobile Safari) for a 9:16 frame:
-      // 16 / 9 * 100 = 177.78%.
+      // Fixed-height iframe (not a forced-ratio box) so Facebook's reel player
+      // renders at its exact size with no leftover blank space below it.
       const desktopFrame =
         `<div class="my-8 hidden justify-center md:flex">` +
-        `<div class="relative w-full max-w-[340px] overflow-hidden rounded-xl border border-ink-900/10" style="padding-top:177.78%">` +
         `<iframe src="${src}" title="Facebook reel" frameborder="0" ` +
         `allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share" ` +
-        `allowfullscreen class="absolute inset-0 h-full w-full"></iframe>` +
-        `</div></div>`;
+        `allowfullscreen ` +
+        `class="w-full max-w-[340px] rounded-xl border border-ink-900/10" ` +
+        `style="height:604px"></iframe>` +
+        `</div>`;
       return desktopFrame + fallbackCard;
     }
     const desktopFrame =
