@@ -76,22 +76,45 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       { status: 500 }
     );
   }
-  const { error } = await supabase.storage
-    .from(target.bucket)
-    .upload(path, file, {
-      contentType: "image/webp",
-      cacheControl: "31536000",
-      upsert: false,
-    });
-  if (error) {
-    console.error("[uploads] Supabase upload failed", {
+
+  // Read the file into a Buffer before handing it to supabase-js. Passing a
+  // web `File`/`Blob` directly makes the storage client build a streaming
+  // fetch body, which throws an opaque (empty-body) error in the Azure SWA
+  // Node runtime. A Buffer uploads reliably across runtimes. The whole call
+  // is wrapped so a thrown error becomes a readable 502 instead of an
+  // unhandled 500 with no body (which the client could only show as a
+  // generic "please try again").
+  let publicUrl: string;
+  try {
+    const bytes = Buffer.from(await file.arrayBuffer());
+    const { error } = await supabase.storage
+      .from(target.bucket)
+      .upload(path, bytes, {
+        contentType: "image/webp",
+        cacheControl: "31536000",
+        upsert: false,
+      });
+    if (error) {
+      console.error("[uploads] Supabase upload failed", {
+        bucket: target.bucket,
+        path,
+        message: error.message,
+      });
+      return new NextResponse(`Upload failed: ${error.message}`, {
+        status: 502,
+      });
+    }
+    publicUrl = supabase.storage.from(target.bucket).getPublicUrl(path).data
+      .publicUrl;
+  } catch (e) {
+    const message = e instanceof Error ? e.message : "unknown error";
+    console.error("[uploads] Unexpected upload exception", {
       bucket: target.bucket,
       path,
-      message: error.message,
+      message,
     });
-    return new NextResponse(`Upload failed: ${error.message}`, { status: 502 });
+    return new NextResponse(`Upload failed: ${message}`, { status: 502 });
   }
 
-  const { data } = supabase.storage.from(target.bucket).getPublicUrl(path);
-  return NextResponse.json({ url: data.publicUrl });
+  return NextResponse.json({ url: publicUrl });
 }
