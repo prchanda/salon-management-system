@@ -96,27 +96,43 @@ function renderEmbed(rawUrl: string): string | null {
     const src =
       `https://www.facebook.com/plugins/video.php?href=${encodeURIComponent(url)}` +
       `&show_text=false&width=${fbWidth}`;
+
+    // Facebook's plugin iframe is unreliable on iOS Safari (renders a blank
+    // box). We can't detect the device server-side, so emit BOTH: the live
+    // iframe for desktop (md+ screens, where it works) and a tappable
+    // "Watch on Facebook" fallback card for mobile, toggled purely by CSS.
+    const playIcon =
+      `<svg viewBox="0 0 24 24" fill="currentColor" class="h-6 w-6" aria-hidden="true">` +
+      `<path d="M8 5v14l11-7z"></path></svg>`;
+    const fallbackCard =
+      `<a href="${url}" target="_blank" rel="noreferrer" ` +
+      `class="group mx-auto my-8 flex ${isReel ? "max-w-[340px]" : "max-w-[640px]"} flex-col items-center justify-center gap-3 rounded-xl border border-ink-900/10 bg-cream-100 px-6 py-10 text-center no-underline md:hidden">` +
+      `<span class="flex h-14 w-14 items-center justify-center rounded-full bg-[#1877F2] text-white transition group-hover:scale-105">${playIcon}</span>` +
+      `<span class="font-semibold text-ink-900">Watch this video on Facebook</span>` +
+      `<span class="text-sm text-ink-500">Opens in the Facebook app or a new tab</span>` +
+      `</a>`;
+
     if (isReel) {
       // Use the padding-top percentage hack (not CSS aspect-ratio, which
       // collapses to zero height on older mobile Safari) for a 9:16 frame:
       // 16 / 9 * 100 = 177.78%.
-      return (
-        `<div class="my-8 flex justify-center">` +
+      const desktopFrame =
+        `<div class="my-8 hidden justify-center md:flex">` +
         `<div class="relative w-full max-w-[340px] overflow-hidden rounded-xl border border-ink-900/10" style="padding-top:177.78%">` +
         `<iframe src="${src}" title="Facebook reel" frameborder="0" ` +
         `allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share" ` +
         `allowfullscreen class="absolute inset-0 h-full w-full"></iframe>` +
-        `</div></div>`
-      );
+        `</div></div>`;
+      return desktopFrame + fallbackCard;
     }
-    return (
-      `<div class="my-8 overflow-hidden rounded-xl border border-ink-900/10">` +
+    const desktopFrame =
+      `<div class="my-8 hidden overflow-hidden rounded-xl border border-ink-900/10 md:block">` +
       `<div class="relative w-full" style="padding-top:56.25%">` +
       `<iframe src="${src}" title="Facebook video" frameborder="0" ` +
       `allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share" ` +
       `allowfullscreen class="absolute inset-0 h-full w-full"></iframe>` +
-      `</div></div>`
-    );
+      `</div></div>`;
+    return desktopFrame + fallbackCard;
   }
 
   return null;
