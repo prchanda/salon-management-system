@@ -89,12 +89,14 @@ function renderEmbed(rawUrl: string): string | null {
     // Reels (and /share/r/ short links) are vertical 9:16; regular videos are 16:9.
     const isReel =
       /\/reel\/\d+/i.test(url) || /\/share\/r\//i.test(url) || /fb\.watch\//i.test(url);
-    // plugins/video.php needs explicit dimensions to render its player;
-    // without them the video area can come up blank/letterboxed. We pass the
-    // exact width AND height we render the iframe at so Facebook fills the box
-    // instead of leaving blank space below the video.
-    const fbWidth = isReel ? 420 : 640;
-    const fbHeight = isReel ? 747 : 360; // 420*16/9 ≈ 747 (9:16); 640*9/16 = 360 (16:9)
+    // plugins/video.php needs explicit dimensions to render its player.
+    // Facebook CAPS the reel player at ~340px wide and won't draw wider, so we
+    // render the reel at that natural size (which it fills) and CSS-scale the
+    // whole iframe up for desktop. Regular 16:9 videos honour the width fine.
+    const REEL_W = 340;
+    const REEL_H = 604; // 340 * 16/9 ≈ 604
+    const fbWidth = isReel ? REEL_W : 640;
+    const fbHeight = isReel ? REEL_H : 360; // 640*9/16 = 360 (16:9)
     const src =
       `https://www.facebook.com/plugins/video.php?href=${encodeURIComponent(url)}` +
       `&show_text=false&width=${fbWidth}&height=${fbHeight}`;
@@ -115,16 +117,21 @@ function renderEmbed(rawUrl: string): string | null {
       `</a>`;
 
     if (isReel) {
-      // Fixed-height iframe (not a forced-ratio box) so Facebook's reel player
-      // renders at its exact size with no leftover blank space below it.
+      // Facebook draws the reel at its natural 340x604; scale the whole iframe
+      // up ~1.3x so the actual video gets bigger on desktop (not just blank
+      // margins). The wrapper reserves the scaled footprint so layout is exact.
+      const SCALE = 1.3;
+      const boxW = Math.round(REEL_W * SCALE); // 442
+      const boxH = Math.round(REEL_H * SCALE); // 785
       const desktopFrame =
         `<div class="my-8 hidden justify-center md:flex">` +
+        `<div style="width:${boxW}px;height:${boxH}px">` +
         `<iframe src="${src}" title="Facebook reel" frameborder="0" ` +
         `allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share" ` +
         `allowfullscreen ` +
-        `class="w-full max-w-[420px] rounded-xl border border-ink-900/10" ` +
-        `style="height:747px"></iframe>` +
-        `</div>`;
+        `class="rounded-xl border border-ink-900/10" ` +
+        `style="width:${REEL_W}px;height:${REEL_H}px;transform:scale(${SCALE});transform-origin:top left"></iframe>` +
+        `</div></div>`;
       return desktopFrame + fallbackCard;
     }
     const desktopFrame =
