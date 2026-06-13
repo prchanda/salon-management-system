@@ -14,4 +14,13 @@ public class UpdateProductOrderStatusDto
     /// is valid from the current status.
     /// </summary>
     public string? Status { get; set; }
+
+    /// <summary>
+    /// Optional. The amount actually collected when completing the order. Lets
+    /// reception sell at a discounted price. Defaults to the order total when omitted.
+    /// </summary>
+    public decimal? AmountPaid { get; set; }
+
+    /// <summary>Optional. Payment method captured when completing (UPI | Cash | Card | Other).</summary>
+    public string? PaymentMethod { get; set; }
 }

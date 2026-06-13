@@ -116,6 +116,18 @@ public class UpdateProductOrderStatus
             }
         }
 
+        // Capture payment details when the sale is completed. The amount may be
+        // lower than the listed total when reception grants a discount.
+        if (string.Equals(target, "Completed", StringComparison.OrdinalIgnoreCase))
+        {
+            order.AmountPaid = dto.AmountPaid.HasValue && dto.AmountPaid.Value >= 0
+                ? dto.AmountPaid.Value
+                : order.TotalAmount;
+
+            var method = (dto.PaymentMethod ?? string.Empty).Trim();
+            order.PaymentMethod = method.Length > 0 ? method : null;
+        }
+
         order.Status = target;
         order.UpdatedAt = now;
 

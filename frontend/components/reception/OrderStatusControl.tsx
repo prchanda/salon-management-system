@@ -59,6 +59,9 @@ export function OrderStatusControl({ order }: Props) {
   const [, startTransition] = useTransition();
   const [busyAction, setBusyAction] = useState<LifecycleAction | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [completing, setCompleting] = useState(false);
+  const [amount, setAmount] = useState(String(order.totalAmount ?? ""));
+  const [method, setMethod] = useState("UPI");
 
   const actions = ACTIONS_BY_STATUS[order.status] ?? [];
 
@@ -67,10 +70,19 @@ export function OrderStatusControl({ order }: Props) {
   // "busy" state would persist and leave the next set of actions disabled.
   useEffect(() => {
     setBusyAction(null);
+    setCompleting(false);
   }, [order.status]);
 
   async function run(def: ActionDef) {
     if (busyAction) return;
+    // Completing a sale opens an inline form to capture the final price and
+    // payment method (so reception can apply a discount at the till).
+    if (def.action === "complete") {
+      setError(null);
+      setAmount(String(order.totalAmount ?? ""));
+      setCompleting(true);
+      return;
+    }
     if (def.confirm && !window.confirm(def.confirm)) return;
     setError(null);
     setBusyAction(def.action);
@@ -81,6 +93,80 @@ export function OrderStatusControl({ order }: Props) {
       setError(err instanceof Error ? err.message : "Update failed.");
       setBusyAction(null);
     }
+  }
+
+  async function complete() {
+    if (busyAction) return;
+    setError(null);
+    setBusyAction("complete");
+    try {
+      await api.updateProductOrderStatus(order.id, "complete", {
+        amountPaid: Number(amount) || 0,
+        paymentMethod: method,
+      });
+      startTransition(() => router.refresh());
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Update failed.");
+      setBusyAction(null);
+    }
+  }
+
+  if (completing) {
+    const isBusy = busyAction === "complete";
+    return (
+      <div className="w-full max-w-xs rounded-xl border border-ink-900/10 bg-cream-50 p-3 text-left">
+        <p className="text-[10px] font-semibold uppercase tracking-widest text-ink-500">
+          Complete sale
+        </p>
+        <div className="mt-2 flex flex-wrap items-center gap-2">
+          <span className="text-[10px] font-semibold uppercase tracking-widest text-ink-500">
+            ₹
+          </span>
+          <input
+            type="number"
+            inputMode="decimal"
+            min={0}
+            value={amount}
+            onChange={(e) => setAmount(e.target.value)}
+            className="w-24 rounded-md border border-ink-900/15 bg-cream-50 px-2 py-1 text-sm"
+            placeholder="Amount"
+          />
+          <select
+            value={method}
+            onChange={(e) => setMethod(e.target.value)}
+            className="rounded-md border border-ink-900/15 bg-cream-50 px-2 py-1 text-sm"
+          >
+            <option>UPI</option>
+            <option>Cash</option>
+            <option>Card</option>
+            <option>Other</option>
+          </select>
+        </div>
+        <p className="mt-1.5 text-[10px] text-ink-400">
+          Listed total ₹{order.totalAmount}. Edit to apply a discount.
+        </p>
+        <div className="mt-2 flex items-center gap-2">
+          <button
+            type="button"
+            disabled={isBusy}
+            onClick={complete}
+            className="inline-flex items-center gap-1.5 rounded-lg border border-gold-600 bg-gold-600 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-widest text-white transition-colors hover:bg-gold-700 disabled:cursor-progress disabled:opacity-60"
+          >
+            {isBusy && <Spinner />}
+            {isBusy ? "Completing…" : "Confirm sale"}
+          </button>
+          <button
+            type="button"
+            disabled={isBusy}
+            onClick={() => setCompleting(false)}
+            className="text-[10px] uppercase tracking-widest text-ink-400 hover:underline disabled:opacity-60"
+          >
+            dismiss
+          </button>
+        </div>
+        {error && <p className="mt-2 text-[10px] text-red-700">{error}</p>}
+      </div>
+    );
   }
 
   return (

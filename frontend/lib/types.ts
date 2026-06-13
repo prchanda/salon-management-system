@@ -241,6 +241,10 @@ export interface ProductOrder {
   unitPrice: number;
   quantity: number;
   totalAmount: number;
+  /** Actual amount collected when completed (may be discounted from totalAmount). */
+  amountPaid?: number | null;
+  /** Payment method captured on completion (UPI | Cash | Card | Other). */
+  paymentMethod?: string | null;
   status: ProductOrderStatus | string;
   createdAt: string;
   updatedAt?: string;

@@ -127,7 +127,11 @@ export default async function ReceptionOrdersPage({
     (acc, o) => {
       acc.count += 1;
       if (o.status === "Pending") acc.pending += 1;
-      if (o.status === "Confirmed" || o.status === "Completed") {
+      if (o.status === "Completed") {
+        // Use the amount actually collected (honours discounts); fall back to
+        // the listed total for older orders captured before payment tracking.
+        acc.revenue += Number(o.amountPaid ?? o.totalAmount) || 0;
+      } else if (o.status === "Confirmed") {
         acc.revenue += Number(o.totalAmount) || 0;
       }
       return acc;
@@ -331,12 +335,32 @@ export default async function ReceptionOrdersPage({
                       )}
                     </div>
                     <div className="shrink-0 text-right">
-                      <p className="font-serif text-lg text-gold-600">
-                        ₹{formatMoney(Number(o.totalAmount))}
-                      </p>
-                      <p className="text-[10px] uppercase tracking-widest text-ink-400">
-                        × {o.quantity} @ ₹{formatMoney(Number(o.unitPrice))}
-                      </p>
+                      {o.status === "Completed" && o.amountPaid != null ? (
+                        <>
+                          <p className="font-serif text-lg text-gold-600">
+                            ₹{formatMoney(Number(o.amountPaid))}
+                          </p>
+                          {Number(o.amountPaid) !== Number(o.totalAmount) && (
+                            <p className="text-[10px] uppercase tracking-widest text-ink-400 line-through">
+                              ₹{formatMoney(Number(o.totalAmount))}
+                            </p>
+                          )}
+                          {o.paymentMethod && (
+                            <p className="text-[10px] uppercase tracking-widest text-ink-400">
+                              {o.paymentMethod}
+                            </p>
+                          )}
+                        </>
+                      ) : (
+                        <>
+                          <p className="font-serif text-lg text-gold-600">
+                            ₹{formatMoney(Number(o.totalAmount))}
+                          </p>
+                          <p className="text-[10px] uppercase tracking-widest text-ink-400">
+                            × {o.quantity} @ ₹{formatMoney(Number(o.unitPrice))}
+                          </p>
+                        </>
+                      )}
                     </div>
                   </div>
                 </li>
@@ -422,10 +446,28 @@ export default async function ReceptionOrdersPage({
                         × {o.quantity}
                       </td>
                       <td className="px-5 py-4 text-right font-serif text-gold-600">
-                        ₹{formatMoney(Number(o.totalAmount))}
-                        <div className="text-[10px] uppercase tracking-widest text-ink-400">
-                          @ ₹{formatMoney(Number(o.unitPrice))}
-                        </div>
+                        {o.status === "Completed" && o.amountPaid != null ? (
+                          <>
+                            ₹{formatMoney(Number(o.amountPaid))}
+                            {Number(o.amountPaid) !== Number(o.totalAmount) && (
+                              <div className="text-[10px] uppercase tracking-widest text-ink-400 line-through">
+                                ₹{formatMoney(Number(o.totalAmount))}
+                              </div>
+                            )}
+                            {o.paymentMethod && (
+                              <div className="text-[10px] uppercase tracking-widest text-ink-400">
+                                {o.paymentMethod}
+                              </div>
+                            )}
+                          </>
+                        ) : (
+                          <>
+                            ₹{formatMoney(Number(o.totalAmount))}
+                            <div className="text-[10px] uppercase tracking-widest text-ink-400">
+                              @ ₹{formatMoney(Number(o.unitPrice))}
+                            </div>
+                          </>
+                        )}
                       </td>
                       <td className="px-5 py-4 text-right">
                         <OrderStatusControl order={o} />

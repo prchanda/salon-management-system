@@ -34,6 +34,16 @@ public class ProductOrder
 
     public decimal TotalAmount { get; set; }
 
+    /// <summary>
+    /// Actual amount collected at the till when the order is completed. May differ
+    /// from <see cref="TotalAmount"/> when reception applies a discount. Null until
+    /// the order is completed.
+    /// </summary>
+    public decimal? AmountPaid { get; set; }
+
+    /// <summary>How the customer paid (UPI | Cash | Card | Other). Set on completion.</summary>
+    public string? PaymentMethod { get; set; }
+
     /// <summary>Pending | Confirmed | Completed | Cancelled.</summary>
     public string Status { get; set; } = "Pending";
 

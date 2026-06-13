@@ -190,6 +190,10 @@ public class SalonDbContext : DbContext
             .HasColumnName("unit_price");
         modelBuilder.Entity<ProductOrder>().Property(x => x.TotalAmount)
             .HasColumnName("total_amount");
+        modelBuilder.Entity<ProductOrder>().Property(x => x.AmountPaid)
+            .HasColumnName("amount_paid");
+        modelBuilder.Entity<ProductOrder>().Property(x => x.PaymentMethod)
+            .HasColumnName("payment_method");
         modelBuilder.Entity<ProductOrder>().Property(x => x.CreatedAt)
             .HasColumnName("created_at");
         modelBuilder.Entity<ProductOrder>().Property(x => x.UpdatedAt)

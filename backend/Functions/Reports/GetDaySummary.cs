@@ -94,7 +94,7 @@ public class GetDaySummary
             .ToListAsync();
 
         var completedOrders = productOrders.Where(o => o.Status == "Completed").ToList();
-        var productRevenue = completedOrders.Sum(o => o.TotalAmount);
+        var productRevenue = completedOrders.Sum(o => o.AmountPaid ?? o.TotalAmount);
         var productUnitsSold = completedOrders.Sum(o => o.Quantity);
 
         var byProduct = completedOrders
@@ -105,7 +105,7 @@ public class GetDaySummary
                 ProductName = g.Key.ProductName,
                 Orders = g.Count(),
                 Units = g.Sum(x => x.Quantity),
-                Revenue = g.Sum(x => x.TotalAmount)
+                Revenue = g.Sum(x => x.AmountPaid ?? x.TotalAmount)
             })
             .OrderByDescending(x => x.Revenue)
             .ThenByDescending(x => x.Units)

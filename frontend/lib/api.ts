@@ -249,14 +249,18 @@ export const api = {
    *   Completed → (none — terminal)
    *   Cancelled → (none — terminal)
    * The server rejects illegal transitions with 409 Conflict.
+   *
+   * When completing a sale you may pass payment details to record the amount
+   * actually collected (supporting discounts) and the payment method.
    */
   updateProductOrderStatus: (
     id: number,
-    action: "confirm" | "complete" | "cancel"
+    action: "confirm" | "complete" | "cancel",
+    details?: { amountPaid?: number; paymentMethod?: string }
   ) =>
     request<ProductOrder>(`/product-orders/${id}/status`, {
       method: "PUT",
-      body: JSON.stringify({ action }),
+      body: JSON.stringify({ action, ...details }),
     }),
 
   // Reception — staff accounts (self-registration + login)
