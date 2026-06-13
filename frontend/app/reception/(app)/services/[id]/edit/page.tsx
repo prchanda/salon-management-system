@@ -3,6 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import { api } from "@/lib/api";
 import { getRole } from "@/app/reception/roles";
 import { SubmitButton } from "@/components/SubmitButton";
+import { ServiceImageField } from "@/components/reception/ServiceImageField";
 import { SERVICE_CATEGORIES, DEFAULT_SERVICE_CATEGORY } from "@/lib/serviceCategories";
 import type { Service } from "@/lib/types";
 import { updateServiceAction } from "../../actions";
@@ -124,6 +125,8 @@ export default async function EditServicePage({
             />
           </label>
         </div>
+
+        <ServiceImageField initialUrl={service.imageUrl} />
 
         <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-ink-900/10 bg-cream-100/50 p-4">
           <input

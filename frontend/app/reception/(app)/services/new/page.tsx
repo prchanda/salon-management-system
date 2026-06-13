@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getRole } from "@/app/reception/roles";
 import { SubmitButton } from "@/components/SubmitButton";
+import { ServiceImageField } from "@/components/reception/ServiceImageField";
 import { SERVICE_CATEGORIES } from "@/lib/serviceCategories";
 import { createServiceAction } from "../actions";
 
@@ -104,6 +105,8 @@ export default async function NewServicePage({
             className="w-full rounded-lg border border-ink-900/10 bg-cream-50 px-4 py-3 text-sm leading-relaxed text-ink-700 focus:border-gold-600 focus:outline-none"
           />
         </label>
+
+        <ServiceImageField />
 
         <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-ink-900/10 bg-cream-100/50 p-4">
           <input

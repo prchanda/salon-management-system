@@ -111,9 +111,18 @@ export async function uploadProductImage(file: File): Promise<string> {
   return uploadCompressedImage(file, "product");
 }
 
+/**
+ * Compresses then uploads a service hero photo to the public "products"
+ * bucket (folder "services"). Returns the public URL to persist on the
+ * service row.
+ */
+export async function uploadServiceImage(file: File): Promise<string> {
+  return uploadCompressedImage(file, "service");
+}
+
 async function uploadCompressedImage(
   file: File,
-  kind: "blog" | "product"
+  kind: "blog" | "product" | "service"
 ): Promise<string> {
   const blob = await compressImage(file);
 

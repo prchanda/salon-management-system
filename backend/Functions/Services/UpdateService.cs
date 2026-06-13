@@ -13,6 +13,7 @@ public class UpdateService
     private const int MaxName = 160;
     private const int MaxDescription = 2000;
     private const int MaxDurationMinutes = 24 * 60; // 24 hours
+    private const int MaxImageUrl = 1000;
 
     private readonly SalonDbContext _context;
 
@@ -68,6 +69,14 @@ public class UpdateService
         {
             if (dto.Price.Value < 0) return await Bad(req, "price must be ≥ 0.");
             service.Price = dto.Price.Value;
+        }
+
+        if (dto.ImageUrl != null)
+        {
+            var img = dto.ImageUrl.Trim();
+            if (img.Length > MaxImageUrl)
+                return await Bad(req, $"imageUrl must be {MaxImageUrl} chars or fewer.");
+            service.ImageUrl = string.IsNullOrWhiteSpace(img) ? null : img;
         }
 
         if (dto.IsActive.HasValue)

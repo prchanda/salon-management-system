@@ -85,6 +85,9 @@ public class SalonDbContext : DbContext
         modelBuilder.Entity<Service>().Property(x => x.DurationMinutes)
             .HasColumnName("duration_minutes");
 
+        modelBuilder.Entity<Service>().Property(x => x.ImageUrl)
+            .HasColumnName("image_url");
+
         modelBuilder.Entity<Appointment>().Property(x => x.CustomerId)
             .HasColumnName("customer_id");
 

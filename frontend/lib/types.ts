@@ -7,6 +7,7 @@ export interface Service {
   description?: string | null;
   durationMinutes: number;
   price: number;
+  imageUrl?: string | null;
   isActive: boolean;
   createdAt: string;
 }
@@ -17,6 +18,7 @@ export interface CreateServicePayload {
   description?: string | null;
   durationMinutes: number;
   price: number;
+  imageUrl?: string | null;
   isActive?: boolean;
 }
 
@@ -25,6 +27,7 @@ export interface UpdateServicePayload {
   category?: string | null;
   durationMinutes?: number;
   price?: number;
+  imageUrl?: string | null;
   isActive?: boolean;
 }
 

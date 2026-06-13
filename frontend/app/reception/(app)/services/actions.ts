@@ -30,6 +30,7 @@ export async function createServiceAction(formData: FormData) {
   const description = String(formData.get("description") ?? "").trim();
   const durationRaw = String(formData.get("durationMinutes") ?? "").trim();
   const priceRaw = String(formData.get("price") ?? "").trim();
+  const imageUrl = String(formData.get("imageUrl") ?? "").trim();
   const isActive = formData.get("isActive") != null;
 
   const errorPath = (reason: string) =>
@@ -66,6 +67,7 @@ export async function createServiceAction(formData: FormData) {
       description: description || null,
       durationMinutes,
       price,
+      imageUrl: imageUrl || null,
       isActive,
     });
   } catch {
@@ -96,6 +98,7 @@ export async function updateServiceAction(formData: FormData) {
   const durationRaw = String(formData.get("durationMinutes") ?? "").trim();
   const priceRaw = String(formData.get("price") ?? "").trim();
   const category = normalizeCategory(String(formData.get("category") ?? ""));
+  const imageUrl = String(formData.get("imageUrl") ?? "").trim();
   const isActive = formData.get("isActive") != null;
 
   const errorPath = (reason: string) =>
@@ -123,6 +126,7 @@ export async function updateServiceAction(formData: FormData) {
       category,
       durationMinutes,
       price,
+      imageUrl: imageUrl || null,
       isActive,
     });
   } catch {

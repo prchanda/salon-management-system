@@ -13,6 +13,7 @@ public class CreateService
     private const int MaxName = 160;
     private const int MaxDescription = 2000;
     private const int MaxDurationMinutes = 24 * 60; // 24 hours
+    private const int MaxImageUrl = 1000;
 
     private readonly SalonDbContext _context;
 
@@ -41,6 +42,10 @@ public class CreateService
         if (dto.Price is null || dto.Price < 0)
             return await Bad(req, "price is required and must be ≥ 0.");
 
+        var imageUrl = (dto.ImageUrl ?? string.Empty).Trim();
+        if (imageUrl.Length > MaxImageUrl)
+            return await Bad(req, $"imageUrl must be {MaxImageUrl} chars or fewer.");
+
         var category = ServiceCategories.TryNormalize(dto.Category) ?? ServiceCategories.Default;
 
         var service = new Service
@@ -50,6 +55,7 @@ public class CreateService
             Description = string.IsNullOrWhiteSpace(description) ? null : description,
             DurationMinutes = dto.DurationMinutes.Value,
             Price = dto.Price.Value,
+            ImageUrl = string.IsNullOrWhiteSpace(imageUrl) ? null : imageUrl,
             IsActive = dto.IsActive ?? true,
             CreatedAt = DateTime.UtcNow,
         };

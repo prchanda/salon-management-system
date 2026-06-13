@@ -17,6 +17,7 @@ const ALLOWED_ROLES = new Set(["owner", "staff"]);
 const KINDS: Record<string, { bucket: string; folder: string }> = {
   blog: { bucket: BLOG_BUCKET, folder: "covers" },
   product: { bucket: PRODUCTS_BUCKET, folder: "items" },
+  service: { bucket: PRODUCTS_BUCKET, folder: "services" },
 };
 
 // The client compresses to WebP under ~500 KB; allow a little headroom.
