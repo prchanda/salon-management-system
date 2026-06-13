@@ -89,9 +89,13 @@ function renderEmbed(rawUrl: string): string | null {
     // Reels (and /share/r/ short links) are vertical 9:16; regular videos are 16:9.
     const isReel =
       /\/reel\/\d+/i.test(url) || /\/share\/r\//i.test(url) || /fb\.watch\//i.test(url);
+    // plugins/video.php needs an explicit width to render its player; without
+    // one the video area can come up blank on iOS. The iframe is still scaled
+    // responsively by its container, so this is just the plugin's render width.
+    const fbWidth = isReel ? 340 : 640;
     const src =
       `https://www.facebook.com/plugins/video.php?href=${encodeURIComponent(url)}` +
-      `&show_text=false`;
+      `&show_text=false&width=${fbWidth}`;
     if (isReel) {
       // Use the padding-top percentage hack (not CSS aspect-ratio, which
       // collapses to zero height on older mobile Safari) for a 9:16 frame:
@@ -99,7 +103,7 @@ function renderEmbed(rawUrl: string): string | null {
       return (
         `<div class="my-8 flex justify-center">` +
         `<div class="relative w-full max-w-[340px] overflow-hidden rounded-xl border border-ink-900/10" style="padding-top:177.78%">` +
-        `<iframe src="${src}" title="Facebook reel" loading="lazy" frameborder="0" ` +
+        `<iframe src="${src}" title="Facebook reel" frameborder="0" ` +
         `allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share" ` +
         `allowfullscreen class="absolute inset-0 h-full w-full"></iframe>` +
         `</div></div>`
@@ -108,7 +112,7 @@ function renderEmbed(rawUrl: string): string | null {
     return (
       `<div class="my-8 overflow-hidden rounded-xl border border-ink-900/10">` +
       `<div class="relative w-full" style="padding-top:56.25%">` +
-      `<iframe src="${src}" title="Facebook video" loading="lazy" frameborder="0" ` +
+      `<iframe src="${src}" title="Facebook video" frameborder="0" ` +
       `allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share" ` +
       `allowfullscreen class="absolute inset-0 h-full w-full"></iframe>` +
       `</div></div>`
