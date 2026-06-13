@@ -93,8 +93,8 @@ function renderEmbed(rawUrl: string): string | null {
     // without them the video area can come up blank/letterboxed. We pass the
     // exact width AND height we render the iframe at so Facebook fills the box
     // instead of leaving blank space below the video.
-    const fbWidth = isReel ? 340 : 640;
-    const fbHeight = isReel ? 604 : 360; // 340*16/9 ≈ 604 (9:16); 640*9/16 = 360 (16:9)
+    const fbWidth = isReel ? 420 : 640;
+    const fbHeight = isReel ? 747 : 360; // 420*16/9 ≈ 747 (9:16); 640*9/16 = 360 (16:9)
     const src =
       `https://www.facebook.com/plugins/video.php?href=${encodeURIComponent(url)}` +
       `&show_text=false&width=${fbWidth}&height=${fbHeight}`;
@@ -108,7 +108,7 @@ function renderEmbed(rawUrl: string): string | null {
       `<path d="M8 5v14l11-7z"></path></svg>`;
     const fallbackCard =
       `<a href="${url}" target="_blank" rel="noreferrer" ` +
-      `class="group mx-auto my-8 flex ${isReel ? "max-w-[340px]" : "max-w-[640px]"} flex-col items-center justify-center gap-3 rounded-xl border border-ink-900/10 bg-cream-100 px-6 py-10 text-center no-underline md:hidden">` +
+      `class="group mx-auto my-8 flex ${isReel ? "max-w-[420px]" : "max-w-[640px]"} flex-col items-center justify-center gap-3 rounded-xl border border-ink-900/10 bg-cream-100 px-6 py-10 text-center no-underline md:hidden">` +
       `<span class="flex h-14 w-14 items-center justify-center rounded-full bg-[#1877F2] text-white transition group-hover:scale-105">${playIcon}</span>` +
       `<span class="font-semibold text-ink-900">Watch this video on Facebook</span>` +
       `<span class="text-sm text-ink-500">Opens in the Facebook app or a new tab</span>` +
@@ -122,8 +122,8 @@ function renderEmbed(rawUrl: string): string | null {
         `<iframe src="${src}" title="Facebook reel" frameborder="0" ` +
         `allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share" ` +
         `allowfullscreen ` +
-        `class="w-full max-w-[340px] rounded-xl border border-ink-900/10" ` +
-        `style="height:604px"></iframe>` +
+        `class="w-full max-w-[420px] rounded-xl border border-ink-900/10" ` +
+        `style="height:747px"></iframe>` +
         `</div>`;
       return desktopFrame + fallbackCard;
     }
