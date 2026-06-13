@@ -12,7 +12,7 @@ const nav = [
   { href: "/reception/new", label: "New booking", ownerOnly: false },
   { href: "/reception/customers", label: "Customers", ownerOnly: false },
   { href: "/reception/dormant", label: "Re-engage", ownerOnly: false },
-  { href: "/reception/orders", label: "Orders", ownerOnly: false },
+  { href: "/reception/orders", label: "Orders", ownerOnly: true },
   { href: "/reception/summary", label: "Day summary", ownerOnly: true },
   { href: "/reception/services", label: "Services", ownerOnly: true },
   { href: "/reception/products", label: "Shop", ownerOnly: true },
