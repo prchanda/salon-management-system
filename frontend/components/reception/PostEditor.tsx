@@ -289,6 +289,10 @@ export function PostEditor({ initial }: Props) {
         <p className="mt-2 text-[11px] text-ink-400">
           Supports Markdown: headings (#), **bold**, *italic*, [links](), lists, &gt; quotes, `code`, tables.
         </p>
+        <p className="mt-1 text-[11px] text-ink-400">
+          Embed a video: paste an Instagram or Facebook video/reel link on its
+          own line and it becomes a playable embed.
+        </p>
       </div>
 
       <div className="sticky bottom-4 z-10 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-ink-900/10 bg-cream-50/95 px-5 py-4 shadow-soft backdrop-blur">

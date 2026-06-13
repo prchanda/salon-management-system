@@ -60,6 +60,9 @@ const nextConfig = {
       "img-src 'self' data: blob: https:",
       "font-src 'self' data:",
       connectSrc,
+      // Allow embedding Instagram / Facebook videos in journal posts. These
+      // hosts serve the <iframe> embed documents (see lib/markdown.ts).
+      "frame-src https://www.instagram.com https://www.facebook.com https://web.facebook.com",
       "frame-ancestors 'none'",
       "base-uri 'self'",
       "form-action 'self'",

@@ -2,7 +2,10 @@
 // Supports: headings (#, ##, ###), bold (**…**), italics (*…*),
 // inline code (`…`), links [text](url), images ![alt](url),
 // unordered lists (- / *), ordered lists (1.), blockquotes (>),
-// horizontal rules (---), code blocks (```), and paragraphs.
+// horizontal rules (---), code blocks (```), tables, and paragraphs.
+//
+// Also supports social video embeds: an Instagram or Facebook video/post URL
+// on its own line becomes a responsive embed (see renderEmbed).
 //
 // All raw input is HTML-escaped first, so user content cannot inject markup.
 
@@ -42,6 +45,61 @@ function renderInline(text: string): string {
   out = out.replace(/(^|[^*])\*([^*\n]+)\*/g, "$1<em>$2</em>");
 
   return out;
+}
+
+/**
+ * Turn a bare Instagram or Facebook URL into a responsive embed iframe.
+ *
+ * Security: we only ever build an <iframe> when the whole line matches one of
+ * the strict patterns below, and the src is assembled from a fixed template
+ * using either an extracted, character-class-validated shortcode/id or the
+ * encodeURIComponent-escaped original URL. No user input reaches the markup
+ * unescaped. Hosts must also be whitelisted in the CSP `frame-src` directive
+ * (see next.config.mjs).
+ *
+ * Returns the iframe HTML, or null when the URL isn't a supported embed.
+ */
+function renderEmbed(rawUrl: string): string | null {
+  const url = rawUrl.trim();
+
+  // Instagram post / reel / IGTV: .../{p|reel|reels|tv}/{shortcode}/…
+  const ig =
+    /^https?:\/\/(?:www\.)?instagram\.com\/(?:[^/]+\/)?(?:p|reel|reels|tv)\/([A-Za-z0-9_-]+)/i.exec(
+      url
+    );
+  if (ig) {
+    const code = ig[1];
+    const src = `https://www.instagram.com/p/${code}/embed/captioned/`;
+    return (
+      `<div class="my-8 flex justify-center">` +
+      `<iframe src="${src}" title="Instagram embed" loading="lazy" ` +
+      `scrolling="no" frameborder="0" allowtransparency="true" allowfullscreen ` +
+      `class="w-full max-w-[400px] rounded-xl border border-ink-900/10" ` +
+      `style="height:640px"></iframe>` +
+      `</div>`
+    );
+  }
+
+  // Facebook video / reel / watch, and fb.watch short links.
+  const isFacebook =
+    /^https?:\/\/(?:www\.|web\.|m\.)?facebook\.com\/(?:[^/?#]+\/videos\/\d+|watch\/?\?v=\d+|reel\/\d+|video\.php\?v=\d+|share\/[vr]\/[A-Za-z0-9_-]+)/i.test(
+      url
+    ) || /^https?:\/\/fb\.watch\/[A-Za-z0-9_-]+/i.test(url);
+  if (isFacebook) {
+    const src =
+      `https://www.facebook.com/plugins/video.php?href=${encodeURIComponent(url)}` +
+      `&show_text=false`;
+    return (
+      `<div class="my-8 overflow-hidden rounded-xl border border-ink-900/10">` +
+      `<div class="relative w-full" style="padding-top:56.25%">` +
+      `<iframe src="${src}" title="Facebook video" loading="lazy" frameborder="0" ` +
+      `allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share" ` +
+      `allowfullscreen class="absolute inset-0 h-full w-full"></iframe>` +
+      `</div></div>`
+    );
+  }
+
+  return null;
 }
 
 export function renderMarkdown(md: string): string {
@@ -183,6 +241,16 @@ export function renderMarkdown(md: string): string {
     if (line.trim() === "") {
       i++;
       continue;
+    }
+
+    // Social embed: a line that is solely a supported Instagram/Facebook URL.
+    if (/^https?:\/\/\S+$/.test(line.trim())) {
+      const embed = renderEmbed(line.trim());
+      if (embed) {
+        out.push(embed);
+        i++;
+        continue;
+      }
     }
 
     // Paragraph (collect consecutive non-blank, non-special lines)
