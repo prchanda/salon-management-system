@@ -195,7 +195,7 @@ export default function NewAppointmentPage() {
         )}
 
         <div className="grid gap-5 sm:grid-cols-2">
-          <div>
+          <div className="min-w-0">
             <label className="text-[11px] font-semibold uppercase tracking-widest text-ink-600">
               Service
             </label>
@@ -215,7 +215,7 @@ export default function NewAppointmentPage() {
               ))}
             </select>
           </div>
-          <div>
+          <div className="min-w-0">
             <label className="text-[11px] font-semibold uppercase tracking-widest text-ink-600">
               Specialist
             </label>
@@ -234,7 +234,7 @@ export default function NewAppointmentPage() {
               ))}
             </select>
           </div>
-          <div>
+          <div className="min-w-0">
             <label className="text-[11px] font-semibold uppercase tracking-widest text-ink-600">
               Date
             </label>
@@ -242,11 +242,11 @@ export default function NewAppointmentPage() {
               type="date"
               value={date}
               onChange={(e) => setDate(e.target.value)}
-              className="input-field mt-2 w-full min-w-0 appearance-none"
+              className="input-field mt-2 w-full min-w-0"
               required
             />
           </div>
-          <div>
+          <div className="min-w-0">
             <label className="text-[11px] font-semibold uppercase tracking-widest text-ink-600">
               Time
             </label>
@@ -254,7 +254,7 @@ export default function NewAppointmentPage() {
               type="time"
               value={time}
               onChange={(e) => setTime(e.target.value)}
-              className="input-field mt-2 w-full min-w-0 appearance-none"
+              className="input-field mt-2 w-full min-w-0"
               required
             />
           </div>
