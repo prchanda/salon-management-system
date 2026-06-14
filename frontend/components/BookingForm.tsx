@@ -237,7 +237,7 @@ export function BookingForm({
       </div>
 
       <div className="grid gap-6 sm:grid-cols-2">
-        <div>
+        <div className="min-w-0">
           <label htmlFor="date" className={labelClass}>
             Date
           </label>
@@ -248,7 +248,7 @@ export function BookingForm({
             min={minDate}
             value={date}
             onChange={(e) => setDate(e.target.value)}
-            className={inputClass}
+            className={`${inputClass} block min-w-0 max-w-full appearance-none`}
           />
         </div>
 
