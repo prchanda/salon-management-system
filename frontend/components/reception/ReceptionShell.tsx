@@ -118,7 +118,7 @@ export function ReceptionShell({ nav, role, displayName, children }: Props) {
             className="fixed inset-0 z-40 bg-ink-900/40 backdrop-blur-sm lg:hidden"
           />
           <aside
-            className="fixed inset-y-0 left-0 z-50 flex w-72 max-w-[85vw] flex-col border-r border-ink-900/10 bg-cream-50 shadow-2xl lg:hidden"
+            className="fixed left-0 top-0 z-50 flex h-[100dvh] w-72 max-w-[85vw] flex-col border-r border-ink-900/10 bg-cream-50 shadow-2xl lg:hidden"
             role="dialog"
             aria-modal="true"
           >
@@ -195,7 +195,7 @@ function SidebarBody({ nav, pathname, role, displayName }: SidebarBodyProps) {
       </nav>
 
       {/* Footer: user + sign out */}
-      <div className="border-t border-ink-900/10 px-3 py-3">
+      <div className="border-t border-ink-900/10 px-3 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
         {displayName && (
           <div className="mb-2 px-3 py-1">
             <p className="text-[10px] font-semibold uppercase tracking-widest text-ink-400">
