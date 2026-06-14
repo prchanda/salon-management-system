@@ -242,7 +242,7 @@ export default function NewAppointmentPage() {
               type="date"
               value={date}
               onChange={(e) => setDate(e.target.value)}
-              className="input-field mt-2"
+              className="input-field mt-2 w-full min-w-0 appearance-none"
               required
             />
           </div>
@@ -254,7 +254,7 @@ export default function NewAppointmentPage() {
               type="time"
               value={time}
               onChange={(e) => setTime(e.target.value)}
-              className="input-field mt-2"
+              className="input-field mt-2 w-full min-w-0 appearance-none"
               required
             />
           </div>
