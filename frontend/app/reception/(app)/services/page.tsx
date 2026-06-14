@@ -69,65 +69,119 @@ export default async function ReceptionServicesPage({
             No services yet. Add your first one to populate the website menu.
           </p>
         ) : (
-          <table className="w-full text-left text-sm">
-            <thead>
-              <tr className="border-b border-ink-900/10 text-[10px] uppercase tracking-widest text-ink-500">
-                <th className="px-5 py-3 font-semibold">Service</th>
-                <th className="px-5 py-3 font-semibold">Category</th>
-                <th className="px-5 py-3 font-semibold">Duration</th>
-                <th className="px-5 py-3 font-semibold">Price</th>
-                <th className="px-5 py-3 font-semibold">Status</th>
-                <th className="px-5 py-3 font-semibold">
-                  <span className="sr-only">Actions</span>
-                </th>
-              </tr>
-            </thead>
-            <tbody>
+          <>
+            {/* Mobile: stacked cards */}
+            <ul className="divide-y divide-ink-900/5 md:hidden">
               {services.map((s) => (
-                <tr
-                  key={s.id}
-                  className="border-b border-ink-900/5 last:border-0"
-                >
-                  <td className="px-5 py-4">
-                    <p className="font-medium text-ink-900">{s.serviceName}</p>
-                    {s.description && (
-                      <p className="mt-0.5 line-clamp-1 text-xs text-ink-500">
-                        {s.description}
-                      </p>
-                    )}
-                  </td>
-                  <td className="px-5 py-4 text-ink-700">
-                    {s.category ?? "—"}
-                  </td>
-                  <td className="px-5 py-4 text-ink-700">
-                    {s.durationMinutes} min
-                  </td>
-                  <td className="px-5 py-4 text-ink-700">
-                    ₹{formatPrice(s.price)}
-                  </td>
-                  <td className="px-5 py-4">
+                <li key={s.id} className="p-4">
+                  <div className="flex items-start justify-between gap-2">
+                    <Link
+                      href={`/reception/services/${s.id}/edit`}
+                      className="min-w-0 font-serif text-base text-ink-900 hover:text-gold-600"
+                    >
+                      <span className="break-words">{s.serviceName}</span>
+                    </Link>
+                    <span className="shrink-0 font-serif text-sm text-gold-600">
+                      ₹{formatPrice(s.price)}
+                    </span>
+                  </div>
+                  {s.description && (
+                    <p className="mt-0.5 line-clamp-1 text-xs text-ink-500">
+                      {s.description}
+                    </p>
+                  )}
+                  <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-ink-600">
+                    <span>{s.category ?? "—"}</span>
+                    <span className="text-ink-400">{s.durationMinutes} min</span>
                     {s.isActive ? (
-                      <span className="text-xs font-semibold uppercase tracking-widest text-green-700">
+                      <span className="inline-flex items-center gap-1.5 font-semibold uppercase tracking-widest text-green-700">
+                        <span className="h-1.5 w-1.5 rounded-full bg-green-600" />
                         Live
                       </span>
                     ) : (
-                      <span className="text-xs font-semibold uppercase tracking-widest text-ink-400">
+                      <span className="inline-flex items-center gap-1.5 font-semibold uppercase tracking-widest text-ink-500">
+                        <span className="h-1.5 w-1.5 rounded-full bg-ink-400" />
                         Hidden
                       </span>
                     )}
-                  </td>
-                  <td className="px-5 py-4 text-right">
+                  </div>
+                  <div className="mt-3">
                     <Link
                       href={`/reception/services/${s.id}/edit`}
-                      className="text-xs font-semibold uppercase tracking-widest text-gold-700 hover:text-gold-600"
+                      className="text-[11px] font-semibold uppercase tracking-widest text-gold-600 hover:text-ink-900"
                     >
                       Edit
                     </Link>
-                  </td>
-                </tr>
+                  </div>
+                </li>
               ))}
-            </tbody>
-          </table>
+            </ul>
+
+            {/* Desktop: table */}
+            <div className="hidden md:block md:overflow-x-auto">
+              <table className="w-full min-w-[640px] text-left text-sm">
+                <thead>
+                  <tr className="border-b border-ink-900/10 text-[10px] uppercase tracking-widest text-ink-500">
+                    <th className="px-5 py-3 font-semibold">Service</th>
+                    <th className="px-5 py-3 font-semibold">Category</th>
+                    <th className="px-5 py-3 font-semibold">Duration</th>
+                    <th className="px-5 py-3 font-semibold">Price</th>
+                    <th className="px-5 py-3 font-semibold">Status</th>
+                    <th className="px-5 py-3 font-semibold">
+                      <span className="sr-only">Actions</span>
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {services.map((s) => (
+                    <tr
+                      key={s.id}
+                      className="border-b border-ink-900/5 last:border-0"
+                    >
+                      <td className="px-5 py-4">
+                        <p className="font-medium text-ink-900">
+                          {s.serviceName}
+                        </p>
+                        {s.description && (
+                          <p className="mt-0.5 line-clamp-1 text-xs text-ink-500">
+                            {s.description}
+                          </p>
+                        )}
+                      </td>
+                      <td className="px-5 py-4 text-ink-700">
+                        {s.category ?? "—"}
+                      </td>
+                      <td className="px-5 py-4 text-ink-700">
+                        {s.durationMinutes} min
+                      </td>
+                      <td className="px-5 py-4 text-ink-700">
+                        ₹{formatPrice(s.price)}
+                      </td>
+                      <td className="px-5 py-4">
+                        {s.isActive ? (
+                          <span className="text-xs font-semibold uppercase tracking-widest text-green-700">
+                            Live
+                          </span>
+                        ) : (
+                          <span className="text-xs font-semibold uppercase tracking-widest text-ink-400">
+                            Hidden
+                          </span>
+                        )}
+                      </td>
+                      <td className="px-5 py-4 text-right">
+                        <Link
+                          href={`/reception/services/${s.id}/edit`}
+                          className="text-xs font-semibold uppercase tracking-widest text-gold-700 hover:text-gold-600"
+                        >
+                          Edit
+                        </Link>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </>
         )}
       </div>
     </div>
