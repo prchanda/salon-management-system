@@ -186,7 +186,7 @@ export default async function ReceptionOrdersPage({
             id="orders-status"
             name="status"
             defaultValue={status}
-            className="input-field mt-1"
+            className="input-field mt-1 pr-8"
           >
             {STATUS_OPTIONS.map((s) => (
               <option key={s} value={s}>
@@ -206,7 +206,7 @@ export default async function ReceptionOrdersPage({
             id="orders-range"
             name="range"
             defaultValue={range}
-            className="input-field mt-1"
+            className="input-field mt-1 pr-8"
           >
             {RANGE_OPTIONS.map((r) => (
               <option key={r.value} value={r.value}>
