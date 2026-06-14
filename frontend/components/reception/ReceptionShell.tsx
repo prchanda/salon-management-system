@@ -94,12 +94,12 @@ export function ReceptionShell({ nav, role, displayName, children }: Props) {
           </Link>
         </div>
         <div className="flex items-center gap-1">
-          <NotificationBell />
           {displayName && (
             <span className="max-w-[7rem] truncate text-[10px] font-semibold uppercase tracking-widest text-ink-500">
               {displayName}
             </span>
           )}
+          <NotificationBell />
         </div>
       </header>
 
