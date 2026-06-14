@@ -8,13 +8,15 @@ import { NavSubmitButton } from "@/components/NavSubmitButton";
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Customers — Reception" };
 
-async function safeGetCustomers(): Promise<Customer[]> {
+async function safeGetCustomers(q: string): Promise<Customer[]> {
   try {
-    return await api.getCustomers();
+    return await api.getCustomers(q || undefined, LIMIT);
   } catch {
     return [];
   }
 }
+
+const LIMIT = 100;
 
 export default async function CustomersListPage({
   searchParams,
@@ -25,24 +27,27 @@ export default async function CustomersListPage({
     redirect("/reception");
   }
 
-  const q = (searchParams.q ?? "").trim().toLowerCase();
-  const all = await safeGetCustomers();
-
-  const filtered = q
-    ? all.filter(
-        (c) =>
-          (c.phoneNumber?.toLowerCase().includes(q) ?? false) ||
-          (c.fullName?.toLowerCase().includes(q) ?? false)
-      )
-    : all;
+  const q = (searchParams.q ?? "").trim();
+  const customers = await safeGetCustomers(q);
+  const atLimit = customers.length >= LIMIT;
 
   return (
     <div className="space-y-6">
       <div>
         <p className="eyebrow">Customers</p>
         <h1 className="mt-2 font-serif text-3xl text-ink-900">
-          {all.length} customer{all.length === 1 ? "" : "s"}
+          {q
+            ? `${customers.length} match${customers.length === 1 ? "" : "es"}`
+            : atLimit
+            ? `Latest ${LIMIT} customers`
+            : `${customers.length} customer${customers.length === 1 ? "" : "s"}`}
         </h1>
+        {!q && atLimit && (
+          <p className="mt-1 text-sm text-ink-500">
+            Showing the most recent {LIMIT}. Search by phone or name to find
+            anyone else.
+          </p>
+        )}
       </div>
 
       <form className="flex flex-wrap items-center gap-3">
@@ -66,14 +71,14 @@ export default async function CustomersListPage({
             </tr>
           </thead>
           <tbody>
-            {filtered.length === 0 && (
+            {customers.length === 0 && (
               <tr>
                 <td colSpan={4} className="px-5 py-10 text-center text-ink-500">
                   No customers match.
                 </td>
               </tr>
             )}
-            {filtered.map((c) => (
+            {customers.map((c) => (
               <tr
                 key={c.id}
                 className="border-b border-ink-900/5 last:border-b-0 hover:bg-cream-100"

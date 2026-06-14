@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
 import type { Customer } from "@/lib/types";
 import { Spinner } from "@/components/Spinner";
@@ -25,22 +25,33 @@ export function MergeCustomerTool({ targetId, targetName }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState<string | null>(null);
 
-  async function openTool() {
+  function openTool() {
     setOpen(true);
     setError(null);
     setDone(null);
-    if (customers.length === 0) {
-      setLoadingList(true);
-      try {
-        const all = await api.getCustomers();
-        setCustomers(all.filter((c) => c.id !== targetId));
-      } catch (e) {
-        setError((e as Error).message);
-      } finally {
-        setLoadingList(false);
-      }
-    }
   }
+
+  // Search server-side (debounced) so we never pull the whole customer table.
+  // Runs an initial empty-query fetch on open to show recent customers.
+  useEffect(() => {
+    if (!open || selected) return;
+    let cancelled = false;
+    setLoadingList(true);
+    const t = setTimeout(async () => {
+      try {
+        const results = await api.getCustomers(query.trim() || undefined, 50);
+        if (!cancelled) setCustomers(results.filter((c) => c.id !== targetId));
+      } catch (e) {
+        if (!cancelled) setError((e as Error).message);
+      } finally {
+        if (!cancelled) setLoadingList(false);
+      }
+    }, query.trim() ? 250 : 0);
+    return () => {
+      cancelled = true;
+      clearTimeout(t);
+    };
+  }, [open, selected, query, targetId]);
 
   function reset() {
     setOpen(false);
@@ -50,14 +61,7 @@ export function MergeCustomerTool({ targetId, targetName }: Props) {
     setError(null);
   }
 
-  const q = query.trim().toLowerCase();
-  const matches = q
-    ? customers.filter(
-        (c) =>
-          c.fullName.toLowerCase().includes(q) ||
-          (c.phoneNumber?.toLowerCase().includes(q) ?? false)
-      )
-    : customers;
+  const matches = customers;
 
   async function doMerge() {
     if (!selected) return;
@@ -118,9 +122,7 @@ export function MergeCustomerTool({ targetId, targetName }: Props) {
 
       {open && (
         <div className="mt-5 space-y-4">
-          {loadingList ? (
-            <p className="text-sm text-ink-500">Loading customers…</p>
-          ) : selected ? (
+          {selected ? (
             <div className="rounded-xl border border-gold-600/30 bg-cream-100 p-4">
               <p className="text-sm text-ink-700">
                 Merge{" "}
@@ -164,7 +166,11 @@ export function MergeCustomerTool({ targetId, targetName }: Props) {
                 className="w-full rounded-md border border-ink-900/15 bg-cream-50 p-3 text-sm focus:border-ink-900 focus:outline-none"
               />
               <div className="max-h-64 overflow-y-auto rounded-xl border border-ink-900/10">
-                {matches.length === 0 ? (
+                {loadingList ? (
+                  <p className="px-4 py-6 text-center text-sm text-ink-500">
+                    Searching…
+                  </p>
+                ) : matches.length === 0 ? (
                   <p className="px-4 py-6 text-center text-sm text-ink-500">
                     No other customers match.
                   </p>

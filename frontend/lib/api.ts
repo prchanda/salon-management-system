@@ -324,7 +324,13 @@ export const api = {
     }),
 
   // Reception — customers
-  getCustomers: () => request<Customer[]>("/customers"),
+  getCustomers: (q?: string, limit?: number) => {
+    const params = new URLSearchParams();
+    if (q && q.trim()) params.set("q", q.trim());
+    if (limit) params.set("limit", String(limit));
+    const qs = params.toString();
+    return request<Customer[]>(`/customers${qs ? `?${qs}` : ""}`);
+  },
   getCustomerByPhone: (phone: string) =>
     request<Customer>(`/customers/by-phone/${encodeURIComponent(phone)}`),
   getCustomerHistory: (id: number) =>
