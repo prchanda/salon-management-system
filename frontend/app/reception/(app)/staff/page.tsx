@@ -311,39 +311,64 @@ function Section({
         {accounts.length === 0 ? (
           <p className="px-5 py-10 text-center text-sm text-ink-500">{empty}</p>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[720px] text-sm">
-              <thead className="border-b border-ink-900/10 bg-cream-100 text-left text-[10px] uppercase tracking-widest text-ink-500">
-                <tr>
-                  <th className="px-5 py-3">Name</th>
-                  <th className="px-5 py-3">Username</th>
-                  <th className="px-5 py-3">Contact</th>
-                  <th className="px-5 py-3">
-                    {kind === "pending" ? "Requested" : "Approved"}
-                  </th>
-                  <th className="px-5 py-3 text-right">Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                {accounts.map((a) => (
-                  <StaffRow
-                    key={a.id}
-                    account={a}
-                    kind={kind}
-                    dateLabel={fmtDate(
-                      kind === "pending" ? a.registeredAt : a.approvedAt
-                    )}
-                    initialEditOpen={editId === a.id}
-                    editError={editId === a.id ? editError : null}
-                    justUpdated={justUpdatedId === a.id}
-                    approveAction={approveStaffAction}
-                    rejectAction={rejectStaffAction}
-                    updateAction={updateStaffAction}
-                  />
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <>
+            {/* Mobile: stacked cards */}
+            <ul className="divide-y divide-ink-900/5 md:hidden">
+              {accounts.map((a) => (
+                <StaffRow
+                  key={a.id}
+                  variant="card"
+                  account={a}
+                  kind={kind}
+                  dateLabel={fmtDate(
+                    kind === "pending" ? a.registeredAt : a.approvedAt
+                  )}
+                  initialEditOpen={editId === a.id}
+                  editError={editId === a.id ? editError : null}
+                  justUpdated={justUpdatedId === a.id}
+                  approveAction={approveStaffAction}
+                  rejectAction={rejectStaffAction}
+                  updateAction={updateStaffAction}
+                />
+              ))}
+            </ul>
+
+            {/* Desktop: table */}
+            <div className="hidden md:block">
+              <table className="w-full text-sm">
+                <thead className="border-b border-ink-900/10 bg-cream-100 text-left text-[10px] uppercase tracking-widest text-ink-500">
+                  <tr>
+                    <th className="px-5 py-3">Name</th>
+                    <th className="px-5 py-3">Username</th>
+                    <th className="px-5 py-3">Contact</th>
+                    <th className="px-5 py-3">
+                      {kind === "pending" ? "Requested" : "Approved"}
+                    </th>
+                    <th className="px-5 py-3 text-right">Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {accounts.map((a) => (
+                    <StaffRow
+                      key={a.id}
+                      variant="row"
+                      account={a}
+                      kind={kind}
+                      dateLabel={fmtDate(
+                        kind === "pending" ? a.registeredAt : a.approvedAt
+                      )}
+                      initialEditOpen={editId === a.id}
+                      editError={editId === a.id ? editError : null}
+                      justUpdated={justUpdatedId === a.id}
+                      approveAction={approveStaffAction}
+                      rejectAction={rejectStaffAction}
+                      updateAction={updateStaffAction}
+                    />
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </>
         )}
       </div>
     </section>
