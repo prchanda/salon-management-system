@@ -1,6 +1,8 @@
 import Link from "next/link";
+import { Suspense } from "react";
 import { api } from "@/lib/api";
 import { OrderStatusControl } from "@/components/reception/OrderStatusControl";
+import { FocusHighlighter } from "@/components/reception/FocusHighlighter";
 import { NavSubmitButton } from "@/components/NavSubmitButton";
 import type { ProductOrder } from "@/lib/types";
 
@@ -143,6 +145,9 @@ export default async function ReceptionOrdersPage({
 
   return (
     <div>
+      <Suspense fallback={null}>
+        <FocusHighlighter />
+      </Suspense>
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between sm:gap-4">
         <div>
           <h1 className="font-serif text-3xl text-ink-900">Orders</h1>
@@ -273,7 +278,11 @@ export default async function ReceptionOrdersPage({
             {/* Mobile: stacked card list (< md) */}
             <ul className="divide-y divide-ink-900/5 md:hidden">
               {orders.map((o) => (
-                <li key={o.id} className="space-y-3 p-4">
+                <li
+                  key={o.id}
+                  data-focus-id={`order-${o.id}`}
+                  className="space-y-3 p-4"
+                >
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
                       <p className="font-serif text-base text-ink-900 break-words">
@@ -384,6 +393,7 @@ export default async function ReceptionOrdersPage({
                   {orders.map((o) => (
                     <tr
                       key={o.id}
+                      data-focus-id={`order-${o.id}`}
                       className="border-t border-ink-900/5 align-top"
                     >
                       <td className="px-5 py-4 text-xs text-ink-500">

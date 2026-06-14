@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { Suspense } from "react";
 import { api } from "@/lib/api";
 import { getRole } from "@/app/reception/roles";
 import {
@@ -11,6 +12,7 @@ import { SubmitButton } from "@/components/SubmitButton";
 import { RoleMultiSelect } from "@/components/reception/RoleMultiSelect";
 import { PasswordField } from "@/components/reception/PasswordField";
 import { StaffRow } from "@/components/reception/StaffRow";
+import { FocusHighlighter } from "@/components/reception/FocusHighlighter";
 import { SALON_ROLES } from "@/lib/salon";
 import type { StaffAccount } from "@/lib/types";
 
@@ -77,6 +79,9 @@ export default async function StaffAccountsPage({
 
   return (
     <div className="space-y-10">
+      <Suspense fallback={null}>
+        <FocusHighlighter />
+      </Suspense>
       <div>
         <p className="eyebrow">Access control</p>
         <h1 className="mt-2 font-serif text-3xl text-ink-900">

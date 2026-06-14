@@ -5,6 +5,7 @@ import type { Appointment, TodayAppointments } from "@/lib/types";
 import { AssignSpecialistButton } from "@/components/reception/AssignSpecialistButton";
 import { AttachCustomerButton } from "@/components/reception/AttachCustomerButton";
 import { DateNav } from "@/components/reception/DateNav";
+import { FocusHighlighter } from "@/components/reception/FocusHighlighter";
 import { MarkDoneButton } from "@/components/reception/MarkDoneButton";
 import { getRole, getStaffId, getDisplayName } from "@/app/reception/roles";
 
@@ -98,6 +99,9 @@ export default async function ReceptionTodayPage({
 
   return (
     <div className="space-y-8">
+      <Suspense fallback={null}>
+        <FocusHighlighter />
+      </Suspense>
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <p className="eyebrow">
@@ -221,6 +225,7 @@ async function TodayContent({
                 return (
                   <li
                     key={a.id}
+                    data-focus-id={`appt-${a.id}`}
                     className={`py-4 ${
                       isNext ? "-mx-2 rounded-xl bg-blush-100/60 px-2" : ""
                     }`}

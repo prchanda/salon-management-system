@@ -1,7 +1,9 @@
 import { redirect } from "next/navigation";
+import { Suspense } from "react";
 import { api } from "@/lib/api";
 import { getRole } from "@/app/reception/roles";
 import { SubmitButton } from "@/components/SubmitButton";
+import { FocusHighlighter } from "@/components/reception/FocusHighlighter";
 import type { Review } from "@/lib/types";
 import { approveReviewAction, deleteReviewAction } from "./actions";
 
@@ -69,6 +71,9 @@ export default async function ReceptionReviewsPage({
 
   return (
     <div className="space-y-10">
+      <Suspense fallback={null}>
+        <FocusHighlighter />
+      </Suspense>
       <div>
         <p className="eyebrow">Moderation</p>
         <h1 className="mt-2 font-serif text-3xl text-ink-900">Reviews</h1>
@@ -139,6 +144,7 @@ function Section({
           reviews.map((r) => (
             <article
               key={r.id}
+              data-focus-id={`review-${r.id}`}
               className="rounded-2xl bg-cream-50 p-5 shadow-soft"
             >
               <div className="flex flex-wrap items-baseline justify-between gap-2">

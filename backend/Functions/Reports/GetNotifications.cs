@@ -104,6 +104,7 @@ public class GetNotifications
             {
                 a.Id,
                 a.CreatedAt,
+                a.AppointmentDate,
                 a.AppointmentTime,
                 CustomerName = a.Customer != null ? a.Customer.FullName : a.GuestName,
                 ServiceName = a.Service != null ? a.Service.ServiceName : null,
@@ -114,13 +115,15 @@ public class GetNotifications
         {
             var who = string.IsNullOrWhiteSpace(b.CustomerName) ? "Walk-in" : b.CustomerName!;
             var svc = string.IsNullOrWhiteSpace(b.ServiceName) ? "appointment" : b.ServiceName!;
+            // Deep-link to the booking's own day view, focused on the row.
+            var href = $"/reception?date={b.AppointmentDate:yyyy-MM-dd}&focus=appt-{b.Id}";
             events.Add(new NotificationEvent(
                 $"booking-{b.Id}",
                 "booking",
                 "New booking",
                 $"{who} · {svc} at {b.AppointmentTime:HH:mm}",
                 b.CreatedAt,
-                "/reception"));
+                href));
         }
 
         // Staff stop here — orders, reviews and sign-ups are owner-only.
@@ -143,7 +146,7 @@ public class GetNotifications
                     "New order",
                     $"{o.CustomerName} · {o.Quantity}× {o.ProductName}",
                     o.CreatedAt,
-                    "/reception/orders"));
+                    $"/reception/orders?focus=order-{o.Id}"));
             }
 
             // ── New reviews ─────────────────────────────────────────────
@@ -163,7 +166,7 @@ public class GetNotifications
                     "New review",
                     $"{r.AuthorName} · {r.Rating}★",
                     r.CreatedAt,
-                    "/reception/reviews"));
+                    $"/reception/reviews?focus=review-{r.Id}"));
             }
 
             // ── New staff sign-ups awaiting approval ────────────────────
@@ -186,7 +189,7 @@ public class GetNotifications
                     "New staff sign-up",
                     $"{s.FullName} · awaiting approval",
                     s.RegisteredAt!.Value,
-                    "/reception/staff"));
+                    $"/reception/staff?focus=staff-{s.Id}"));
             }
         }
 

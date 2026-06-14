@@ -45,7 +45,10 @@ export function StaffRow({
 
   return (
     <>
-      <tr className="border-b border-ink-900/5 last:border-b-0">
+      <tr
+        data-focus-id={`staff-${account.id}`}
+        className="border-b border-ink-900/5 last:border-b-0"
+      >
         <td className="px-5 py-3">
           <div className="font-semibold text-ink-900">{account.fullName}</div>
           <div className="mt-1 flex flex-wrap gap-1">

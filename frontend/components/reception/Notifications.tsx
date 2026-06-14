@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   createContext,
@@ -21,6 +20,9 @@ const POLL_INTERVAL_MS = 20_000;
 const MAX_KEPT = 50;
 const SEEN_KEY = "reception:notifications:lastSeen";
 const MUTED_KEY = "reception:notifications:muted";
+const DISMISSED_KEY = "reception:notifications:dismissed";
+// Cap the persisted dismissed-id list so it can't grow unbounded.
+const MAX_DISMISSED = 200;
 
 interface Toast extends NotificationEvent {
   toastId: number;
@@ -32,6 +34,7 @@ interface NotificationsContextValue {
   muted: boolean;
   toggleMuted: () => void;
   markAllSeen: () => void;
+  dismiss: (id: string) => void;
   toasts: Toast[];
   dismissToast: (toastId: number) => void;
 }
@@ -72,13 +75,25 @@ export function NotificationsProvider({
   // True until the first fetch settles, so the initial backlog is silent.
   const primedRef = useRef(false);
   const toastSeq = useRef(0);
+  // Ids the user has explicitly dismissed — filtered out of the feed and
+  // never re-shown, persisted so they stay gone across reloads.
+  const dismissedRef = useRef<Set<string>>(new Set());
 
-  // ── Restore persisted preferences ───────────────────────────────────
+  // ── Restore persisted preferences ───────────────────────
   useEffect(() => {
     try {
       const seen = window.localStorage.getItem(SEEN_KEY);
       if (seen) setLastSeen(Number(seen) || 0);
       setMuted(window.localStorage.getItem(MUTED_KEY) === "1");
+      const dismissed = window.localStorage.getItem(DISMISSED_KEY);
+      if (dismissed) {
+        const ids = JSON.parse(dismissed);
+        if (Array.isArray(ids)) {
+          dismissedRef.current = new Set(
+            ids.filter((id): id is string => typeof id === "string")
+          );
+        }
+      }
     } catch {
       /* ignore storage errors (private mode, etc.) */
     }
@@ -141,7 +156,10 @@ export function NotificationsProvider({
       if (!res.ok) return;
       const data = (await res.json()) as NotificationFeed;
       cursorRef.current = data.serverTime ?? cursorRef.current;
-      const incoming = data.events ?? [];
+      // Drop anything the user already dismissed so it never reappears.
+      const incoming = (data.events ?? []).filter(
+        (e) => !dismissedRef.current.has(e.id)
+      );
 
       if (incoming.length > 0) {
         setEvents((prev) => {
@@ -217,6 +235,25 @@ export function NotificationsProvider({
     });
   }, []);
 
+  const dismiss = useCallback((id: string) => {
+    dismissedRef.current.add(id);
+    if (dismissedRef.current.size > MAX_DISMISSED) {
+      // Keep only the most recently added ids.
+      dismissedRef.current = new Set(
+        Array.from(dismissedRef.current).slice(-MAX_DISMISSED)
+      );
+    }
+    try {
+      window.localStorage.setItem(
+        DISMISSED_KEY,
+        JSON.stringify(Array.from(dismissedRef.current))
+      );
+    } catch {
+      /* ignore */
+    }
+    setEvents((prev) => prev.filter((e) => e.id !== id));
+  }, []);
+
   const value = useMemo<NotificationsContextValue>(
     () => ({
       events,
@@ -224,10 +261,20 @@ export function NotificationsProvider({
       muted,
       toggleMuted,
       markAllSeen,
+      dismiss,
       toasts,
       dismissToast,
     }),
-    [events, unreadCount, muted, toggleMuted, markAllSeen, toasts, dismissToast]
+    [
+      events,
+      unreadCount,
+      muted,
+      toggleMuted,
+      markAllSeen,
+      dismiss,
+      toasts,
+      dismissToast,
+    ]
   );
 
   return (
@@ -247,6 +294,7 @@ function ToastStack({
   onDismiss: (toastId: number) => void;
 }) {
   const router = useRouter();
+  const { dismiss } = useNotifications();
   if (toasts.length === 0) return null;
   return (
     <div className="pointer-events-none fixed right-3 top-3 z-[80] flex w-[min(20rem,calc(100vw-1.5rem))] flex-col gap-2">
@@ -256,6 +304,7 @@ function ToastStack({
           type="button"
           onClick={() => {
             onDismiss(t.toastId);
+            dismiss(t.id);
             router.push(t.href);
           }}
           className="pointer-events-auto flex w-full items-start gap-3 rounded-xl border border-gold-600/30 bg-cream-50 px-3.5 py-3 text-left shadow-lg ring-1 ring-ink-900/5 transition hover:border-gold-600/60 animate-[notifIn_0.25s_ease-out]"
@@ -304,8 +353,9 @@ export function NotificationBell({
    */
   align?: "left" | "right";
 }) {
-  const { events, unreadCount, muted, toggleMuted, markAllSeen } =
+  const { events, unreadCount, muted, toggleMuted, markAllSeen, dismiss } =
     useNotifications();
+  const router = useRouter();
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
 
@@ -393,11 +443,15 @@ export function NotificationBell({
             ) : (
               <ul className="divide-y divide-ink-900/5">
                 {events.map((e) => (
-                  <li key={e.id}>
-                    <Link
-                      href={e.href}
-                      onClick={() => setOpen(false)}
-                      className="flex items-start gap-3 px-4 py-3 transition hover:bg-cream-100"
+                  <li key={e.id} className="group relative">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setOpen(false);
+                        dismiss(e.id);
+                        router.push(e.href);
+                      }}
+                      className="flex w-full items-start gap-3 px-4 py-3 pr-10 text-left transition hover:bg-cream-100"
                     >
                       <KindIcon kind={e.kind} />
                       <span className="min-w-0 flex-1">
@@ -411,7 +465,18 @@ export function NotificationBell({
                           {relativeTime(e.createdAt)}
                         </span>
                       </span>
-                    </Link>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => dismiss(e.id)}
+                      aria-label="Dismiss notification"
+                      title="Dismiss"
+                      className="absolute right-2 top-2.5 rounded p-1 text-ink-300 hover:bg-ink-900/5 hover:text-ink-900"
+                    >
+                      <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round">
+                        <path d="M6 6l12 12M6 18L18 6" />
+                      </svg>
+                    </button>
                   </li>
                 ))}
               </ul>

@@ -186,3 +186,22 @@
     background-size: 18px 18px;
   }
 }
+
+/* Transient highlight applied to a record that the user reached by clicking a
+   notification. Works on cards (li/article) and table rows alike — table
+   cells are tinted too since a <tr> background sits behind transparent <td>s.
+   No `forwards` fill so the element reverts to its natural styling after. */
+@keyframes notifFocusPulse {
+  0%,
+  12% {
+    background-color: rgba(201, 162, 126, 0.45);
+  }
+  100% {
+    background-color: rgba(201, 162, 126, 0);
+  }
+}
+.notif-focus,
+.notif-focus > td {
+  animation: notifFocusPulse 2.8s ease-out;
+}
+
