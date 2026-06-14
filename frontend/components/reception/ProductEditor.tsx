@@ -156,13 +156,15 @@ export function ProductEditor({ initial }: Props) {
         });
         await revalidateShop(created.slug);
       }
-      router.replace("/reception/products");
+      // Refresh the destination cache first, then navigate. Keep the spinner
+      // up through the transition — resetting here would flip the button back
+      // to idle while the list page is still loading (1-2s of dead UI).
       router.refresh();
+      router.replace("/reception/products");
     } catch (err) {
       setError(
         err instanceof Error ? err.message : "Could not save the product."
       );
-    } finally {
       setSaving(false);
       setPendingAction(null);
     }
@@ -181,8 +183,8 @@ export function ProductEditor({ initial }: Props) {
     try {
       await api.deleteProduct(initial.id);
       await revalidateShop(initial.slug);
-      router.replace("/reception/products");
       router.refresh();
+      router.replace("/reception/products");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Delete failed.");
       setSaving(false);
