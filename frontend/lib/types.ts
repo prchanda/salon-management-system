@@ -329,3 +329,19 @@ export interface DaySummary {
     revenue: number;
   }[];
 }
+
+export type NotificationKind = "booking" | "order" | "review" | "signup";
+
+export interface NotificationEvent {
+  id: string;
+  kind: NotificationKind;
+  title: string;
+  subtitle: string;
+  createdAt: string;
+  href: string;
+}
+
+export interface NotificationFeed {
+  serverTime: string;
+  events: NotificationEvent[];
+}

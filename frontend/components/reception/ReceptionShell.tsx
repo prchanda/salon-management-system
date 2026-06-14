@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { logoutAction } from "@/app/reception/auth";
 import { SignOutButton } from "./SignOutButton";
+import { NotificationsProvider, NotificationBell } from "./Notifications";
 
 interface NavItem {
   href: string;
@@ -62,6 +63,7 @@ export function ReceptionShell({ nav, role, displayName, children }: Props) {
       )?.label ?? "Reception";
 
   return (
+    <NotificationsProvider>
     <div className="min-h-screen bg-cream-100 lg:flex">
       {/* ─── Mobile top bar ─────────────────────────────────────────── */}
       <header className="sticky top-0 z-40 flex h-14 items-center justify-between border-b border-ink-900/10 bg-cream-50 px-4 lg:hidden">
@@ -91,11 +93,14 @@ export function ReceptionShell({ nav, role, displayName, children }: Props) {
             {currentLabel}
           </Link>
         </div>
-        {displayName && (
-          <span className="max-w-[8rem] truncate text-[10px] font-semibold uppercase tracking-widest text-ink-500">
-            {displayName}
-          </span>
-        )}
+        <div className="flex items-center gap-1">
+          <NotificationBell />
+          {displayName && (
+            <span className="max-w-[7rem] truncate text-[10px] font-semibold uppercase tracking-widest text-ink-500">
+              {displayName}
+            </span>
+          )}
+        </div>
       </header>
 
       {/* ─── Desktop sidebar ────────────────────────────────────────── */}
@@ -105,6 +110,7 @@ export function ReceptionShell({ nav, role, displayName, children }: Props) {
           pathname={pathname}
           role={role}
           displayName={displayName}
+          showBell
         />
       </aside>
 
@@ -156,6 +162,7 @@ export function ReceptionShell({ nav, role, displayName, children }: Props) {
         <div className="mx-auto w-full max-w-6xl">{children}</div>
       </main>
     </div>
+    </NotificationsProvider>
   );
 }
 
@@ -164,23 +171,33 @@ interface SidebarBodyProps {
   pathname: string;
   role: string;
   displayName?: string | null;
+  showBell?: boolean;
 }
 
-function SidebarBody({ nav, pathname, role, displayName }: SidebarBodyProps) {
+function SidebarBody({
+  nav,
+  pathname,
+  role,
+  displayName,
+  showBell = false,
+}: SidebarBodyProps) {
   return (
     <div className="flex h-full flex-1 flex-col">
       {/* Brand */}
-      <div className="border-b border-ink-900/10 px-6 py-5">
-        <Link
-          href="/reception"
-          className="block font-serif text-lg leading-tight text-ink-900"
-        >
-          Mr. &amp; Mrs. Cuts{" "}
-          <span className="italic text-gold-600">Salon</span>
-        </Link>
-        <span className="mt-1 block text-[10px] font-semibold uppercase tracking-widest text-ink-500">
-          Reception
-        </span>
+      <div className="flex items-start justify-between gap-2 border-b border-ink-900/10 px-6 py-5">
+        <div className="min-w-0">
+          <Link
+            href="/reception"
+            className="block font-serif text-lg leading-tight text-ink-900"
+          >
+            Mr. &amp; Mrs. Cuts{" "}
+            <span className="italic text-gold-600">Salon</span>
+          </Link>
+          <span className="mt-1 block text-[10px] font-semibold uppercase tracking-widest text-ink-500">
+            Reception
+          </span>
+        </div>
+        {showBell && <NotificationBell className="-mr-2 shrink-0" />}
       </div>
 
       {/* Nav */}
