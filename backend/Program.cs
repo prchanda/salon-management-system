@@ -22,8 +22,27 @@ builder.UseMiddleware<ApiKeyMiddleware>();
 var connectionString =
     builder.Configuration["ConnectionStrings:DefaultConnection"];
 
-builder.Services.AddDbContext<SalonDbContext>(options =>
-    options.UseNpgsql(connectionString));
+// Pool DbContext instances so each request reuses a pre-built context (and its
+// compiled model) instead of allocating a fresh one — this matters on the
+// serverless Functions host where instances handle many requests. Npgsql
+// connection pooling is configured via the connection string (Maximum Pool
+// Size etc.) to avoid exhausting Supabase's connection limit as the app scales
+// out and stays up for long periods.
+builder.Services.AddDbContextPool<SalonDbContext>(options =>
+    options.UseNpgsql(connectionString, npgsql =>
+    {
+        // Transparently retry transient Postgres/network faults (e.g. a
+        // connection dropped by the Supabase pooler) instead of surfacing a
+        // 500 and forcing the client to retry the whole slow round-trip.
+        npgsql.EnableRetryOnFailure(
+            maxRetryCount: 3,
+            maxRetryDelay: TimeSpan.FromSeconds(3),
+            errorCodesToAdd: null);
+
+        // Bound a hung query so one stuck request can't pin a pooled
+        // connection indefinitely (which would slowly starve the pool).
+        npgsql.CommandTimeout(30);
+    }));
 
 // Emit camelCase JSON so the Next.js client (which expects camelCase
 // property names) can deserialize responses directly.

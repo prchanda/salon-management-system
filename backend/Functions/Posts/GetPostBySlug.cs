@@ -23,6 +23,7 @@ public class GetPostBySlug
         string slug)
     {
         var post = await _context.Posts
+            .AsNoTracking()
             .FirstOrDefaultAsync(p => p.Slug == slug && p.IsPublished);
 
         if (post is null)

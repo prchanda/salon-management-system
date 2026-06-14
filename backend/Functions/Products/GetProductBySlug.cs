@@ -23,6 +23,7 @@ public class GetProductBySlug
         string slug)
     {
         var product = await _context.Products
+            .AsNoTracking()
             .FirstOrDefaultAsync(p => p.Slug == slug && p.IsActive);
         if (product is null) return req.CreateResponse(HttpStatusCode.NotFound);
 

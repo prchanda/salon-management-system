@@ -31,6 +31,7 @@ public class GetReviews
         }
 
         var reviews = await _context.Reviews
+            .AsNoTracking()
             .Where(r => r.IsApproved)
             .OrderByDescending(r => r.CreatedAt)
             .Take(limit)

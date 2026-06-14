@@ -21,6 +21,7 @@ public class GetServices
         HttpRequestData req)
     {
         var services = await _context.Services
+            .AsNoTracking()
             .Where(x => x.IsActive)
             .ToListAsync();
 
