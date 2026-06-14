@@ -109,7 +109,7 @@ export default async function StaffAccountsPage({
         </p>
       )}
 
-      <ManualAddStaff error={formError} />
+      <ManualAddStaff error={formError} created={created} />
 
       <Section
         title={`Pending approval (${pending.length})`}
@@ -134,10 +134,25 @@ export default async function StaffAccountsPage({
   );
 }
 
-function ManualAddStaff({ error }: { error: string | null }) {
+function ManualAddStaff({
+  error,
+  created,
+}: {
+  error: string | null;
+  created: boolean;
+}) {
   return (
     <section>
-      <details open={error !== null} className="group rounded-2xl bg-cream-50 shadow-soft">
+      {/* `<details>` is uncontrolled: the user toggles `open` directly on the
+          DOM node. Since `open={error !== null}` is `false` both before and
+          after a successful create, React sees no prop change and leaves the
+          user-opened panel open. Keying on `created` forces a fresh remount so
+          the panel collapses once the account is created. */}
+      <details
+        key={created ? "created" : "idle"}
+        open={error !== null}
+        className="group rounded-2xl bg-cream-50 shadow-soft"
+      >
         <summary className="flex cursor-pointer list-none items-center justify-between px-5 py-4">
           <div>
             <h2 className="font-serif text-xl text-ink-900">Add staff manually</h2>
