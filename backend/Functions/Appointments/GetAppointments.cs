@@ -21,10 +21,12 @@ public class GetAppointments
         HttpRequestData req)
     {
         var appointments = await _context.Appointments
+            .AsNoTracking()
             .Include(x => x.Customer)
             .Include(x => x.Staff)
             .Include(x => x.Service)
             .OrderByDescending(x => x.AppointmentDate)
+            .Take(500)
             .ToListAsync();
 
         var response = req.CreateResponse(HttpStatusCode.OK);

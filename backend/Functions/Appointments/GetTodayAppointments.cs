@@ -41,6 +41,7 @@ public class GetTodayAppointments
         }
 
         var q = _context.Appointments
+            .AsNoTracking()
             .Include(x => x.Customer)
             .Include(x => x.Staff)
             .Include(x => x.Service)

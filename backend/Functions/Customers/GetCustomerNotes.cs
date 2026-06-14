@@ -22,6 +22,7 @@ public class GetCustomerNotes
         long id)
     {
         var customer = await _context.Customers
+            .AsNoTracking()
             .FirstOrDefaultAsync(x => x.Id == id);
 
         if (customer == null)

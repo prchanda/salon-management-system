@@ -22,6 +22,7 @@ public class GetCustomerByPhone
         string phone)
     {
         var customer = await _context.Customers
+            .AsNoTracking()
             .FirstOrDefaultAsync(x => x.PhoneNumber == phone);
 
         if (customer == null)

@@ -24,7 +24,7 @@ public class GetProductOrders
         var query = System.Web.HttpUtility.ParseQueryString(req.Url.Query);
         var status = query["status"]?.Trim();
 
-        IQueryable<Entities.ProductOrder> q = _context.ProductOrders;
+        IQueryable<Entities.ProductOrder> q = _context.ProductOrders.AsNoTracking();
         if (!string.IsNullOrEmpty(status))
         {
             q = q.Where(o => o.Status == status);

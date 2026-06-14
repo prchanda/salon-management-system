@@ -26,6 +26,7 @@ public class GetCustomerHistory
         long id)
     {
         var customer = await _context.Customers
+            .AsNoTracking()
             .FirstOrDefaultAsync(x => x.Id == id);
 
         if (customer == null)
@@ -34,6 +35,7 @@ public class GetCustomerHistory
         }
 
         var appointments = await _context.Appointments
+            .AsNoTracking()
             .Include(x => x.Service)
             .Include(x => x.Staff)
             .Where(x => x.CustomerId == id)

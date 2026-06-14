@@ -25,6 +25,7 @@ public class GetAdminReviews
         HttpRequestData req)
     {
         var reviews = await _context.Reviews
+            .AsNoTracking()
             .OrderBy(r => r.IsApproved)
             .ThenByDescending(r => r.CreatedAt)
             .ToListAsync();

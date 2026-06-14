@@ -34,6 +34,7 @@ public class GetDaySummary
             : DateOnly.FromDateTime(DateTime.UtcNow);
 
         var appointments = await _context.Appointments
+            .AsNoTracking()
             .Include(x => x.Staff)
             .Include(x => x.Service)
             .Where(x => x.AppointmentDate == date)
@@ -90,6 +91,7 @@ public class GetDaySummary
 
         // Shop / product orders placed on this date (UTC window mirrors customer count).
         var productOrders = await _context.ProductOrders
+            .AsNoTracking()
             .Where(o => o.CreatedAt >= dayStartUtc && o.CreatedAt <= dayEndUtc)
             .ToListAsync();
 

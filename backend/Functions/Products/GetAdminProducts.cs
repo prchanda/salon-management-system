@@ -22,6 +22,7 @@ public class GetAdminProducts
         HttpRequestData req)
     {
         var products = await _context.Products
+            .AsNoTracking()
             .OrderByDescending(p => p.UpdatedAt)
             .ToListAsync();
 

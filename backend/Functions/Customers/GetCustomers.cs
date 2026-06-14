@@ -21,6 +21,7 @@ public class GetCustomers
         HttpRequestData req)
     {
         var customers = await _context.Customers
+            .AsNoTracking()
             .OrderByDescending(x => x.CreatedAt)
             .ToListAsync();
 

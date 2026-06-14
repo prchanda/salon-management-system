@@ -41,20 +41,20 @@ public class GetDormantCustomers
             })
             .ToListAsync();
 
-        var dormantIds = lastVisits
+        var lastVisitById = lastVisits
             .Where(x => x.LastVisit < cutoff)
-            .Select(x => x.CustomerId)
-            .ToHashSet();
+            .ToDictionary(x => x.CustomerId, x => x.LastVisit);
 
         var customers = await _context.Customers
-            .Where(c => dormantIds.Contains(c.Id))
+            .AsNoTracking()
+            .Where(c => lastVisitById.Keys.Contains(c.Id))
             .OrderBy(c => c.FullName)
             .ToListAsync();
 
         var enriched = customers.Select(c => new
         {
             Customer = c,
-            LastVisit = lastVisits.First(v => v.CustomerId == c.Id).LastVisit
+            LastVisit = lastVisitById[c.Id]
         });
 
         var response = req.CreateResponse(HttpStatusCode.OK);
