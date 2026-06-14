@@ -182,9 +182,9 @@ function SidebarBody({
   showBell = false,
 }: SidebarBodyProps) {
   return (
-    <div className="flex h-full flex-1 flex-col">
+    <div className="flex min-h-0 flex-1 flex-col">
       {/* Brand */}
-      <div className="flex items-start justify-between gap-2 border-b border-ink-900/10 px-6 py-5">
+      <div className="flex shrink-0 items-start justify-between gap-2 border-b border-ink-900/10 px-6 py-5">
         <div className="min-w-0">
           <Link
             href="/reception"
@@ -201,7 +201,7 @@ function SidebarBody({
       </div>
 
       {/* Nav */}
-      <nav className="flex-1 overflow-y-auto px-3 py-4">
+      <nav className="min-h-0 flex-1 overflow-y-auto px-3 py-4">
         <ul className="space-y-0.5">
           {nav.map((item) => (
             <li key={item.href}>
@@ -212,7 +212,7 @@ function SidebarBody({
       </nav>
 
       {/* Footer: user + sign out */}
-      <div className="border-t border-ink-900/10 px-3 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+      <div className="shrink-0 border-t border-ink-900/10 px-3 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
         {displayName && (
           <div className="mb-2 px-3 py-1">
             <p className="text-[10px] font-semibold uppercase tracking-widest text-ink-400">
