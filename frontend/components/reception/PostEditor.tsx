@@ -102,12 +102,15 @@ export function PostEditor({ initial }: Props) {
         // block closing the editor on it — let it run in the background.
         void revalidateBlog(updated.slug).catch(() => {});
         if (publish) {
-          // Navigating to the list already renders it fresh; no extra refresh.
-          router.replace("/reception/blog");
-        } else {
-          router.replace(`/reception/blog/${initial.id}/edit`);
+          // Refresh the destination cache first, then navigate, and keep the
+          // spinner up through the transition (don't reset below) so the
+          // editor doesn't sit idle for 1-2s while the list reloads.
           router.refresh();
+          router.replace("/reception/blog");
+          return;
         }
+        router.replace(`/reception/blog/${initial.id}/edit`);
+        router.refresh();
       } else {
         const created = await api.createPost({
           title: t,
@@ -119,21 +122,24 @@ export function PostEditor({ initial }: Props) {
         });
         void revalidateBlog(created.slug).catch(() => {});
         if (publish) {
-          // Navigating to the list already renders it fresh; no extra refresh.
-          router.replace("/reception/blog");
-        } else {
-          router.replace(`/reception/blog/${created.id}/edit`);
           router.refresh();
+          router.replace("/reception/blog");
+          return;
         }
+        router.replace(`/reception/blog/${created.id}/edit`);
+        router.refresh();
       }
     } catch (err) {
       setError(
         err instanceof Error ? err.message : "Could not save the post."
       );
-    } finally {
       setSaving(false);
       setPendingAction(null);
+      return;
     }
+    // Draft paths stay on the edit page — safe to return to idle.
+    setSaving(false);
+    setPendingAction(null);
   }
 
   async function handleDelete() {
@@ -144,7 +150,9 @@ export function PostEditor({ initial }: Props) {
     try {
       await api.deletePost(initial.id);
       void revalidateBlog(initial.slug).catch(() => {});
-      // Navigating to the list already renders it fresh; no extra refresh.
+      // Refresh the destination cache first, then navigate, keeping the
+      // spinner up through the transition.
+      router.refresh();
       router.replace("/reception/blog");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Delete failed.");
