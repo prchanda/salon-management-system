@@ -8,17 +8,29 @@ interface Props {
   today: string; // YYYY-MM-DD
   prevDate: string;
   nextDate: string;
+  /** Body skeleton shown while a new day is loading. */
+  skeleton: React.ReactNode;
+  /** The resolved summary body for the current date. */
+  children: React.ReactNode;
 }
 
 type PendingTarget = "prev" | "next" | "today" | "picker" | null;
 
 /**
- * Date nav for the reception day summary. Mirrors DateNav.tsx so navigating
- * routes through React's useTransition and shows a loader while the new day's
- * data is fetched (otherwise mobile users see a frozen UI followed by a sudden
- * re-render).
+ * Frame for the reception day summary: header + date navigation + body.
+ *
+ * Navigating routes through React's useTransition. While the next day's data
+ * is loading we swap the BODY for a skeleton (not just a thin top bar) so the
+ * loader reads inline with the content, matching the rest of the app.
  */
-export function SummaryDateNav({ date, today, prevDate, nextDate }: Props) {
+export function SummaryView({
+  date,
+  today,
+  prevDate,
+  nextDate,
+  skeleton,
+  children,
+}: Props) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [pendingTarget, setPendingTarget] = useState<PendingTarget>(null);
@@ -40,8 +52,15 @@ export function SummaryDateNav({ date, today, prevDate, nextDate }: Props) {
     startTransition(() => router.push(href));
   }
 
+  const heading = new Date(`${date}T00:00:00`).toLocaleDateString("en-IN", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+
   return (
-    <>
+    <div className="space-y-8">
       {pending && (
         <div className="fixed inset-x-0 top-0 z-[60] h-0.5 overflow-hidden bg-gold-600/20">
           <div className="h-full w-1/3 animate-[loader_1.2s_ease-in-out_infinite] bg-gold-600" />
@@ -49,42 +68,47 @@ export function SummaryDateNav({ date, today, prevDate, nextDate }: Props) {
         </div>
       )}
 
-      <div
-        className={`flex flex-wrap items-center gap-2 transition-opacity ${
-          pending ? "opacity-60" : ""
-        }`}
-        aria-busy={pending}
-      >
-        <NavButton
-          ariaLabel="Previous day"
-          onClick={() => go(prevDate, "prev")}
-          disabled={pending}
-          showSpinner={pending && pendingTarget === "prev"}
-        >
-          ← Prev
-        </NavButton>
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <p className="eyebrow">Day summary</p>
+          <h1 className="mt-2 font-serif text-3xl text-ink-900">{heading}</h1>
+        </div>
 
-        {!isToday && (
+        <div
+          className={`flex flex-wrap items-center gap-2 transition-opacity ${
+            pending ? "opacity-60" : ""
+          }`}
+          aria-busy={pending}
+        >
           <NavButton
-            ariaLabel="Jump to today"
-            onClick={() => go(today, "today")}
+            ariaLabel="Previous day"
+            onClick={() => go(prevDate, "prev")}
             disabled={pending}
-            showSpinner={pending && pendingTarget === "today"}
+            showSpinner={pending && pendingTarget === "prev"}
           >
-            Today
+            ← Prev
           </NavButton>
-        )}
 
-        <NavButton
-          ariaLabel="Next day"
-          onClick={() => go(nextDate, "next")}
-          disabled={pending}
-          showSpinner={pending && pendingTarget === "next"}
-        >
-          Next →
-        </NavButton>
+          {!isToday && (
+            <NavButton
+              ariaLabel="Jump to today"
+              onClick={() => go(today, "today")}
+              disabled={pending}
+              showSpinner={pending && pendingTarget === "today"}
+            >
+              Today
+            </NavButton>
+          )}
 
-        <div className="flex items-center gap-2">
+          <NavButton
+            ariaLabel="Next day"
+            onClick={() => go(nextDate, "next")}
+            disabled={pending}
+            showSpinner={pending && pendingTarget === "next"}
+          >
+            Next →
+          </NavButton>
+
           <input
             type="date"
             value={date}
@@ -96,18 +120,20 @@ export function SummaryDateNav({ date, today, prevDate, nextDate }: Props) {
             }}
             className="rounded-md border border-ink-900/15 bg-cream-50 px-3 py-2 text-sm disabled:cursor-wait disabled:opacity-60"
           />
-        </div>
 
-        {pending && (
-          <span
-            aria-live="polite"
-            className="text-[10px] uppercase tracking-widest text-ink-500"
-          >
-            Loading…
-          </span>
-        )}
+          {pending && (
+            <span
+              aria-live="polite"
+              className="text-[10px] uppercase tracking-widest text-ink-500"
+            >
+              Loading…
+            </span>
+          )}
+        </div>
       </div>
-    </>
+
+      {pending ? skeleton : children}
+    </div>
   );
 }
 

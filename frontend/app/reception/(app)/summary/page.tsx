@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import { api } from "@/lib/api";
 import type { DaySummary } from "@/lib/types";
-import { SummaryDateNav } from "@/components/reception/SummaryDateNav";
+import { SummaryView } from "@/components/reception/SummaryView";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Day summary — Reception" };
@@ -44,31 +44,17 @@ export default function SummaryPage({
   const next = shiftIso(date, 1);
 
   return (
-    <div className="space-y-8">
-      <div className="flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <p className="eyebrow">Day summary</p>
-          <h1 className="mt-2 font-serif text-3xl text-ink-900">
-            {new Date(`${date}T00:00:00`).toLocaleDateString("en-IN", {
-              weekday: "long",
-              day: "numeric",
-              month: "long",
-              year: "numeric",
-            })}
-          </h1>
-        </div>
-        <SummaryDateNav
-          date={date}
-          today={today}
-          prevDate={prev}
-          nextDate={next}
-        />
-      </div>
-
+    <SummaryView
+      date={date}
+      today={today}
+      prevDate={prev}
+      nextDate={next}
+      skeleton={<SummarySkeleton />}
+    >
       <Suspense key={date} fallback={<SummarySkeleton />}>
         <SummaryContent date={date} />
       </Suspense>
-    </div>
+    </SummaryView>
   );
 }
 
