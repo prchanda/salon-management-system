@@ -80,6 +80,15 @@ public class GetNotifications
             specialistId = sid;
         }
 
+        // The signed-in user's own Staff id (owner included), forwarded by the
+        // trusted frontend route. Used to read/write their cross-device bell
+        // state (last-seen + dismissed ids).
+        long? viewerId = null;
+        if (long.TryParse(query["viewerId"], out var vid) && vid > 0)
+        {
+            viewerId = vid;
+        }
+
         var events = new List<NotificationEvent>();
 
         // ── New bookings ────────────────────────────────────────────────
@@ -198,13 +207,49 @@ public class GetNotifications
             .Take(limit)
             .ToList();
 
+        // Load the viewer's cross-device read state so every device converges:
+        // dismissed events stay hidden and the unread baseline is shared.
+        DateTime? lastSeenAt = null;
+        string[] dismissedIds = Array.Empty<string>();
+        if (viewerId is long vid2)
+        {
+            var state = await _context.NotificationStates
+                .AsNoTracking()
+                .FirstOrDefaultAsync(s => s.StaffId == vid2);
+            if (state is not null)
+            {
+                lastSeenAt = state.LastSeenAt;
+                dismissedIds = DeserializeIds(state.DismissedIdsJson);
+            }
+        }
+
+        var dismissedSet = new HashSet<string>(dismissedIds, StringComparer.Ordinal);
+        var visible = ordered.Where(e => !dismissedSet.Contains(e.Id)).ToList();
+
         var response = req.CreateResponse(HttpStatusCode.OK);
         await response.WriteAsJsonAsync(new
         {
             ServerTime = DateTime.UtcNow,
-            Events = ordered,
+            LastSeenAt = lastSeenAt,
+            DismissedIds = dismissedIds,
+            Events = visible,
         });
         return response;
+    }
+
+    /// <summary>Parse the stored JSON id array, tolerating malformed data.</summary>
+    internal static string[] DeserializeIds(string? json)
+    {
+        if (string.IsNullOrWhiteSpace(json)) return Array.Empty<string>();
+        try
+        {
+            return System.Text.Json.JsonSerializer.Deserialize<string[]>(json)
+                ?? Array.Empty<string>();
+        }
+        catch
+        {
+            return Array.Empty<string>();
+        }
     }
 
     private static async Task<HttpResponseData> EmptyAsync(HttpRequestData req)
@@ -213,6 +258,8 @@ public class GetNotifications
         await response.WriteAsJsonAsync(new
         {
             ServerTime = DateTime.UtcNow,
+            LastSeenAt = (DateTime?)null,
+            DismissedIds = Array.Empty<string>(),
             Events = Array.Empty<NotificationEvent>(),
         });
         return response;

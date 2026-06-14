@@ -343,5 +343,9 @@ export interface NotificationEvent {
 
 export interface NotificationFeed {
   serverTime: string;
+  /** Server-synced read baseline (ISO) shared across the user's devices. */
+  lastSeenAt?: string | null;
+  /** Server-synced dismissed event ids shared across the user's devices. */
+  dismissedIds?: string[];
   events: NotificationEvent[];
 }

@@ -38,8 +38,12 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
   const limit = req.nextUrl.searchParams.get("limit");
   if (limit) params.set("limit", limit);
 
+  // The viewer's own staff id (owner included) drives their cross-device read
+  // state. Derived server-side from the signed cookie so it can't be spoofed.
+  const staffId = await verifyValue(cookies().get(STAFF_ID_COOKIE)?.value);
+  if (staffId) params.set("viewerId", staffId);
+
   if (role === "staff") {
-    const staffId = await verifyValue(cookies().get(STAFF_ID_COOKIE)?.value);
     params.set("scope", "staff");
     // An unresolvable id yields an empty feed on the backend, which is the
     // correct fail-closed behaviour for a staff session.

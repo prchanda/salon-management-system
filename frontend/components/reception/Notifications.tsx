@@ -145,6 +145,19 @@ export function NotificationsProvider({
     setToasts((prev) => prev.filter((t) => t.toastId !== toastId));
   }, []);
 
+  // Persist the dismissed-id set locally as an offline fallback (the server is
+  // the source of truth, but this keeps things working without a round-trip).
+  const persistDismissed = useCallback(() => {
+    try {
+      window.localStorage.setItem(
+        DISMISSED_KEY,
+        JSON.stringify(Array.from(dismissedRef.current))
+      );
+    } catch {
+      /* ignore */
+    }
+  }, []);
+
   // ── Poll the scoped feed ────────────────────────────────────────────
   const poll = useCallback(async () => {
     const params = new URLSearchParams();
@@ -156,14 +169,55 @@ export function NotificationsProvider({
       if (!res.ok) return;
       const data = (await res.json()) as NotificationFeed;
       cursorRef.current = data.serverTime ?? cursorRef.current;
-      // Drop anything the user already dismissed so it never reappears.
+
+      // ── Reconcile server-synced read state (cross-device) ───────────
+      // Merge any ids dismissed on another device into our local set.
+      let dismissChanged = false;
+      if (Array.isArray(data.dismissedIds)) {
+        for (const id of data.dismissedIds) {
+          if (!dismissedRef.current.has(id)) {
+            dismissedRef.current.add(id);
+            dismissChanged = true;
+          }
+        }
+        if (dismissChanged) {
+          if (dismissedRef.current.size > MAX_DISMISSED) {
+            dismissedRef.current = new Set(
+              Array.from(dismissedRef.current).slice(-MAX_DISMISSED)
+            );
+          }
+          persistDismissed();
+        }
+      }
+      // Adopt a newer seen baseline set on another device.
+      if (data.lastSeenAt) {
+        const ms = Date.parse(data.lastSeenAt);
+        if (Number.isFinite(ms)) {
+          setLastSeen((prev) => {
+            if (ms > prev) {
+              try {
+                window.localStorage.setItem(SEEN_KEY, String(ms));
+              } catch {
+                /* ignore */
+              }
+              return ms;
+            }
+            return prev;
+          });
+        }
+      }
+
+      // Drop anything already dismissed (locally or on another device).
       const incoming = (data.events ?? []).filter(
         (e) => !dismissedRef.current.has(e.id)
       );
 
-      if (incoming.length > 0) {
+      if (incoming.length > 0 || dismissChanged) {
         setEvents((prev) => {
-          const byId = new Map(prev.map((e) => [e.id, e]));
+          // Prune anything dismissed elsewhere from the accumulated list too.
+          const filtered = prev.filter((e) => !dismissedRef.current.has(e.id));
+          if (incoming.length === 0) return filtered;
+          const byId = new Map(filtered.map((e) => [e.id, e]));
           for (const e of incoming) byId.set(e.id, e);
           return Array.from(byId.values())
             .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
@@ -185,7 +239,7 @@ export function NotificationsProvider({
     } catch {
       /* transient network error — try again next tick */
     }
-  }, [muted, playChime, pushToast]);
+  }, [muted, playChime, pushToast, persistDismissed]);
 
   // Interval + poll on focus/visibility so reception sees things promptly.
   useEffect(() => {
@@ -221,6 +275,14 @@ export function NotificationsProvider({
     } catch {
       /* ignore */
     }
+    // Sync the baseline to the server so other devices catch up.
+    void fetch("/bff/notifications/seen", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      cache: "no-store",
+      keepalive: true,
+      body: JSON.stringify({ lastSeenAt: new Date(stamp).toISOString() }),
+    }).catch(() => {});
   }, [events, lastSeen]);
 
   const toggleMuted = useCallback(() => {
@@ -252,6 +314,14 @@ export function NotificationsProvider({
       /* ignore */
     }
     setEvents((prev) => prev.filter((e) => e.id !== id));
+    // Sync the dismissal so it disappears on the user's other devices too.
+    void fetch("/bff/notifications/dismiss", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      cache: "no-store",
+      keepalive: true,
+      body: JSON.stringify({ id }),
+    }).catch(() => {});
   }, []);
 
   const value = useMemo<NotificationsContextValue>(

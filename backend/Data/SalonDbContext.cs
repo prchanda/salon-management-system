@@ -26,6 +26,8 @@ public class SalonDbContext : DbContext
 
     public DbSet<ProductOrder> ProductOrders => Set<ProductOrder>();
 
+    public DbSet<NotificationState> NotificationStates => Set<NotificationState>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Customer>().ToTable("customers");
@@ -218,5 +220,19 @@ public class SalonDbContext : DbContext
             .HasIndex(x => x.Status);
         modelBuilder.Entity<ProductOrder>()
             .HasIndex(x => x.CreatedAt);
+
+        // Per-viewer notification read state (cross-device sync of the bell).
+        modelBuilder.Entity<NotificationState>().ToTable("notification_states");
+        modelBuilder.Entity<NotificationState>().Property(x => x.StaffId)
+            .HasColumnName("staff_id");
+        modelBuilder.Entity<NotificationState>().Property(x => x.LastSeenAt)
+            .HasColumnName("last_seen_at");
+        modelBuilder.Entity<NotificationState>().Property(x => x.DismissedIdsJson)
+            .HasColumnName("dismissed_ids");
+        modelBuilder.Entity<NotificationState>().Property(x => x.UpdatedAt)
+            .HasColumnName("updated_at");
+        modelBuilder.Entity<NotificationState>()
+            .HasIndex(x => x.StaffId)
+            .IsUnique();
     }
 }
