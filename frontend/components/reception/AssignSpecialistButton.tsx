@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/api";
 import type { Staff } from "@/lib/types";
@@ -17,6 +17,7 @@ export function AssignSpecialistButton({ appointmentId }: Props) {
   const [staffId, setStaffId] = useState<number | "">("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [, startTransition] = useTransition();
 
   useEffect(() => {
     if (!open || staff.length > 0) return;
@@ -37,11 +38,12 @@ export function AssignSpecialistButton({ appointmentId }: Props) {
       await api.assignSpecialistToAppointment(appointmentId, {
         staffId: Number(staffId),
       });
-      setOpen(false);
-      router.refresh();
+      // Keep the spinner up through the page refresh so the button doesn't flip
+      // back to idle while the row still shows the old state. This island
+      // unmounts once the row re-renders with the specialist assigned.
+      startTransition(() => router.refresh());
     } catch (err) {
       setError((err as Error).message);
-    } finally {
       setBusy(false);
     }
   }

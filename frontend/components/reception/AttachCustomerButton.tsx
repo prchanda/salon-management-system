@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import { api } from "@/lib/api";
 import { Spinner } from "@/components/Spinner";
 
@@ -21,6 +21,7 @@ export function AttachCustomerButton({ appointmentId, defaultName }: Props) {
   );
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [, startTransition] = useTransition();
 
   async function submit() {
     setError(null);
@@ -39,11 +40,12 @@ export function AttachCustomerButton({ appointmentId, defaultName }: Props) {
         phoneNumber: trimmedPhone,
         fullName: fullName.trim() || undefined,
       });
-      setOpen(false);
-      router.refresh();
+      // Keep the spinner up through the page refresh so the button doesn't flip
+      // back to idle while the row still shows the old state. This island
+      // unmounts once the row re-renders with the customer attached.
+      startTransition(() => router.refresh());
     } catch (err) {
       setError((err as Error).message);
-    } finally {
       setBusy(false);
     }
   }
