@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import { api } from "@/lib/api";
 import { Spinner } from "@/components/Spinner";
 
@@ -20,6 +20,7 @@ export function MarkDoneButton({ appointmentId, suggestedAmount }: Props) {
   const [submitting, setSubmitting] = useState(false);
   const [pending, setPending] = useState<CloseStatus | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [, startTransition] = useTransition();
 
   async function close(status: CloseStatus) {
     setSubmitting(true);
@@ -31,11 +32,12 @@ export function MarkDoneButton({ appointmentId, suggestedAmount }: Props) {
         amountPaid: status === "Done" ? Number(amount) || 0 : undefined,
         paymentMethod: status === "Done" ? method : undefined,
       });
-      setOpen(false);
-      router.refresh();
+      // Keep the spinner up and the panel open through the page refresh so the
+      // button doesn't flip back to idle while the row still shows the old
+      // status. This island unmounts once the row re-renders as non-Booked.
+      startTransition(() => router.refresh());
     } catch (e) {
       setError((e as Error).message);
-    } finally {
       setSubmitting(false);
       setPending(null);
     }
