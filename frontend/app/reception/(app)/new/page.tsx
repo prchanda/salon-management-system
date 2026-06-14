@@ -97,13 +97,16 @@ export default function NewAppointmentPage() {
         appointmentTime: `${time}:00`,
         remarks: remarks.trim() || undefined,
       });
-      router.push("/reception");
-      // Invalidate the Router Cache so the bookings list re-fetches and
-      // shows the appointment we just created without a manual refresh.
+      // Invalidate the client Router Cache *before* navigating so the bookings
+      // list shows the appointment we just created. Calling push() then
+      // refresh() fires a second server round-trip that competes with the
+      // navigation and keeps this form on screen longer before it closes.
       router.refresh();
+      router.push("/reception");
+      // Keep the button in its "Saving…" state through the navigation — the
+      // component unmounts on success, so we only re-enable it on error.
     } catch (err) {
       setError((err as Error).message);
-    } finally {
       setSubmitting(false);
     }
   }
