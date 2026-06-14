@@ -5,6 +5,13 @@ export const RECEPTION_COOKIE = "reception_auth";
 export const RECEPTION_USER_COOKIE = "reception_user";
 export const RECEPTION_STAFF_ID_COOKIE = "reception_staff_id";
 export const RECEPTION_MUST_CHANGE_COOKIE = "reception_must_change";
+// Short-lived marker set the moment a forced password change succeeds. While
+// it is present the must-change gates trust that the change is done and skip
+// any redirect back to /reception/change-password. This rides out the brief
+// read-replica lag where the backend can still report mustChangePassword=true
+// right after the write, which otherwise made the layout and the change-
+// password page bounce against each other and crash the client router.
+export const RECEPTION_PW_SET_COOKIE = "reception_pw_set";
 export type Role = "owner" | "staff";
 
 const STAFF_PATH_PREFIXES = [

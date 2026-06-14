@@ -1,5 +1,7 @@
 import { redirect } from "next/navigation";
+import { cookies } from "next/headers";
 import { getDisplayName, getRole, getStaffId } from "@/app/reception/roles";
+import { RECEPTION_PW_SET_COOKIE } from "@/app/reception/roles";
 import { changePasswordAction, logoutAction } from "@/app/reception/auth";
 import { api } from "@/lib/api";
 import { SubmitButton } from "@/components/SubmitButton";
@@ -22,6 +24,13 @@ export default async function ChangePasswordPage({
   // against the backend so the page can't be used by accounts that have
   // already chosen their password.
   if (!role || !staffId) {
+    redirect("/reception");
+  }
+
+  // The password was just set: don't show the form (and don't re-read a
+  // possibly-stale backend that could bounce us). The short-lived marker
+  // means the change is done; send the user into the app.
+  if (cookies().get(RECEPTION_PW_SET_COOKIE)?.value === "1") {
     redirect("/reception");
   }
 

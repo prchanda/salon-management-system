@@ -1,5 +1,7 @@
 import { redirect } from "next/navigation";
+import { cookies } from "next/headers";
 import { getRole, getDisplayName, getStaffId } from "../roles";
+import { RECEPTION_PW_SET_COOKIE } from "../roles";
 import { api } from "@/lib/api";
 import { ReceptionShell } from "@/components/reception/ReceptionShell";
 
@@ -33,8 +35,14 @@ export default async function ReceptionLayout({
   // This closes the gap where a user could delete the must-change cookie
   // to bypass the middleware redirect. Applies to the owner too.
   const staffId = await getStaffId();
+  // Skip the gate entirely if the password was just set: the short-lived
+  // marker cookie means the change is done even if a read replica still
+  // reports it as pending, so we must NOT redirect back to change-password
+  // (that fights the change-password page and crashes the client router).
+  const justSetPassword =
+    cookies().get(RECEPTION_PW_SET_COOKIE)?.value === "1";
   let mustChangePassword = false;
-  if (staffId) {
+  if (staffId && !justSetPassword) {
     try {
       const status = await api.getStaffSessionStatus(staffId);
       mustChangePassword = status.mustChangePassword;

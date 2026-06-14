@@ -7,6 +7,7 @@ import {
   RECEPTION_USER_COOKIE,
   RECEPTION_STAFF_ID_COOKIE,
   RECEPTION_MUST_CHANGE_COOKIE,
+  RECEPTION_PW_SET_COOKIE,
   canStaffAccess,
 } from "./roles";
 import { signValue, verifyValue } from "@/lib/session-cookie";
@@ -299,5 +300,14 @@ export async function changePasswordAction(formData: FormData) {
   }
 
   cookies().delete(RECEPTION_MUST_CHANGE_COOKIE);
+  // Mark the change as just-completed so every must-change gate skips bouncing
+  // back here while the backend's read replica catches up (a few seconds).
+  // Without this, the layout could still read mustChangePassword=true and
+  // redirect to /reception/change-password while this page reads false and
+  // redirects out, thrashing the History API until the router crashed.
+  cookies().set(RECEPTION_PW_SET_COOKIE, "1", {
+    ...COOKIE_DEFAULTS,
+    maxAge: 120, // 2 minutes is ample for replication to settle
+  });
   redirect("/reception");
 }

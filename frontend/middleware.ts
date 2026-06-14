@@ -4,6 +4,7 @@ import { verifyValue } from "@/lib/session-cookie";
 const COOKIE = "reception_auth";
 const STAFF_ID_COOKIE = "reception_staff_id";
 const MUST_CHANGE_COOKIE = "reception_must_change";
+const PW_SET_COOKIE = "reception_pw_set";
 const CHANGE_PASSWORD_PATH = "/reception/change-password";
 
 const STAFF_ALLOWED_PREFIXES = [
@@ -55,7 +56,8 @@ async function guard(req: NextRequest, pathname: string) {
   // based on the cookie; the reception layout and the change-password page
   // also verify against the backend, so a deleted cookie cannot bypass it.
   const mustChange = req.cookies.get(MUST_CHANGE_COOKIE)?.value === "1";
-  if (mustChange && pathname !== CHANGE_PASSWORD_PATH) {
+  const justSetPassword = req.cookies.get(PW_SET_COOKIE)?.value === "1";
+  if (mustChange && !justSetPassword && pathname !== CHANGE_PASSWORD_PATH) {
     // The cookie can go stale or become orphaned, which previously caused an
     // infinite /reception <-> /reception/change-password loop:
     //   * stale: the password was already changed via the email reset flow,
@@ -121,8 +123,16 @@ async function mustChangeVerdict(
   const base =
     process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:7071/api";
   try {
+    // session-status is a privileged endpoint, so the API key must be sent or
+    // the backend's ApiKeyMiddleware returns 401. Without it this check always
+    // failed safe to "required" in production, which (combined with a stale
+    // must-change cookie) produced an infinite redirect loop against the
+    // change-password page. The key is a server-only secret available to the
+    // middleware runtime, never shipped to the browser.
+    const apiKey = process.env.BACKEND_API_KEY;
     const res = await fetch(`${base}/staff/${staffId}/session-status`, {
       cache: "no-store",
+      headers: apiKey ? { "X-Api-Key": apiKey } : {},
     });
     if (!res.ok) return "required"; // fail safe while we have a valid id
     const body = (await res.json()) as { mustChangePassword?: boolean };
