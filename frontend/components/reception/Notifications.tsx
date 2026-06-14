@@ -291,7 +291,19 @@ function ToastStack({
 }
 
 // ── Bell + dropdown ────────────────────────────────────────────────────
-export function NotificationBell({ className }: { className?: string }) {
+export function NotificationBell({
+  className,
+  align = "right",
+}: {
+  className?: string;
+  /**
+   * Which edge the dropdown anchors to. Use "right" for a bell near the
+   * right edge (mobile top bar) so the panel opens leftward; use "left" for
+   * the bell in the narrow desktop sidebar so the panel opens rightward into
+   * the content area instead of off the left edge of the screen.
+   */
+  align?: "left" | "right";
+}) {
   const { events, unreadCount, muted, toggleMuted, markAllSeen } =
     useNotifications();
   const [open, setOpen] = useState(false);
@@ -347,7 +359,7 @@ export function NotificationBell({ className }: { className?: string }) {
       </button>
 
       {open && (
-        <div className="absolute right-0 z-[70] mt-2 w-[min(22rem,calc(100vw-1.5rem))] overflow-hidden rounded-xl border border-ink-900/10 bg-cream-50 shadow-2xl">
+        <div className={`absolute z-[70] mt-2 w-[min(22rem,calc(100vw-1.5rem))] overflow-hidden rounded-xl border border-ink-900/10 bg-cream-50 shadow-2xl ${align === "left" ? "left-0" : "right-0"}`}>
           <div className="flex items-center justify-between border-b border-ink-900/10 px-4 py-3">
             <p className="text-[11px] font-semibold uppercase tracking-widest text-ink-500">
               Notifications

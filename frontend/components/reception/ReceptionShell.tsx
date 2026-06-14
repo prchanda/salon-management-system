@@ -197,7 +197,7 @@ function SidebarBody({
             Reception
           </span>
         </div>
-        {showBell && <NotificationBell className="-mr-2 shrink-0" />}
+        {showBell && <NotificationBell align="left" className="-mr-2 shrink-0" />}
       </div>
 
       {/* Nav */}
