@@ -22,12 +22,6 @@ export function SummaryDateNav({ date, today, prevDate, nextDate }: Props) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [pendingTarget, setPendingTarget] = useState<PendingTarget>(null);
-  const [picker, setPicker] = useState(date);
-
-  // Keep the picker in sync if the URL date changes externally.
-  useEffect(() => {
-    setPicker(date);
-  }, [date]);
 
   // Clear the per-control spinner once the transition settles.
   useEffect(() => {
@@ -93,21 +87,15 @@ export function SummaryDateNav({ date, today, prevDate, nextDate }: Props) {
         <div className="flex items-center gap-2">
           <input
             type="date"
-            value={picker}
+            value={date}
             disabled={pending}
-            onChange={(e) => setPicker(e.target.value)}
+            onChange={(e) => {
+              if (e.target.value && e.target.value !== date) {
+                go(e.target.value, "picker");
+              }
+            }}
             className="rounded-md border border-ink-900/15 bg-cream-50 px-3 py-2 text-sm disabled:cursor-wait disabled:opacity-60"
           />
-          <NavButton
-            ariaLabel="Go to selected date"
-            onClick={() => {
-              if (picker && picker !== date) go(picker, "picker");
-            }}
-            disabled={pending || !picker || picker === date}
-            showSpinner={pending && pendingTarget === "picker"}
-          >
-            Go
-          </NavButton>
         </div>
 
         {pending && (
