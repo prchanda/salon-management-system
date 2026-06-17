@@ -57,8 +57,9 @@ export default async function ProductDetailPage({ params }: Props) {
           ← Shop
         </Link>
 
-        <div className="mt-8 grid gap-12 lg:grid-cols-2 lg:gap-16">
-          <div>
+        <div className="mt-8 grid gap-10 lg:grid-cols-2 lg:gap-x-16 lg:gap-y-12">
+          {/* Image — desktop: left column, spans the info + order rows, sticky */}
+          <div className="lg:col-start-1 lg:row-start-1 lg:row-span-2">
             <div className="relative overflow-hidden rounded-2xl bg-cream-100 lg:sticky lg:top-24">
               {product.imageUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element
@@ -83,7 +84,8 @@ export default async function ProductDetailPage({ params }: Props) {
             </div>
           </div>
 
-          <div>
+          {/* Info — desktop: top-right */}
+          <div className="lg:col-start-2 lg:row-start-1">
             {product.category && (
               <p className="text-[11px] font-semibold uppercase tracking-widest text-gold-600">
                 {product.category}
@@ -101,8 +103,26 @@ export default async function ProductDetailPage({ params }: Props) {
                 {product.shortDescription}
               </p>
             )}
+          </div>
 
-            <div className="mt-8 rounded-2xl border border-ink-900/10 bg-cream-50 p-6 shadow-soft">
+          {/* Product details — mobile: before order; desktop: full-width row below */}
+          {product.description && (
+            <div className="border-t border-ink-900/10 pt-10 lg:col-span-2 lg:col-start-1 lg:row-start-3 lg:mt-4">
+              <h2 className="text-[11px] font-semibold uppercase tracking-widest text-gold-600">
+                Product details
+              </h2>
+              <div
+                className="prose-blog mt-4 text-sm"
+                dangerouslySetInnerHTML={{
+                  __html: renderMarkdown(product.description),
+                }}
+              />
+            </div>
+          )}
+
+          {/* Order — mobile: last; desktop: right column under the info */}
+          <div className="lg:col-start-2 lg:row-start-2">
+            <div className="rounded-2xl border border-ink-900/10 bg-cream-50 p-6 shadow-soft">
               <h2 className="font-serif text-xl text-ink-900">
                 Order this product
               </h2>
@@ -115,20 +135,6 @@ export default async function ProductDetailPage({ params }: Props) {
             </div>
           </div>
         </div>
-
-        {product.description && (
-          <div className="mt-12 border-t border-ink-900/10 pt-10 lg:mt-16">
-            <h2 className="text-[11px] font-semibold uppercase tracking-widest text-gold-600">
-              Product details
-            </h2>
-            <div
-              className="prose-blog mt-4 text-sm"
-              dangerouslySetInnerHTML={{
-                __html: renderMarkdown(product.description),
-              }}
-            />
-          </div>
-        )}
       </div>
     </article>
   );
