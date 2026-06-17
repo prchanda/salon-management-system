@@ -1,6 +1,5 @@
 import { BookingForm } from "@/components/BookingForm";
 import { api } from "@/lib/api";
-import { FALLBACK_SERVICES } from "@/lib/fallbackServices";
 import type { Service, Staff } from "@/lib/types";
 
 export const metadata = {
@@ -11,10 +10,9 @@ export const metadata = {
 
 async function safeGetServices(): Promise<Service[]> {
   try {
-    const services = await api.getServices();
-    return services.length > 0 ? services : FALLBACK_SERVICES;
+    return await api.getServices();
   } catch {
-    return FALLBACK_SERVICES;
+    return [];
   }
 }
 

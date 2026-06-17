@@ -8,34 +8,6 @@ interface Quote {
   author: string;
 }
 
-const FALLBACK: Quote[] = [
-  {
-    quote:
-      "The best hour of my month. Maya understood my hair on the first visit — I haven't gone anywhere else since.",
-    author: "Aanya R., guest since 2021",
-  },
-  {
-    quote:
-      "Calm, unhurried, and genuinely skilled. I walked in tired and left feeling like myself again.",
-    author: "Priya S., guest since 2020",
-  },
-  {
-    quote:
-      "Honest advice, no upselling — just a thoughtful cut and a cup of chai. Rare to find.",
-    author: "Nikhil V., guest since 2023",
-  },
-  {
-    quote:
-      "My balayage has never looked better. The team takes the time to actually listen.",
-    author: "Sara K., guest since 2022",
-  },
-  {
-    quote:
-      "It is the small details — the playlist, the fresh towel, the precision — that keep me coming back.",
-    author: "Ishaan D., guest since 2019",
-  },
-];
-
 const ROTATE_MS = 6000;
 
 function toQuote(r: Review): Quote {
@@ -45,7 +17,7 @@ function toQuote(r: Review): Quote {
 
 export function RotatingTestimonials({ reviews }: { reviews?: Review[] }) {
   const items = useMemo<Quote[]>(
-    () => (reviews && reviews.length > 0 ? reviews.map(toQuote) : FALLBACK),
+    () => (reviews ? reviews.map(toQuote) : []),
     [reviews]
   );
   const [index, setIndex] = useState(0);
@@ -61,6 +33,9 @@ export function RotatingTestimonials({ reviews }: { reviews?: Review[] }) {
     }, ROTATE_MS);
     return () => window.clearInterval(id);
   }, [items.length]);
+
+  // No real reviews yet — render nothing so no placeholder quotes show.
+  if (items.length === 0) return null;
 
   return (
     <div className="mx-auto max-w-3xl">

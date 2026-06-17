@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { ServiceCard } from "@/components/ServiceCard";
 import { api } from "@/lib/api";
-import { FALLBACK_SERVICES } from "@/lib/fallbackServices";
 import {
   SERVICE_CATEGORIES,
   DEFAULT_SERVICE_CATEGORY,
@@ -17,16 +16,15 @@ export const metadata = {
 
 async function safeGetServices(): Promise<Service[]> {
   try {
-    const services = await api.getServices();
-    return services.length > 0 ? services : FALLBACK_SERVICES;
+    return await api.getServices();
   } catch {
-    return FALLBACK_SERVICES;
+    return [];
   }
 }
 
 // Keyword fallback for services that don't yet have a category assigned
-// (legacy rows / the static fallback list). New services set category
-// explicitly from the reception admin, which always takes precedence.
+// (legacy rows without a category). New services set category explicitly
+// from the reception admin, which always takes precedence.
 const CATEGORY_KEYWORDS: { value: string; match: RegExp }[] = [
   { value: "Hair", match: /hair|cut|color|colour|blow|style|trim/i },
   { value: "Skin", match: /skin|facial|peel|glow|clean/i },

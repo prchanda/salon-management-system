@@ -4,7 +4,6 @@ import { ProductCard } from "@/components/ProductCard";
 import { RotatingTestimonials } from "@/components/RotatingTestimonials";
 import { ServiceCard } from "@/components/ServiceCard";
 import { api } from "@/lib/api";
-import { FALLBACK_SERVICES } from "@/lib/fallbackServices";
 import { SALON, telLink, waLink } from "@/lib/salon";
 import type { Product, Review, Service, Staff } from "@/lib/types";
 
@@ -27,10 +26,9 @@ export const revalidate = 300;
 
 async function safeGetServices(): Promise<Service[]> {
   try {
-    const services = await api.getServices();
-    return services.length > 0 ? services : FALLBACK_SERVICES;
+    return await api.getServices();
   } catch {
-    return FALLBACK_SERVICES;
+    return [];
   }
 }
 
@@ -163,17 +161,19 @@ export default async function HomePage() {
         </section>
       )}
 
-      <section className="bg-ink-900 text-cream-50">
-        <div className="container-page py-20 text-center sm:py-24">
-          <RotatingTestimonials reviews={reviews} />
-          <Link
-            href="/reviews"
-            className="mt-10 inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-widest text-gold-400 hover:text-gold-300"
-          >
-            Read all reviews <span aria-hidden>→</span>
-          </Link>
-        </div>
-      </section>
+      {reviews.length > 0 && (
+        <section className="bg-ink-900 text-cream-50">
+          <div className="container-page py-20 text-center sm:py-24">
+            <RotatingTestimonials reviews={reviews} />
+            <Link
+              href="/reviews"
+              className="mt-10 inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-widest text-gold-400 hover:text-gold-300"
+            >
+              Read all reviews <span aria-hidden>→</span>
+            </Link>
+          </div>
+        </section>
+      )}
 
       <section className="section">
         <div className="container-page text-center">

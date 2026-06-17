@@ -8,25 +8,6 @@ interface MiniReview {
   author: string;
 }
 
-const FALLBACK: MiniReview[] = [
-  {
-    quote: "Feels less like a salon, more like a quiet ritual.",
-    author: "Riya M., regular since 2022",
-  },
-  {
-    quote: "The only place that gets my curls right.",
-    author: "Tanvi B., regular since 2021",
-  },
-  {
-    quote: "Calm, kind, and genuinely skilled hands.",
-    author: "Meera J., regular since 2020",
-  },
-  {
-    quote: "I leave lighter every single time.",
-    author: "Aditi P., regular since 2023",
-  },
-];
-
 const ROTATE_MS = 5000;
 
 function toMini(r: Review): MiniReview {
@@ -36,7 +17,7 @@ function toMini(r: Review): MiniReview {
 
 export function HeroReviewCard({ reviews }: { reviews?: Review[] }) {
   const items = useMemo<MiniReview[]>(
-    () => (reviews && reviews.length > 0 ? reviews.map(toMini) : FALLBACK),
+    () => (reviews ? reviews.map(toMini) : []),
     [reviews]
   );
   const [index, setIndex] = useState(0);
@@ -52,6 +33,9 @@ export function HeroReviewCard({ reviews }: { reviews?: Review[] }) {
     }, ROTATE_MS);
     return () => window.clearInterval(id);
   }, [items.length]);
+
+  // No real reviews yet — don't show a card at all.
+  if (items.length === 0) return null;
 
   return (
     <div className="absolute -bottom-6 -left-6 hidden w-56 rounded-2xl bg-cream-50 p-5 shadow-soft sm:block">
