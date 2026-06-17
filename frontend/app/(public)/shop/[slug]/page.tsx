@@ -122,7 +122,7 @@ export default async function ProductDetailPage({ params }: Props) {
               Product details
             </h2>
             <div
-              className="prose-blog mt-4 max-w-3xl text-sm"
+              className="prose-blog mt-4 text-sm"
               dangerouslySetInnerHTML={{
                 __html: renderMarkdown(product.description),
               }}
