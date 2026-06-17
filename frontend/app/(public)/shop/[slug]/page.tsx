@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { api } from "@/lib/api";
+import { renderMarkdown } from "@/lib/markdown";
 import { OrderForm } from "@/components/OrderForm";
 import type { Product } from "@/lib/types";
 
@@ -102,9 +103,12 @@ export default async function ProductDetailPage({ params }: Props) {
             )}
 
             {product.description && (
-              <div className="mt-6 whitespace-pre-line text-sm leading-relaxed text-ink-600">
-                {product.description}
-              </div>
+              <div
+                className="prose-blog mt-6 text-sm"
+                dangerouslySetInnerHTML={{
+                  __html: renderMarkdown(product.description),
+                }}
+              />
             )}
 
             <div className="mt-8 rounded-2xl border border-ink-900/10 bg-cream-50 p-6 shadow-soft">

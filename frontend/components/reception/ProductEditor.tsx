@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { api } from "@/lib/api";
+import { renderMarkdown } from "@/lib/markdown";
 import type { Product } from "@/lib/types";
 import { uploadProductImage } from "@/lib/uploads";
 import { revalidateShop } from "@/app/reception/(app)/products/actions";
@@ -53,6 +54,7 @@ export function ProductEditor({ initial }: Props) {
     initial?.stockQuantity != null ? String(initial.stockQuantity) : ""
   );
   const [isActive, setIsActive] = useState(initial?.isActive ?? true);
+  const [descriptionPreview, setDescriptionPreview] = useState(false);
 
   const [saving, setSaving] = useState(false);
   const [pendingAction, setPendingAction] = useState<
@@ -391,19 +393,37 @@ export function ProductEditor({ initial }: Props) {
       </div>
 
       <div className="rounded-2xl bg-cream-50 p-6 shadow-soft">
-        <label className="block text-xs font-semibold uppercase tracking-widest text-ink-700">
-          Full description
-        </label>
-        <textarea
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          rows={10}
-          maxLength={6000}
-          placeholder="Ingredients, benefits, how to use, etc."
-          className="mt-2 w-full rounded-lg border border-ink-900/10 bg-cream-50 px-4 py-3 text-sm leading-relaxed text-ink-700 focus:border-gold-600 focus:outline-none"
-        />
+        <div className="flex items-center justify-between">
+          <label className="text-xs font-semibold uppercase tracking-widest text-ink-700">
+            Full description{" "}
+            <span className="font-normal lowercase text-ink-400">(Markdown)</span>
+          </label>
+          <button
+            type="button"
+            onClick={() => setDescriptionPreview((v) => !v)}
+            className="text-[11px] font-semibold uppercase tracking-widest text-gold-600 hover:text-ink-900"
+          >
+            {descriptionPreview ? "Edit" : "Preview"}
+          </button>
+        </div>
+        {descriptionPreview ? (
+          <div
+            className="prose-blog mt-2 min-h-[12rem] rounded-lg border border-ink-900/10 bg-cream-50 p-6 text-sm"
+            dangerouslySetInnerHTML={{ __html: renderMarkdown(description) }}
+          />
+        ) : (
+          <textarea
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            rows={10}
+            maxLength={6000}
+            placeholder={`Ingredients, benefits, how to use, etc.\n\nUse **bold**, *italic*, and lists:\n- Sulphate-free\n- For dry, frizzy hair`}
+            className="mt-2 w-full rounded-lg border border-ink-900/10 bg-cream-50 px-4 py-3 font-mono text-sm leading-relaxed text-ink-700 focus:border-gold-600 focus:outline-none"
+          />
+        )}
         <p className="mt-1 text-[11px] text-ink-400">
-          {description.length} / 6000
+          {description.length} / 6000 · Markdown supported (headings, **bold**,
+          *italic*, lists, links)
         </p>
       </div>
 
