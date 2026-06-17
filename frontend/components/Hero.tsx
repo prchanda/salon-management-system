@@ -1,4 +1,3 @@
-import Image from "next/image";
 import Link from "next/link";
 import { HeroReviewCard } from "@/components/HeroReviewCard";
 import { waLink } from "@/lib/salon";
@@ -72,20 +71,29 @@ export function Hero({
 
         <div className="relative lg:col-span-6 xl:col-span-7">
           <div className="relative aspect-[4/5] overflow-hidden rounded-[2rem] bg-blush-100 shadow-soft sm:aspect-[5/6] lg:aspect-[4/5]">
-            <Image
-              src="/images/hero-homepage.jpg"
-              alt="Specialist working on a guest in a calm salon interior"
-              fill
-              priority
-              quality={70}
-              // Cap the rendered width so the browser never asks for the
-              // ultra-wide srcSet variant on large monitors. 720 CSS px is
-              // the largest size this image is ever drawn at on desktop;
-              // 2× DPR resolves to a 1280-wide source — which matches our
-              // capped `deviceSizes` in next.config.mjs.
-              sizes="(min-width: 1024px) 720px, 100vw"
-              className="object-cover"
-            />
+            {/*
+              Pre-compressed static AVIF/WebP served directly from /public with
+              long-lived immutable cache headers (see staticwebapp.config.json).
+              Using a <picture> element instead of next/image bypasses the
+              on-demand /_next/image transform — which on Azure Static Web Apps
+              runs on a slow Functions backend and was making this LCP image take
+              10+ seconds to deliver. The JPG is the legacy fallback.
+            */}
+            <picture>
+              <source srcSet="/images/hero-homepage.avif" type="image/avif" />
+              <source srcSet="/images/hero-homepage.webp" type="image/webp" />
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/images/hero-homepage.jpg"
+                alt="Specialist working on a guest in a calm salon interior"
+                width={1280}
+                height={960}
+                // @ts-expect-error fetchpriority is valid HTML; React types lag
+                fetchpriority="high"
+                decoding="async"
+                className="absolute inset-0 h-full w-full object-cover"
+              />
+            </picture>
             <div className="absolute inset-0 bg-gradient-to-t from-ink-900/15 via-transparent to-transparent" />
           </div>
 
