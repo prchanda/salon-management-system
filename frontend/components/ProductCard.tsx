@@ -14,7 +14,7 @@ export function ProductCard({ product }: Props) {
       href={`/shop/${product.slug}`}
       className="group flex h-full flex-col overflow-hidden rounded-2xl border border-ink-900/10 bg-cream-50 shadow-soft transition hover:-translate-y-0.5 hover:shadow-lg"
     >
-      <div className="relative aspect-square overflow-hidden bg-cream-100">
+      <div className="relative aspect-[4/3] overflow-hidden bg-cream-100">
         {product.imageUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
@@ -23,7 +23,7 @@ export function ProductCard({ product }: Props) {
             loading="lazy"
             decoding="async"
             sizes="(min-width: 1024px) 25vw, (min-width: 640px) 33vw, 50vw"
-            className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+            className="h-full w-full object-contain p-4 transition duration-500 group-hover:scale-105"
           />
         ) : (
           <div className="flex h-full w-full items-center justify-center text-[11px] uppercase tracking-widest text-ink-400">
