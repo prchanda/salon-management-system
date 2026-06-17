@@ -59,7 +59,7 @@ export default async function ProductDetailPage({ params }: Props) {
 
         <div className="mt-8 grid gap-12 lg:grid-cols-2 lg:gap-16">
           <div>
-            <div className="relative overflow-hidden rounded-2xl bg-cream-100">
+            <div className="relative overflow-hidden rounded-2xl bg-cream-100 lg:sticky lg:top-24">
               {product.imageUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
@@ -102,15 +102,6 @@ export default async function ProductDetailPage({ params }: Props) {
               </p>
             )}
 
-            {product.description && (
-              <div
-                className="prose-blog mt-6 text-sm"
-                dangerouslySetInnerHTML={{
-                  __html: renderMarkdown(product.description),
-                }}
-              />
-            )}
-
             <div className="mt-8 rounded-2xl border border-ink-900/10 bg-cream-50 p-6 shadow-soft">
               <h2 className="font-serif text-xl text-ink-900">
                 Order this product
@@ -124,6 +115,20 @@ export default async function ProductDetailPage({ params }: Props) {
             </div>
           </div>
         </div>
+
+        {product.description && (
+          <div className="mt-12 border-t border-ink-900/10 pt-10 lg:mt-16">
+            <h2 className="text-[11px] font-semibold uppercase tracking-widest text-gold-600">
+              Product details
+            </h2>
+            <div
+              className="prose-blog mt-4 max-w-3xl text-sm"
+              dangerouslySetInnerHTML={{
+                __html: renderMarkdown(product.description),
+              }}
+            />
+          </div>
+        )}
       </div>
     </article>
   );
