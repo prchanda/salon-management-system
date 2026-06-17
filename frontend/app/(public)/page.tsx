@@ -203,7 +203,14 @@ export default async function HomePage() {
           </div>
           <div className="mt-6 space-y-1 text-xs uppercase tracking-widest text-ink-500">
             <p>{SALON.hours}</p>
-            <p className="mx-auto max-w-md">{SALON.address}</p>
+            <a
+              href={SALON.mapsUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mx-auto block max-w-md transition hover:text-gold-600"
+            >
+              {SALON.address}
+            </a>
           </div>
         </div>
       </section>

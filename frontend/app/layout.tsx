@@ -17,6 +17,7 @@ const playfair = Playfair_Display({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://www.mrandmrscuts.in"),
   title: "Mr. & Mrs. Cuts Salon — Atelier of Hair, Skin & Nails",
   description:
     "A boutique salon where craft meets care. Bespoke hair, skin and nail services by senior specialists.",

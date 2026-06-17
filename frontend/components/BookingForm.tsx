@@ -10,10 +10,10 @@ const inputClass =
 const labelClass =
   "block text-xs font-semibold uppercase tracking-widest text-ink-700";
 
-// Salon hours: 10:30 AM – 8:30 PM. Offer 30-minute slots up to 8:00 PM.
+// Salon hours: 11:00 AM – 9:00 PM. Offer 30-minute slots up to 8:30 PM.
 function buildTimeSlots(): { value: string; label: string }[] {
   const slots: { value: string; label: string }[] = [];
-  for (let minutes = 10 * 60 + 30; minutes <= 20 * 60; minutes += 30) {
+  for (let minutes = 11 * 60; minutes <= 20 * 60 + 30; minutes += 30) {
     const h = Math.floor(minutes / 60);
     const m = minutes % 60;
     const value = `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;

@@ -114,7 +114,14 @@ export function Footer() {
             Visit
           </h4>
           <address className="mt-5 not-italic text-sm leading-relaxed text-cream-100/80">
-            {SALON.address}
+            <a
+              href={SALON.mapsUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-gold-400"
+            >
+              {SALON.address}
+            </a>
             <br />
             <a href={telLink()} className="hover:text-gold-400">
               {SALON.phoneDisplay}

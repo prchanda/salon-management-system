@@ -7,8 +7,9 @@ export const SALON = {
   whatsappPrefill: "Hi Mr. & Mrs. Cuts Salon, I'd like to book an appointment.",
   email: "paulswastika734@gmail.com",
   address: "157/2, Monihar Apartment (Ground Floor), Gostotala, Garia, Kolkata, India, West Bengal",
-  hours: "Mon – Sun · 10:30 AM — 8:30 PM (Thu\u00A0closed)",
-  instagram: "https://www.instagram.com/shathi6584/",
+  mapsUrl: "https://maps.app.goo.gl/f9bZ9HotjV5Hp19w8",
+  hours: "Mon – Sun · 11:00 AM — 9:00 PM (Thu\u00A0closed)",
+  instagram: "https://www.instagram.com/mr_mrs_cuts_/",
   facebook: "https://www.facebook.com/mrandmrscuts",
 };
 
