@@ -111,7 +111,7 @@ export default async function AnnouncementListPage({
 
   return (
     <div>
-      <div className="flex items-end justify-between gap-4">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between sm:gap-4">
         <div>
           <h1 className="font-serif text-3xl text-ink-900">Announcement bar</h1>
           <p className="mt-1 max-w-2xl text-sm text-ink-500">
