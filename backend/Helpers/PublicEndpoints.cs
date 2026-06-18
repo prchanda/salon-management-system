@@ -18,6 +18,7 @@ public static class PublicEndpoints
         "reviews",
         "posts",
         "products",
+        "announcement",
     };
 
     private static readonly HashSet<string> PublicPost = new(StringComparer.OrdinalIgnoreCase)

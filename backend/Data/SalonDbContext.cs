@@ -28,6 +28,8 @@ public class SalonDbContext : DbContext
 
     public DbSet<NotificationState> NotificationStates => Set<NotificationState>();
 
+    public DbSet<Announcement> Announcements => Set<Announcement>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Customer>().ToTable("customers");
@@ -234,5 +236,24 @@ public class SalonDbContext : DbContext
         modelBuilder.Entity<NotificationState>()
             .HasIndex(x => x.StaffId)
             .IsUnique();
+
+        // Singleton site-wide announcement / promo bar.
+        modelBuilder.Entity<Announcement>().ToTable("announcements");
+        modelBuilder.Entity<Announcement>().Property(x => x.CtaLabel)
+            .HasColumnName("cta_label");
+        modelBuilder.Entity<Announcement>().Property(x => x.CtaHref)
+            .HasColumnName("cta_href");
+        modelBuilder.Entity<Announcement>().Property(x => x.Theme)
+            .HasColumnName("theme")
+            .HasDefaultValue("gold");
+        modelBuilder.Entity<Announcement>().Property(x => x.IsActive)
+            .HasColumnName("is_active")
+            .HasDefaultValue(false);
+        modelBuilder.Entity<Announcement>().Property(x => x.StartsAt)
+            .HasColumnName("starts_at");
+        modelBuilder.Entity<Announcement>().Property(x => x.EndsAt)
+            .HasColumnName("ends_at");
+        modelBuilder.Entity<Announcement>().Property(x => x.UpdatedAt)
+            .HasColumnName("updated_at");
     }
 }

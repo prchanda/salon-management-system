@@ -244,6 +244,31 @@ export interface UpdateProductPayload {
   clearStock?: boolean;
 }
 
+export type AnnouncementTheme = "gold" | "ink" | "blush";
+
+/** Singleton site-wide announcement / promo bar. */
+export interface Announcement {
+  id: number;
+  message: string;
+  ctaLabel?: string | null;
+  ctaHref?: string | null;
+  theme: AnnouncementTheme;
+  isActive: boolean;
+  startsAt?: string | null;
+  endsAt?: string | null;
+  updatedAt: string;
+}
+
+export interface UpdateAnnouncementPayload {
+  message: string;
+  ctaLabel?: string | null;
+  ctaHref?: string | null;
+  theme: AnnouncementTheme;
+  isActive: boolean;
+  startsAt?: string | null;
+  endsAt?: string | null;
+}
+
 export type ProductOrderStatus =
   | "Pending"
   | "Confirmed"

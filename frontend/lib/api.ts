@@ -1,4 +1,5 @@
 import type {
+  Announcement,
   Appointment,
   AssignSpecialistPayload,
   AttachCustomerPayload,
@@ -24,6 +25,7 @@ import type {
   Staff,
   StaffAccount,
   TodayAppointments,
+  UpdateAnnouncementPayload,
   UpdatePostPayload,
   UpdateProductPayload,
   UpdateServicePayload,
@@ -55,6 +57,7 @@ function isPublicEndpoint(method: string, rawPath: string): boolean {
       "reviews",
       "posts",
       "products",
+      "announcement",
     ]);
     if (publicGet.has(path)) return true;
     // Single-segment slug reads: posts/{slug}, products/{slug}. The admin
@@ -235,6 +238,21 @@ export const api = {
     }),
   deleteProduct: (id: number) =>
     request<void>(`/products/${id}`, { method: "DELETE" }),
+
+  // Public — announcement bar (returns null when nothing is live)
+  getAnnouncement: () =>
+    request<Announcement | null>("/announcement", {
+      next: { revalidate: PUBLIC_REVALIDATE },
+    }),
+
+  // Reception — announcement bar (owner managed)
+  getAdminAnnouncement: () =>
+    request<Announcement | null>("/announcement/admin"),
+  updateAnnouncement: (payload: UpdateAnnouncementPayload) =>
+    request<Announcement>("/announcement", {
+      method: "PUT",
+      body: JSON.stringify(payload),
+    }),
 
   // Reception — services (owner managed)
   getAdminServices: () => request<Service[]>("/services/admin/list"),
