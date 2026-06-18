@@ -20,6 +20,14 @@ public class UpdateStaffProfileDto
     public string? Email { get; set; }
 }
 
+public class ReactivateStaffAccountDto
+{
+    // Optional temporary password. When provided, the account is reactivated
+    // with this password and the staff member is forced to change it on their
+    // next sign-in. When omitted, the original password is kept.
+    public string? TempPassword { get; set; }
+}
+
 public class StaffLoginDto
 {
     public string Username { get; set; } = string.Empty;

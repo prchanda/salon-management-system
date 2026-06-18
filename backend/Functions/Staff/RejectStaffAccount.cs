@@ -8,9 +8,17 @@ using Microsoft.EntityFrameworkCore;
 namespace backend.Functions.Staff;
 
 /// <summary>
-/// Owner-only: reject (or revoke) a staff account. Clears the credentials
-/// so the user cannot log in. The Staff row is preserved (kept inactive)
-/// because appointments may still reference it.
+/// Owner-only: reject a pending sign-up, or revoke an active account.
+///
+/// Two cases, branched on whether the account was ever approved:
+///  - PENDING (never approved): the row is discarded — its credentials are
+///    cleared so the username/email can be reused by a fresh registration.
+///  - APPROVED (active staff being revoked): the account is DEACTIVATED only
+///    (IsActive=false). Credentials are KEPT so the owner can reactivate it
+///    later and the staff member gets their original login back. A deactivated
+///    account cannot sign in (StaffLogin filters on IsActive) and is removed
+///    from the public booking dropdown (GetStaff filters on IsActive).
+/// The Staff row is preserved in both cases because appointments reference it.
 /// </summary>
 public class RejectStaffAccount
 {
@@ -44,15 +52,28 @@ public class RejectStaffAccount
         var firstName = staff.FullName.Split(' ').FirstOrDefault() ?? "there";
         var wasApproved = staff.IsApproved;
 
-        staff.Username = null;
-        staff.PasswordHash = null;
-        staff.PasswordSalt = null;
-        staff.RegisteredAt = null;
-        staff.IsApproved = false;
-        staff.ApprovedAt = null;
-        staff.PasswordResetTokenHash = null;
-        staff.PasswordResetExpiresAt = null;
-        staff.IsActive = false;
+        if (wasApproved)
+        {
+            // Revoke an active account: deactivate but keep credentials so it
+            // can be reactivated later with the same login.
+            staff.IsActive = false;
+            staff.PasswordResetTokenHash = null;
+            staff.PasswordResetExpiresAt = null;
+        }
+        else
+        {
+            // Reject a pending sign-up: discard credentials so the
+            // username/email are freed for a future registration.
+            staff.Username = null;
+            staff.PasswordHash = null;
+            staff.PasswordSalt = null;
+            staff.RegisteredAt = null;
+            staff.IsApproved = false;
+            staff.ApprovedAt = null;
+            staff.PasswordResetTokenHash = null;
+            staff.PasswordResetExpiresAt = null;
+            staff.IsActive = false;
+        }
 
         await _context.SaveChangesAsync();
 

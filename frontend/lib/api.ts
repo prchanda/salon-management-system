@@ -397,6 +397,16 @@ export const api = {
     ),
   rejectStaffAccount: (id: number) =>
     request<void>(`/staff/${id}/account`, { method: "DELETE" }),
+  reactivateStaffAccount: (id: number, tempPassword?: string) =>
+    request<{
+      id: number;
+      isActive: boolean;
+      isApproved: boolean;
+      mustChangePassword: boolean;
+    }>(`/staff/${id}/reactivate`, {
+      method: "PUT",
+      body: JSON.stringify({ tempPassword: tempPassword || undefined }),
+    }),
 
   // Reception — reports
   getDaySummary: (date?: string) =>

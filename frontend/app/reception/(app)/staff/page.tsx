@@ -5,6 +5,7 @@ import { getRole } from "@/app/reception/roles";
 import {
   approveStaffAction,
   createStaffAction,
+  reactivateStaffAction,
   rejectStaffAction,
   updateStaffAction,
 } from "./actions";
@@ -44,6 +45,8 @@ export default async function StaffAccountsPage({
     updated?: string;
     editId?: string;
     editError?: string;
+    reactivateMsg?: string;
+    reactivated?: string;
   };
 }) {
   if ((await getRole()) !== "owner") {
@@ -59,7 +62,8 @@ export default async function StaffAccountsPage({
   }
 
   const pending = accounts.filter((a) => !a.isApproved);
-  const approved = accounts.filter((a) => a.isApproved);
+  const approved = accounts.filter((a) => a.isApproved && a.isActive);
+  const deactivated = accounts.filter((a) => a.isApproved && !a.isActive);
 
   const actionError =
     searchParams.error === "approve"
@@ -68,6 +72,9 @@ export default async function StaffAccountsPage({
       ? "Could not revoke that account. Please try again."
       : searchParams.error === "update"
       ? "Could not update that account. Please try again."
+      : searchParams.error === "reactivate"
+      ? searchParams.reactivateMsg ||
+        "Could not reactivate that account. Please try again."
       : null;
 
   const formError = searchParams.formError ?? null;
@@ -76,6 +83,7 @@ export default async function StaffAccountsPage({
   const updated = updatedId !== null && Number.isFinite(updatedId);
   const editId = searchParams.editId ? Number(searchParams.editId) : null;
   const editError = searchParams.editError ?? null;
+  const reactivated = searchParams.reactivated === "1";
 
   return (
     <div className="space-y-10">
@@ -113,6 +121,11 @@ export default async function StaffAccountsPage({
           Staff details updated.
         </p>
       )}
+      {reactivated && (
+        <p className="rounded-lg border border-green-300 bg-green-50 px-3 py-2 text-xs text-green-700">
+          Account reactivated. The staff member can sign in again.
+        </p>
+      )}
 
       <ManualAddStaff error={formError} created={created} />
 
@@ -135,6 +148,18 @@ export default async function StaffAccountsPage({
         editError={editError}
         justUpdatedId={updated ? updatedId : null}
       />
+
+      {deactivated.length > 0 && (
+        <Section
+          title={`Deactivated accounts (${deactivated.length})`}
+          empty="No deactivated accounts."
+          accounts={deactivated}
+          kind="deactivated"
+          editId={editId}
+          editError={editError}
+          justUpdatedId={updated ? updatedId : null}
+        />
+      )}
     </div>
   );
 }
@@ -299,7 +324,7 @@ function Section({
   title: string;
   empty: string;
   accounts: StaffAccount[];
-  kind: "pending" | "approved";
+  kind: "pending" | "approved" | "deactivated";
   editId: number | null;
   editError: string | null;
   justUpdatedId: number | null;
@@ -329,6 +354,7 @@ function Section({
                   approveAction={approveStaffAction}
                   rejectAction={rejectStaffAction}
                   updateAction={updateStaffAction}
+                  reactivateAction={reactivateStaffAction}
                 />
               ))}
             </ul>
@@ -363,6 +389,7 @@ function Section({
                       approveAction={approveStaffAction}
                       rejectAction={rejectStaffAction}
                       updateAction={updateStaffAction}
+                      reactivateAction={reactivateStaffAction}
                     />
                   ))}
                 </tbody>

@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { SubmitButton } from "@/components/SubmitButton";
 import { RoleMultiSelect } from "@/components/reception/RoleMultiSelect";
+import { PasswordField } from "@/components/reception/PasswordField";
 import { SALON_ROLES } from "@/lib/salon";
 import type { StaffAccount } from "@/lib/types";
 
@@ -18,10 +19,11 @@ export function StaffRow({
   approveAction,
   rejectAction,
   updateAction,
+  reactivateAction,
   variant = "row",
 }: {
   account: StaffAccount;
-  kind: "pending" | "approved";
+  kind: "pending" | "approved" | "deactivated";
   dateLabel: string;
   initialEditOpen: boolean;
   editError: string | null;
@@ -29,10 +31,12 @@ export function StaffRow({
   approveAction: RowAction;
   rejectAction: RowAction;
   updateAction: RowAction;
+  reactivateAction: RowAction;
   /** "row" = desktop table row; "card" = stacked mobile card. */
   variant?: "row" | "card";
 }) {
   const [editing, setEditing] = useState(initialEditOpen);
+  const [reactivating, setReactivating] = useState(false);
 
   // After a successful save the page re-renders but React keeps this
   // component's state, so collapse the editor back to read mode.
@@ -79,16 +83,66 @@ export function StaffRow({
           </SubmitButton>
         </form>
       )}
-      <form action={rejectAction}>
-        <input type="hidden" name="id" value={account.id} />
-        <SubmitButton
-          pendingText="Working…"
-          className="rounded-md border border-red-300 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-widest text-red-700 hover:bg-red-50"
+      {kind === "deactivated" ? (
+        <button
+          type="button"
+          onClick={() => setReactivating((v) => !v)}
+          className="rounded-md bg-green-700 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-widest text-cream-50 hover:bg-green-800"
         >
-          {kind === "pending" ? "Reject" : "Revoke"}
-        </SubmitButton>
-      </form>
+          {reactivating ? "Close" : "Reactivate"}
+        </button>
+      ) : (
+        <form action={rejectAction}>
+          <input type="hidden" name="id" value={account.id} />
+          <SubmitButton
+            pendingText="Working…"
+            className="rounded-md border border-red-300 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-widest text-red-700 hover:bg-red-50"
+          >
+            {kind === "pending" ? "Reject" : "Revoke"}
+          </SubmitButton>
+        </form>
+      )}
     </>
+  );
+
+  // Reactivate panel: lets the owner restore access and, for staff who have
+  // forgotten their password, set a temporary one (the username is unchanged).
+  const reactivateForm = (
+    <form action={reactivateAction} className="space-y-4">
+      <input type="hidden" name="id" value={account.id} />
+      <p className="text-xs text-ink-600">
+        Restores access for{" "}
+        <span className="font-semibold text-ink-900">{account.username}</span>.
+        Optionally set a temporary password — they&apos;ll be asked to choose a
+        new one on their next sign-in. Leave it blank to keep their old
+        password.
+      </p>
+      <div className="max-w-xs">
+        <PasswordField
+          id={`reactivate-pw-${account.id}`}
+          name="tempPassword"
+          label="Temporary password (optional, min 8)"
+          required={false}
+          minLength={8}
+          placeholder="leave blank to keep current"
+        />
+      </div>
+      <div className="flex items-center gap-3">
+        <SubmitButton
+          pendingText="Reactivating…"
+          className="rounded-md bg-green-700 px-4 py-2 text-[10px] font-semibold uppercase tracking-widest text-cream-50 hover:bg-green-800"
+        >
+          Reactivate account
+        </SubmitButton>
+        <button
+          type="button"
+          onClick={() => setReactivating(false)}
+          className="text-[11px] font-semibold uppercase tracking-widest text-ink-500 hover:text-ink-700"
+        >
+          Cancel
+        </button>
+      </div>
+    </form>
   );
 
   const editForm = (
@@ -179,12 +233,12 @@ export function StaffRow({
             </dd>
           </div>
           <div className="flex gap-2">
-            <dt className="w-20 shrink-0 text-ink-400">Email</dt>
-            <dd className="min-w-0 break-all">{account.email || "—"}</dd>
-          </div>
-          <div className="flex gap-2">
             <dt className="w-20 shrink-0 text-ink-400">Phone</dt>
             <dd className="min-w-0 break-all">{account.phoneNumber || "—"}</dd>
+          </div>
+          <div className="flex gap-2">
+            <dt className="w-20 shrink-0 text-ink-400">Email</dt>
+            <dd className="min-w-0 break-all">{account.email || "—"}</dd>
           </div>
           <div className="flex gap-2">
             <dt className="w-20 shrink-0 text-ink-400">
@@ -196,6 +250,9 @@ export function StaffRow({
         <div className="mt-3 flex flex-wrap gap-2">{actionButtons}</div>
         {editing && (
           <div className="mt-4 rounded-xl bg-cream-100/60 p-4">{editForm}</div>
+        )}
+        {reactivating && (
+          <div className="mt-4 rounded-xl bg-green-50 p-4">{reactivateForm}</div>
         )}
       </li>
     );
@@ -214,8 +271,8 @@ export function StaffRow({
         </td>
         <td className="px-5 py-3 text-ink-700">{account.username}</td>
         <td className="px-5 py-3 text-xs text-ink-600">
-          <div>{account.email || "—"}</div>
-          <div className="text-ink-500">{account.phoneNumber || "—"}</div>
+          <div>{account.phoneNumber || "—"}</div>
+          <div className="text-ink-500">{account.email || "—"}</div>
         </td>
         <td className="px-5 py-3 text-xs text-ink-600">{dateLabel}</td>
         <td className="px-5 py-3">
@@ -227,6 +284,14 @@ export function StaffRow({
         <tr className="border-b border-ink-900/5 bg-cream-100/60 last:border-b-0">
           <td colSpan={5} className="px-5 py-5">
             {editForm}
+          </td>
+        </tr>
+      )}
+
+      {reactivating && (
+        <tr className="border-b border-ink-900/5 bg-green-50 last:border-b-0">
+          <td colSpan={5} className="px-5 py-5">
+            {reactivateForm}
           </td>
         </tr>
       )}

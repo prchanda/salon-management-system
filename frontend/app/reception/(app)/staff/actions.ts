@@ -167,3 +167,36 @@ export async function rejectStaffAction(formData: FormData) {
   // dropdown immediately instead of waiting for the ISR window to expire.
   revalidatePublicStaff();
 }
+
+export async function reactivateStaffAction(formData: FormData) {
+  await assertOwner();
+  const id = Number(formData.get("id"));
+  if (!Number.isFinite(id) || id <= 0) return;
+
+  const tempPassword = String(formData.get("tempPassword") ?? "");
+  // The temp password is optional, but if the owner typed one it must be valid.
+  if (tempPassword.length > 0 && tempPassword.length < 8) {
+    redirect(
+      `/reception/staff?error=reactivate&reactivateMsg=${encodeURIComponent(
+        "Temporary password must be at least 8 characters."
+      )}`
+    );
+  }
+
+  let outcome: { ok: true } | { ok: false; message: string };
+  try {
+    await api.reactivateStaffAccount(id, tempPassword || undefined);
+    outcome = { ok: true };
+  } catch (e) {
+    outcome = { ok: false, message: extractApiMessage(e) };
+  }
+  if (!outcome.ok) {
+    redirect(
+      `/reception/staff?error=reactivate&reactivateMsg=${encodeURIComponent(outcome.message)}`
+    );
+  }
+  revalidatePath("/reception/staff");
+  // Reactivating makes the specialist bookable again — refresh the dropdown.
+  revalidatePublicStaff();
+  redirect("/reception/staff?reactivated=1");
+}
