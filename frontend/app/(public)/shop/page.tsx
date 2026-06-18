@@ -4,9 +4,10 @@ import { api } from "@/lib/api";
 import type { Product } from "@/lib/types";
 
 export const metadata = {
-  title: "Shop · Mr. & Mrs. Cuts Salon",
+  title: "Shop",
   description:
     "Salon-curated skin, hair, and styling products — chosen by our specialists. Browse the catalogue and place an order.",
+  alternates: { canonical: "/shop" },
 };
 
 export const revalidate = 60;

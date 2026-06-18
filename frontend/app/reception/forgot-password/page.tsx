@@ -3,7 +3,7 @@ import { requestPasswordResetAction } from "../auth";
 import { SubmitButton } from "@/components/SubmitButton";
 
 export const metadata = {
-  title: "Forgot Password — Mr. & Mrs. Cuts Salon",
+  title: "Forgot Password",
 };
 
 export default function ForgotPasswordPage({

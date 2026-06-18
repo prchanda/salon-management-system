@@ -21,14 +21,31 @@ async function safeGetProduct(slug: string): Promise<Product | null> {
 
 export async function generateMetadata({ params }: Props) {
   const slug = (params.slug ?? "").trim();
-  if (!slug) return { title: "Shop · Mr. & Mrs. Cuts Salon" };
+  if (!slug) return { title: "Shop" };
   const product = await safeGetProduct(slug);
-  if (!product) return { title: "Not found · Mr. & Mrs. Cuts Salon" };
+  if (!product) return { title: "Not found" };
+  const description =
+    product.shortDescription ?? product.description.slice(0, 200);
+  const canonical = `/shop/${product.slug}`;
   return {
-    title: `${product.name} · Shop · Mr. & Mrs. Cuts Salon`,
-    description:
-      product.shortDescription ??
-      product.description.slice(0, 200),
+    title: `${product.name} · Shop`,
+    description,
+    alternates: { canonical },
+    openGraph: {
+      type: "website",
+      title: product.name,
+      description,
+      url: canonical,
+      images: product.imageUrl
+        ? [{ url: product.imageUrl }]
+        : ["/images/og-image.jpg"],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: product.name,
+      description,
+      images: product.imageUrl ? [product.imageUrl] : ["/images/og-image.jpg"],
+    },
   };
 }
 
@@ -47,8 +64,33 @@ export default async function ProductDetailPage({ params }: Props) {
   const outOfStock =
     product.stockQuantity != null && product.stockQuantity <= 0;
 
+  const productJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    name: product.name,
+    description: product.shortDescription ?? product.description.slice(0, 300),
+    category: product.category ?? undefined,
+    image: product.imageUrl
+      ? [product.imageUrl]
+      : ["https://www.mrandmrscuts.in/images/og-image.jpg"],
+    brand: { "@type": "Brand", name: "Mr. & Mrs. Cuts Salon" },
+    offers: {
+      "@type": "Offer",
+      price: product.price,
+      priceCurrency: "INR",
+      availability: outOfStock
+        ? "https://schema.org/OutOfStock"
+        : "https://schema.org/InStock",
+      url: `https://www.mrandmrscuts.in/shop/${product.slug}`,
+    },
+  };
+
   return (
     <article className="section">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(productJsonLd) }}
+      />
       <div className="container-page max-w-6xl">
         <Link
           href="/shop"

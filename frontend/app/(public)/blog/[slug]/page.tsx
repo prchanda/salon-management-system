@@ -20,10 +20,31 @@ async function safeGetPost(slug: string): Promise<Post | null> {
 
 export async function generateMetadata({ params }: Props) {
   const post = await safeGetPost(params.slug);
-  if (!post) return { title: "Not found · Mr. & Mrs. Cuts Salon" };
+  if (!post) return { title: "Not found" };
+  const canonical = `/blog/${post.slug}`;
   return {
-    title: `${post.title} · Mr. & Mrs. Cuts Salon`,
+    title: post.title,
     description: post.excerpt,
+    alternates: { canonical },
+    openGraph: {
+      type: "article",
+      title: post.title,
+      description: post.excerpt,
+      url: canonical,
+      publishedTime: post.publishedAt ?? undefined,
+      modifiedTime: post.updatedAt,
+      images: post.coverImageUrl
+        ? [{ url: post.coverImageUrl }]
+        : ["/images/og-image.jpg"],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: post.title,
+      description: post.excerpt,
+      images: post.coverImageUrl
+        ? [post.coverImageUrl]
+        : ["/images/og-image.jpg"],
+    },
   };
 }
 
@@ -50,8 +71,34 @@ export default async function BlogPostPage({ params }: Props) {
     .map((t) => t.trim())
     .filter(Boolean);
 
+  const articleJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    headline: post.title,
+    description: post.excerpt,
+    image: post.coverImageUrl
+      ? [post.coverImageUrl]
+      : ["https://www.mrandmrscuts.in/images/og-image.jpg"],
+    datePublished: post.publishedAt ?? post.createdAt,
+    dateModified: post.updatedAt,
+    author: { "@type": "Organization", name: "Mr. & Mrs. Cuts Salon" },
+    publisher: {
+      "@type": "Organization",
+      name: "Mr. & Mrs. Cuts Salon",
+      logo: {
+        "@type": "ImageObject",
+        url: "https://www.mrandmrscuts.in/icon.png",
+      },
+    },
+    mainEntityOfPage: `https://www.mrandmrscuts.in/blog/${post.slug}`,
+  };
+
   return (
     <article className="section">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(articleJsonLd) }}
+      />
       {/*
         Embedded Instagram/Facebook reels are third-party iframes whose biggest
         upfront cost is the DNS lookup + TLS handshake to their origins. Warming

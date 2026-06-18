@@ -10,7 +10,7 @@ import { approveReviewAction, deleteReviewAction } from "./actions";
 export const dynamic = "force-dynamic";
 
 export const metadata = {
-  title: "Reviews — Mr. & Mrs. Cuts Salon",
+  title: "Reviews — Reception",
 };
 
 function fmtDate(iso?: string | null) {

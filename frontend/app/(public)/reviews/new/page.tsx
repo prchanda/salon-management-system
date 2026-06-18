@@ -1,9 +1,10 @@
 import { ReviewForm } from "@/components/ReviewForm";
 
 export const metadata = {
-  title: "Share your experience · Mr. & Mrs. Cuts Salon",
+  title: "Share your experience",
   description:
     "Tell us about your visit. Your words help other guests find us.",
+  alternates: { canonical: "/reviews/new" },
 };
 
 export default function NewReviewPage() {

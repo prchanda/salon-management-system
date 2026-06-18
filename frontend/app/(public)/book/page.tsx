@@ -3,9 +3,10 @@ import { api } from "@/lib/api";
 import type { Service, Staff } from "@/lib/types";
 
 export const metadata = {
-  title: "Book an appointment · Mr. & Mrs. Cuts Salon",
+  title: "Book an appointment",
   description:
     "Request your appointment online — choose a service, a date and time, and we'll call you to confirm.",
+  alternates: { canonical: "/book" },
 };
 
 async function safeGetServices(): Promise<Service[]> {

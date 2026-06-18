@@ -6,7 +6,7 @@ import { api } from "@/lib/api";
 import { ReceptionShell } from "@/components/reception/ReceptionShell";
 
 export const metadata = {
-  title: "Reception — Mr. & Mrs. Cuts Salon",
+  title: "Reception",
 };
 
 const nav = [

@@ -3,9 +3,10 @@ import { api } from "@/lib/api";
 import type { PostSummary } from "@/lib/types";
 
 export const metadata = {
-  title: "Journal · Mr. & Mrs. Cuts Salon",
+  title: "Journal",
   description:
     "Notes from our chairs — on hair care, skin rituals, and seasonal treatments.",
+  alternates: { canonical: "/blog" },
 };
 
 export const revalidate = 60;

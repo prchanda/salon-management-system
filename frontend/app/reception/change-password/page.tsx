@@ -12,7 +12,7 @@ import { SubmitButton } from "@/components/SubmitButton";
 export const dynamic = "force-dynamic";
 
 export const metadata = {
-  title: "Set your password — Mr. & Mrs. Cuts Salon",
+  title: "Set your password",
 };
 
 export default async function ChangePasswordPage({

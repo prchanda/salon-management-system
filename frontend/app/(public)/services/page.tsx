@@ -9,9 +9,10 @@ import { SALON, waLink } from "@/lib/salon";
 import type { Service } from "@/lib/types";
 
 export const metadata = {
-  title: "Services · Mr. & Mrs. Cuts Salon",
+  title: "Services",
   description:
-    "A senior-led menu of hair, skin, nail and spa treatments. Complimentary consultations on every appointment.",
+    "A senior-led menu of hair, skin, nail and spa treatments at our Garia, Kolkata salon. Complimentary consultations on every appointment.",
+  alternates: { canonical: "/services" },
 };
 
 async function safeGetServices(): Promise<Service[]> {

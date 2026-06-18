@@ -3,8 +3,9 @@ import { api } from "@/lib/api";
 import type { Review } from "@/lib/types";
 
 export const metadata = {
-  title: "Guest Reviews · Mr. & Mrs. Cuts Salon",
+  title: "Guest Reviews",
   description: "Honest words from the people who've sat in our chairs.",
+  alternates: { canonical: "/reviews" },
 };
 
 // Reviews are slow-moving; let the CDN serve a cached HTML page and

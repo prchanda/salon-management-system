@@ -2,7 +2,7 @@ import Link from "next/link";
 import { loginAction } from "../auth";
 import { SubmitButton } from "@/components/SubmitButton";
 
-export const metadata = { title: "Reception Login — Mr. & Mrs. Cuts Salon" };
+export const metadata = { title: "Reception Login" };
 
 export default function LoginPage({
   searchParams,
