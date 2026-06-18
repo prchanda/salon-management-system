@@ -227,12 +227,17 @@ export function BookingForm({
           className={inputClass}
         >
           <option value="">No preference</option>
-          {staff.map((s) => (
-            <option key={s.id} value={s.id}>
-              {s.fullName}
-              {s.role ? ` · ${s.role}` : ""}
-            </option>
-          ))}
+          {staff.map((s) => {
+            const roleLabel = s.roles?.length
+              ? s.roles.join(", ")
+              : s.role;
+            return (
+              <option key={s.id} value={s.id}>
+                {s.fullName}
+                {roleLabel ? ` (${roleLabel})` : ""}
+              </option>
+            );
+          })}
         </select>
       </div>
 
