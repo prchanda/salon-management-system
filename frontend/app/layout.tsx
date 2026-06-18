@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { Inter, Playfair_Display } from "next/font/google";
 import { Suspense } from "react";
 import { NavigationProgress } from "@/components/NavigationProgress";
-import { SALON } from "@/lib/salon";
 import "./globals.css";
 
 const SITE_URL = "https://www.mrandmrscuts.in";
@@ -83,47 +82,6 @@ export const metadata: Metadata = {
   },
 };
 
-// LocalBusiness (HairSalon) structured data — drives Google rich results and
-// the local map pack (hours, address, phone, ratings, social profiles).
-const salonJsonLd = {
-  "@context": "https://schema.org",
-  "@type": "HairSalon",
-  "@id": `${SITE_URL}/#salon`,
-  name: SITE_NAME,
-  description: SITE_DESCRIPTION,
-  url: SITE_URL,
-  image: `${SITE_URL}/images/og-image.jpg`,
-  logo: `${SITE_URL}/icon.png`,
-  telephone: SALON.phone,
-  email: SALON.email,
-  priceRange: "₹₹",
-  currenciesAccepted: "INR",
-  address: {
-    "@type": "PostalAddress",
-    streetAddress: "157/2, Monihar Apartment (Ground Floor), Gostotala, Garia",
-    addressLocality: "Kolkata",
-    addressRegion: "West Bengal",
-    addressCountry: "IN",
-  },
-  hasMap: SALON.mapsUrl,
-  openingHoursSpecification: [
-    {
-      "@type": "OpeningHoursSpecification",
-      dayOfWeek: [
-        "Monday",
-        "Tuesday",
-        "Wednesday",
-        "Friday",
-        "Saturday",
-        "Sunday",
-      ],
-      opens: "11:00",
-      closes: "21:00",
-    },
-  ],
-  sameAs: [SALON.instagram, SALON.facebook],
-};
-
 export default function RootLayout({
   children,
 }: {
@@ -132,10 +90,6 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${inter.variable} ${playfair.variable}`}>
       <body className="flex min-h-screen flex-col font-sans">
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(salonJsonLd) }}
-        />
         <Suspense fallback={null}>
           <NavigationProgress />
         </Suspense>

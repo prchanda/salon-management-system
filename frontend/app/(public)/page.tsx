@@ -4,7 +4,7 @@ import { ProductCard } from "@/components/ProductCard";
 import { RotatingTestimonials } from "@/components/RotatingTestimonials";
 import { ServiceCard } from "@/components/ServiceCard";
 import { api } from "@/lib/api";
-import { SALON, telLink, waLink } from "@/lib/salon";
+import { SALON, telLink, waLink, buildSalonJsonLd } from "@/lib/salon";
 import type { Product, Review, Service, Staff } from "@/lib/types";
 
 // Roles that don't sit behind the chair and shouldn't be counted as
@@ -80,8 +80,26 @@ export default async function HomePage() {
   const products = (await safeGetProducts()).slice(0, 8);
   const specialistCount = countSpecialists(staff);
 
+  // Average star rating across published reviews — surfaced to Google as
+  // AggregateRating so star ratings can appear in search results.
+  const ratedReviews = reviews.filter((r) => r.rating > 0);
+  const aggregateRating =
+    ratedReviews.length > 0
+      ? {
+          ratingValue:
+            ratedReviews.reduce((sum, r) => sum + r.rating, 0) /
+            ratedReviews.length,
+          reviewCount: ratedReviews.length,
+        }
+      : undefined;
+  const salonJsonLd = buildSalonJsonLd(aggregateRating);
+
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(salonJsonLd) }}
+      />
       <Hero reviews={reviews} specialistCount={specialistCount} />
 
       <section className="border-y border-ink-900/10 bg-cream-100">

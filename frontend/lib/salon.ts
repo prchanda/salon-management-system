@@ -41,3 +41,68 @@ export const SALON_ROLES = [
   "Massage Therapist",
   "Spa Therapist",
 ] as const;
+
+const SITE_URL = "https://www.mrandmrscuts.in";
+
+export interface SalonAggregateRating {
+  ratingValue: number;
+  reviewCount: number;
+}
+
+// Builds the LocalBusiness (HairSalon) JSON-LD used for Google rich results
+// and the local map pack. Pass an aggregate rating to surface star ratings.
+export function buildSalonJsonLd(aggregateRating?: SalonAggregateRating) {
+  const jsonLd: Record<string, unknown> = {
+    "@context": "https://schema.org",
+    "@type": "HairSalon",
+    "@id": `${SITE_URL}/#salon`,
+    name: SALON.name,
+    description:
+      "A boutique salon in Garia, Kolkata where craft meets care. Bespoke hair, skin and nail services by senior specialists. Book your appointment online.",
+    url: SITE_URL,
+    image: `${SITE_URL}/images/og-image.jpg`,
+    logo: `${SITE_URL}/icon.png`,
+    telephone: SALON.phone,
+    email: SALON.email,
+    priceRange: "₹₹",
+    currenciesAccepted: "INR",
+    address: {
+      "@type": "PostalAddress",
+      streetAddress:
+        "157/2, Monihar Apartment (Ground Floor), Gostotala, Garia",
+      addressLocality: "Kolkata",
+      addressRegion: "West Bengal",
+      addressCountry: "IN",
+    },
+    hasMap: SALON.mapsUrl,
+    openingHoursSpecification: [
+      {
+        "@type": "OpeningHoursSpecification",
+        dayOfWeek: [
+          "Monday",
+          "Tuesday",
+          "Wednesday",
+          "Friday",
+          "Saturday",
+          "Sunday",
+        ],
+        opens: "11:00",
+        closes: "21:00",
+      },
+    ],
+    sameAs: [SALON.instagram, SALON.facebook],
+  };
+
+  if (aggregateRating && aggregateRating.reviewCount > 0) {
+    jsonLd.aggregateRating = {
+      "@type": "AggregateRating",
+      ratingValue: aggregateRating.ratingValue.toFixed(1),
+      reviewCount: aggregateRating.reviewCount,
+      bestRating: "5",
+      worstRating: "1",
+    };
+  }
+
+  return jsonLd;
+}
+
