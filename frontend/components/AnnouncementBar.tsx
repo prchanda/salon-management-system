@@ -109,7 +109,7 @@ export function AnnouncementBar({
         suppressHydrationWarning
       />
       <div className="container-page flex items-center gap-3 py-2 text-sm">
-        <p className="flex-1 text-center font-medium leading-snug sm:text-[0.95rem]">
+        <p className="flex-1 text-left font-medium leading-snug sm:text-center sm:text-[0.95rem]">
           {announcement.message}
           {announcement.ctaLabel && href ? (
             isInternal ? (
