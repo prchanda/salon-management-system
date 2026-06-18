@@ -1,7 +1,10 @@
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import { getDisplayName, getRole, getStaffId } from "@/app/reception/roles";
-import { RECEPTION_PW_SET_COOKIE } from "@/app/reception/roles";
+import {
+  RECEPTION_PW_SET_COOKIE,
+  RECEPTION_MUST_CHANGE_COOKIE,
+} from "@/app/reception/roles";
 import { changePasswordAction, logoutAction } from "@/app/reception/auth";
 import { api } from "@/lib/api";
 import { SubmitButton } from "@/components/SubmitButton";
@@ -25,6 +28,19 @@ export default async function ChangePasswordPage({
   // already chosen their password.
   if (!role || !staffId) {
     redirect("/reception");
+  }
+
+  // This page must be entered via a fresh temp-password login, which sets the
+  // must-change cookie. Without it, the session predates the must-change state
+  // (a leftover session, or an owner-forced reset on an active session) — send
+  // them to log in first rather than letting them set a password off a stale
+  // session. The password-just-set marker is allowed through (handled below).
+  const cameFromTempLogin =
+    cookies().get(RECEPTION_MUST_CHANGE_COOKIE)?.value === "1";
+  const passwordJustSet =
+    cookies().get(RECEPTION_PW_SET_COOKIE)?.value === "1";
+  if (!cameFromTempLogin && !passwordJustSet) {
+    redirect("/reception/login");
   }
 
   // The password was just set: don't show the form (and don't re-read a

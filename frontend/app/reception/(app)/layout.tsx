@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import { getRole, getDisplayName, getStaffId } from "../roles";
-import { RECEPTION_PW_SET_COOKIE } from "../roles";
+import { RECEPTION_PW_SET_COOKIE, RECEPTION_MUST_CHANGE_COOKIE } from "../roles";
 import { api } from "@/lib/api";
 import { ReceptionShell } from "@/components/reception/ReceptionShell";
 
@@ -54,7 +54,19 @@ export default async function ReceptionLayout({
   }
   // redirect() throws NEXT_REDIRECT, so it must run outside the try/catch.
   if (mustChangePassword) {
-    redirect("/reception/change-password");
+    // The forced-change page must be entered via a fresh temp-password login,
+    // which sets the must-change cookie. If the backend says a change is due
+    // but that cookie is absent, this session predates the must-change state
+    // (e.g. a session left over from before an account reset, or the owner
+    // forcing a password reset on an already-signed-in user). Rather than
+    // dropping them onto change-password without authenticating, require a
+    // fresh login — logging in re-establishes the must-change cookie and then
+    // routes them to change-password the intended way.
+    const cameFromTempLogin =
+      cookies().get(RECEPTION_MUST_CHANGE_COOKIE)?.value === "1";
+    redirect(
+      cameFromTempLogin ? "/reception/change-password" : "/reception/login"
+    );
   }
 
   const visibleNav = nav
