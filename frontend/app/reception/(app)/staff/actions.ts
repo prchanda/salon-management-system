@@ -5,6 +5,14 @@ import { redirect } from "next/navigation";
 import { api } from "@/lib/api";
 import { getRole } from "@/app/reception/roles";
 
+// Public pages that render the staff list (booking dropdown + home team
+// section). Revalidate these whenever staff membership/visibility changes so
+// edits take effect for customers immediately instead of after the ISR window.
+function revalidatePublicStaff() {
+  revalidatePath("/book");
+  revalidatePath("/");
+}
+
 async function assertOwner() {
   if ((await getRole()) !== "owner") {
     redirect("/reception/login");
@@ -62,6 +70,8 @@ export async function createStaffAction(formData: FormData) {
   }
 
   revalidatePath("/reception/staff");
+  // A new account may add a bookable specialist — refresh the public dropdown.
+  revalidatePublicStaff();
   redirect("/reception/staff?created=1");
 }
 
@@ -108,6 +118,8 @@ export async function updateStaffAction(formData: FormData) {
   }
 
   revalidatePath("/reception/staff");
+  // Name/role edits surface on the public booking dropdown — refresh it.
+  revalidatePublicStaff();
   redirect(`/reception/staff?updated=${id}`);
 }
 
@@ -137,6 +149,8 @@ export async function approveStaffAction(formData: FormData) {
     redirect("/reception/staff?error=approve");
   }
   revalidatePath("/reception/staff");
+  // An approved account becomes a bookable specialist — refresh the dropdown.
+  revalidatePublicStaff();
 }
 
 export async function rejectStaffAction(formData: FormData) {
@@ -149,4 +163,7 @@ export async function rejectStaffAction(formData: FormData) {
     redirect("/reception/staff?error=reject");
   }
   revalidatePath("/reception/staff");
+  // Revoking deactivates the staff row; drop them from the public booking
+  // dropdown immediately instead of waiting for the ISR window to expire.
+  revalidatePublicStaff();
 }
