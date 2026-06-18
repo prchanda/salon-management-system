@@ -128,53 +128,41 @@ export default async function AnnouncementListPage({
             the first one.
           </div>
         ) : (
-          <table className="w-full text-sm">
-            <thead className="bg-cream-100 text-[11px] uppercase tracking-widest text-ink-500">
-              <tr>
-                <th className="px-5 py-3 text-left">Message</th>
-                <th className="px-5 py-3 text-left">Status</th>
-                <th className="px-5 py-3 text-left">When</th>
-                <th className="px-5 py-3 text-left">Updated</th>
-                <th className="px-5 py-3" />
-              </tr>
-            </thead>
-            <tbody>
+          <>
+            {/* Mobile: stacked cards */}
+            <ul className="divide-y divide-ink-900/5 md:hidden">
               {announcements.map((a) => {
                 const status = statusOf(a, now, a.id === latestId);
                 const editable = isEditable(a, now, latestId);
                 return (
-                  <tr key={a.id} className="border-t border-ink-900/5">
-                    <td className="px-5 py-4">
-                      {editable ? (
-                        <Link
-                          href={`/reception/announcement/${a.id}/edit`}
-                          className="font-serif text-base text-ink-900 hover:text-gold-600"
-                        >
-                          {a.message}
-                        </Link>
-                      ) : (
-                        <span className="font-serif text-base text-ink-500">
-                          {a.message}
-                        </span>
-                      )}
-                    </td>
-                    <td className="px-5 py-4">
+                  <li key={a.id} className="p-4">
+                    {editable ? (
+                      <Link
+                        href={`/reception/announcement/${a.id}/edit`}
+                        className="block font-serif text-base text-ink-900 hover:text-gold-600"
+                      >
+                        <span className="break-words">{a.message}</span>
+                      </Link>
+                    ) : (
+                      <span className="block break-words font-serif text-base text-ink-500">
+                        {a.message}
+                      </span>
+                    )}
+                    <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-ink-600">
                       <span
-                        className={`inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-widest ${status.textClass}`}
+                        className={`inline-flex items-center gap-1.5 font-semibold uppercase tracking-widest ${status.textClass}`}
                       >
                         <span
                           className={`h-1.5 w-1.5 rounded-full ${status.dotClass}`}
                         />
                         {status.label}
                       </span>
-                    </td>
-                    <td className="whitespace-nowrap px-5 py-4 text-xs text-ink-500">
-                      {formatWindow(a)}
-                    </td>
-                    <td className="whitespace-nowrap px-5 py-4 text-xs text-ink-500">
-                      {formatDateTime(a.updatedAt)}
-                    </td>
-                    <td className="px-5 py-4 text-right">
+                      <span className="text-ink-400">{formatWindow(a)}</span>
+                    </div>
+                    <div className="mt-3 flex items-center justify-between gap-2">
+                      <span className="text-[11px] text-ink-400">
+                        Updated {formatDateTime(a.updatedAt)}
+                      </span>
                       {editable ? (
                         <Link
                           href={`/reception/announcement/${a.id}/edit`}
@@ -187,12 +175,81 @@ export default async function AnnouncementListPage({
                           Locked
                         </span>
                       )}
-                    </td>
-                  </tr>
+                    </div>
+                  </li>
                 );
               })}
-            </tbody>
-          </table>
+            </ul>
+
+            {/* Desktop: table */}
+            <div className="hidden md:block md:overflow-x-auto">
+              <table className="w-full min-w-[720px] text-sm">
+                <thead className="bg-cream-100 text-[11px] uppercase tracking-widest text-ink-500">
+                  <tr>
+                    <th className="px-5 py-3 text-left">Message</th>
+                    <th className="px-5 py-3 text-left">Status</th>
+                    <th className="px-5 py-3 text-left">When</th>
+                    <th className="px-5 py-3 text-left">Updated</th>
+                    <th className="px-5 py-3" />
+                  </tr>
+                </thead>
+                <tbody>
+                  {announcements.map((a) => {
+                    const status = statusOf(a, now, a.id === latestId);
+                    const editable = isEditable(a, now, latestId);
+                    return (
+                      <tr key={a.id} className="border-t border-ink-900/5">
+                        <td className="px-5 py-4">
+                          {editable ? (
+                            <Link
+                              href={`/reception/announcement/${a.id}/edit`}
+                              className="font-serif text-base text-ink-900 hover:text-gold-600"
+                            >
+                              {a.message}
+                            </Link>
+                          ) : (
+                            <span className="font-serif text-base text-ink-500">
+                              {a.message}
+                            </span>
+                          )}
+                        </td>
+                        <td className="px-5 py-4">
+                          <span
+                            className={`inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-widest ${status.textClass}`}
+                          >
+                            <span
+                              className={`h-1.5 w-1.5 rounded-full ${status.dotClass}`}
+                            />
+                            {status.label}
+                          </span>
+                        </td>
+                        <td className="whitespace-nowrap px-5 py-4 text-xs text-ink-500">
+                          {formatWindow(a)}
+                        </td>
+                        <td className="whitespace-nowrap px-5 py-4 text-xs text-ink-500">
+                          {formatDateTime(a.updatedAt)}
+                        </td>
+                        <td className="px-5 py-4 text-right">
+                          {editable ? (
+                            <Link
+                              href={`/reception/announcement/${a.id}/edit`}
+                              className="text-[11px] font-semibold uppercase tracking-widest text-gold-600 hover:text-ink-900"
+                            >
+                              Edit
+                            </Link>
+                          ) : (
+                            <span className="text-[11px] font-semibold uppercase tracking-widest text-ink-300">
+                              Locked
+                            </span>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </>
         )}
       </div>
     </div>
