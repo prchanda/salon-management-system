@@ -121,13 +121,14 @@ export function PostEditor({ initial }: Props) {
           publish,
         });
         void revalidateBlog(created.slug).catch(() => {});
-        if (publish) {
-          router.refresh();
-          router.replace("/reception/blog");
-          return;
-        }
-        router.replace(`/reception/blog/${created.id}/edit`);
+        // A brand-new post — whether saved as a draft or published — returns
+        // to the list so the owner gets clear confirmation it was created
+        // (the edit page looks identical to /new, so staying here gave no
+        // visible feedback). Refresh the destination first, then navigate,
+        // and keep the spinner up through the transition.
         router.refresh();
+        router.replace("/reception/blog");
+        return;
       }
     } catch (err) {
       setError(
