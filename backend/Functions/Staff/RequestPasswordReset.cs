@@ -59,7 +59,13 @@ public class RequestPasswordReset
         var staff = await _context.Staff
             .FirstOrDefaultAsync(s => s.Email == email && s.IsActive);
 
-        if (staff is not null)
+        // Block the reset flow for first-time-login accounts. An account still
+        // carrying MustChangePassword has never chosen its own password — it
+        // only has the temporary one the owner handed out. Allowing an emailed
+        // reset here would let someone bypass the forced first-login change, so
+        // they must complete that step first. Still return 200 below to avoid
+        // revealing whether the email exists or its state.
+        if (staff is not null && !staff.MustChangePassword)
         {
             var rawToken = GenerateToken();
             staff.PasswordResetTokenHash = HashToken(rawToken);
