@@ -4,8 +4,7 @@ A full-stack salon management platform for **Mr. & Mrs. Cuts**. It combines a
 public-facing marketing/booking website with an internal **reception console**
 for staff and the salon owner to run day-to-day operations.
 
-- **Live frontend:** https://www.mrandmrscuts.in
-- **Live API:** https://mrmrscuts-api.azurewebsites.net/api
+- **Live site:** https://www.mrandmrscuts.in
 
 ---
 
@@ -35,16 +34,21 @@ for staff and the salon owner to run day-to-day operations.
 - Product shop (browse + place product orders)
 - Blog / posts
 - Customer reviews (submit + read published reviews)
+- Site-wide announcement bar (scheduled, dismissible banner)
 
 **Reception console** (`/reception`, authenticated)
 - Daily appointment journal and "new booking" flow
-- Customer management (profiles, notes, history, dormant-customer view, merge)
-- Product & product-order management
+- Customer management (profiles, notes, history, dormant-customer "re-engage" view, merge)
+- Product & product-order management (place, fulfil, complete with payment/discount)
 - Blog authoring (create / edit / publish posts)
 - Review moderation (approve / reject submissions before they go public)
+- Announcement management (create / schedule / toggle the public banner) — **owner only**
 - Staff account management (registration approval, profiles) — **owner only**
 - Day-summary reporting
-- Self-service password change / reset
+- Self-service password change / reset (forced change on first login)
+
+Reception is responsive: a collapsible sidebar on desktop and a slide-in drawer
+with stacked cards/tables on mobile.
 
 ## Architecture
 
@@ -97,8 +101,8 @@ flowchart LR
 .
 ├── backend/                 # .NET 8 isolated Azure Functions API
 │   ├── Functions/           # HTTP-triggered endpoints grouped by domain
-│   │   ├── Appointments/  Customers/  Posts/  ProductOrders/
-│   │   ├── Products/  Reports/  Reviews/  Services/  Staff/
+│   │   ├── Announcements/  Appointments/  Customers/  Posts/
+│   │   ├── ProductOrders/  Products/  Reports/  Reviews/  Services/  Staff/
 │   ├── Entities/            # EF Core entity models
 │   ├── DTOs/                # Request/response contracts
 │   ├── Data/                # SalonDbContext + design-time factory
@@ -110,7 +114,8 @@ flowchart LR
 │   ├── app/
 │   │   ├── (public)/        # Public site (services, book, shop, blog, reviews)
 │   │   ├── reception/       # Authenticated reception console
-│   │   └── bff/[...path]/   # Same-origin proxy to the secured API
+│   │   ├── bff/[...path]/   # Same-origin proxy to the secured API
+│   │   └── favicon.ico, icon.png, apple-icon.png  # App icons (from the salon logo)
 │   ├── components/          # Shared UI components
 │   ├── lib/                 # API client, helpers, session-cookie signing
 │   └── middleware.ts        # Route guard for /reception
