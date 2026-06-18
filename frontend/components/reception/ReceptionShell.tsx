@@ -214,20 +214,12 @@ function SidebarBody({
       {/* Footer: user + sign out */}
       <div className="shrink-0 border-t border-ink-900/10 px-3 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
         {displayName && (
-          <div className="mb-2 px-3 py-1">
-            <p className="text-[10px] font-semibold uppercase tracking-widest text-ink-400">
-              Signed in
-            </p>
-            <p
-              className="truncate text-sm font-medium text-ink-900"
-              title={displayName}
-            >
-              {displayName}
-            </p>
-            <p className="text-[10px] uppercase tracking-widest text-gold-600">
-              {role === "owner" ? "Owner" : "Staff"}
-            </p>
-          </div>
+          <p
+            className="mb-2 truncate px-3 text-sm font-medium text-ink-900"
+            title={displayName}
+          >
+            {displayName}
+          </p>
         )}
         <form action={logoutAction}>
           <SignOutButton />
