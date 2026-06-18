@@ -20,7 +20,7 @@ function statusOf(a: Announcement, now: Date): AnnouncementStatus {
   const ends = a.endsAt ? new Date(a.endsAt) : null;
 
   if (ends && ends <= now) {
-    return { label: "Ended", dotClass: "bg-ink-300", textClass: "text-ink-400" };
+    return { label: "Ended", dotClass: "bg-ink-400", textClass: "text-ink-400" };
   }
   if (!a.isActive) {
     return { label: "Off", dotClass: "bg-ink-400", textClass: "text-ink-500" };
@@ -35,8 +35,12 @@ function statusOf(a: Announcement, now: Date): AnnouncementStatus {
   return { label: "Live", dotClass: "bg-green-600", textClass: "text-green-700" };
 }
 
-/** Once an announcement's end time has passed it is locked from editing. */
-function isEditable(a: Announcement, now: Date): boolean {
+/**
+ * Only the latest announcement (highest id) can be edited, and only while it
+ * has not yet ended. Every earlier announcement is locked for history.
+ */
+function isEditable(a: Announcement, now: Date, latestId: number): boolean {
+  if (a.id !== latestId) return false;
   return !a.endsAt || new Date(a.endsAt) > now;
 }
 
@@ -80,6 +84,10 @@ export default async function AnnouncementListPage({
 
   const now = new Date();
   const saved = searchParams.saved === "1";
+  const latestId = announcements.reduce(
+    (max, a) => (a.id > max ? a.id : max),
+    -Infinity
+  );
 
   return (
     <div>
@@ -128,7 +136,7 @@ export default async function AnnouncementListPage({
             <tbody>
               {announcements.map((a) => {
                 const status = statusOf(a, now);
-                const editable = isEditable(a, now);
+                const editable = isEditable(a, now, latestId);
                 return (
                   <tr key={a.id} className="border-t border-ink-900/5">
                     <td className="px-5 py-4">

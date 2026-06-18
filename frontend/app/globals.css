@@ -152,6 +152,26 @@
     @apply block w-full border-0 border-b border-ink-400 bg-transparent px-0 py-2.5 text-sm text-ink-900 placeholder:text-ink-400 focus:border-ink-900 focus:outline-none focus:ring-0;
   }
 
+  /* Native date / time pickers: force the light theme so the inline spinner
+     fields and the pop-up calendar always match the cream UI (otherwise an
+     OS in dark mode renders dark internals on a light box), tint selections
+     with the brand gold, and give the calendar icon a smoother affordance. */
+  .date-input {
+    color-scheme: light;
+    accent-color: theme("colors.gold.600");
+  }
+  .date-input::-webkit-calendar-picker-indicator {
+    cursor: pointer;
+    opacity: 0.5;
+    padding: 2px;
+    border-radius: 4px;
+    transition: opacity 0.15s ease, background-color 0.15s ease;
+  }
+  .date-input::-webkit-calendar-picker-indicator:hover {
+    opacity: 1;
+    background-color: theme("colors.gold.500 / 15%");
+  }
+
   .divider-gold {
     @apply h-px w-12 bg-gold-500;
   }

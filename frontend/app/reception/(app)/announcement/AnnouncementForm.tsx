@@ -129,7 +129,7 @@ export function AnnouncementForm({
             id="startsAt"
             name="startsAt"
             defaultValue={utcIsoToIstLocalInput(initial?.startsAt)}
-            className="w-full rounded-lg border border-ink-900/10 bg-cream-50 px-4 py-2.5 text-sm focus:border-gold-600 focus:outline-none"
+            className="date-input w-full rounded-lg border border-ink-900/10 bg-cream-50 px-4 py-2.5 text-sm text-ink-900 outline-none ring-gold-600/30 transition focus:border-gold-600 focus:ring-2"
           />
         </label>
         <label className="block">
@@ -141,7 +141,7 @@ export function AnnouncementForm({
             id="endsAt"
             name="endsAt"
             defaultValue={utcIsoToIstLocalInput(initial?.endsAt)}
-            className="w-full rounded-lg border border-ink-900/10 bg-cream-50 px-4 py-2.5 text-sm focus:border-gold-600 focus:outline-none"
+            className="date-input w-full rounded-lg border border-ink-900/10 bg-cream-50 px-4 py-2.5 text-sm text-ink-900 outline-none ring-gold-600/30 transition focus:border-gold-600 focus:ring-2"
           />
         </label>
       </div>
