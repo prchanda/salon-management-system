@@ -72,6 +72,7 @@ export function buildSalonJsonLd(aggregateRating?: SalonAggregateRating) {
         "157/2, Monihar Apartment (Ground Floor), Gostotala, Garia",
       addressLocality: "Kolkata",
       addressRegion: "West Bengal",
+      postalCode: "700084",
       addressCountry: "IN",
     },
     hasMap: SALON.mapsUrl,
