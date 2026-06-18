@@ -70,12 +70,18 @@ function renderEmbed(rawUrl: string): string | null {
   if (ig) {
     const code = ig[1];
     const src = `https://www.instagram.com/p/${code}/embed/captioned/`;
+    // A pulsing skeleton sits BEHIND the iframe so the slot isn't a blank white
+    // box while Instagram's third-party embed (its own JS bundle + post data +
+    // media) loads. The iframe is allowtransparency, so the skeleton shows
+    // through until Instagram paints its white card on top of it.
     return (
       `<div class="my-8 flex justify-center">` +
+      `<div class="relative w-full max-w-[400px]" style="height:640px">` +
+      `<div class="absolute inset-0 animate-pulse rounded-xl bg-cream-100" aria-hidden="true"></div>` +
       `<iframe src="${src}" title="Instagram embed" loading="lazy" ` +
       `scrolling="no" frameborder="0" allowtransparency="true" allowfullscreen ` +
-      `class="w-full max-w-[400px] rounded-xl border border-ink-900/10" ` +
-      `style="height:640px"></iframe>` +
+      `class="relative h-full w-full rounded-xl border border-ink-900/10"></iframe>` +
+      `</div>` +
       `</div>`
     );
   }
@@ -123,13 +129,16 @@ function renderEmbed(rawUrl: string): string | null {
       const SCALE = 1.3;
       const boxW = Math.round(REEL_W * SCALE); // 442
       const boxH = Math.round(REEL_H * SCALE); // 785
+      // A pulsing skeleton fills the reserved box so the slot isn't a blank
+      // white box while Facebook's third-party plugin loads.
       const desktopFrame =
         `<div class="my-8 hidden justify-center md:flex">` +
-        `<div style="width:${boxW}px;height:${boxH}px">` +
+        `<div class="relative" style="width:${boxW}px;height:${boxH}px">` +
+        `<div class="absolute inset-0 animate-pulse rounded-xl bg-cream-100" aria-hidden="true"></div>` +
         `<iframe src="${src}" title="Facebook reel" frameborder="0" ` +
         `allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share" ` +
         `allowfullscreen ` +
-        `class="rounded-xl border border-ink-900/10" ` +
+        `class="relative rounded-xl border border-ink-900/10" ` +
         `style="width:${REEL_W}px;height:${REEL_H}px;transform:scale(${SCALE});transform-origin:top left"></iframe>` +
         `</div></div>`;
       return desktopFrame + fallbackCard;
@@ -137,6 +146,7 @@ function renderEmbed(rawUrl: string): string | null {
     const desktopFrame =
       `<div class="my-8 hidden overflow-hidden rounded-xl border border-ink-900/10 md:block">` +
       `<div class="relative w-full" style="padding-top:56.25%">` +
+      `<div class="absolute inset-0 animate-pulse bg-cream-100" aria-hidden="true"></div>` +
       `<iframe src="${src}" title="Facebook video" frameborder="0" ` +
       `allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share" ` +
       `allowfullscreen class="absolute inset-0 h-full w-full"></iframe>` +

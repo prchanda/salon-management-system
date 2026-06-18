@@ -52,6 +52,19 @@ export default async function BlogPostPage({ params }: Props) {
 
   return (
     <article className="section">
+      {/*
+        Embedded Instagram/Facebook reels are third-party iframes whose biggest
+        upfront cost is the DNS lookup + TLS handshake to their origins. Warming
+        those connections in parallel with the page shaves that latency off the
+        embed's load. (dns-prefetch is the fallback for browsers that ignore
+        preconnect.)
+      */}
+      <link rel="preconnect" href="https://www.instagram.com" crossOrigin="anonymous" />
+      <link rel="preconnect" href="https://scontent.cdninstagram.com" crossOrigin="anonymous" />
+      <link rel="preconnect" href="https://static.cdninstagram.com" crossOrigin="anonymous" />
+      <link rel="preconnect" href="https://www.facebook.com" crossOrigin="anonymous" />
+      <link rel="dns-prefetch" href="https://www.instagram.com" />
+      <link rel="dns-prefetch" href="https://scontent.cdninstagram.com" />
       <div className="container-page max-w-5xl">
         <Link
           href="/blog"
