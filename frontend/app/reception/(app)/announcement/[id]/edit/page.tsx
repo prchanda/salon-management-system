@@ -33,27 +33,6 @@ export default async function EditAnnouncementPage({
     notFound();
   }
 
-  // Only the latest announcement (highest id) is editable; every earlier one
-  // is locked history. Guard the direct URL too, not just the list links.
-  let latestId = id;
-  try {
-    const all = await api.getAdminAnnouncements();
-    if (Array.isArray(all) && all.length > 0) {
-      latestId = all.reduce((max, a) => (a.id > max ? a.id : max), -Infinity);
-    }
-  } catch {
-    // If the list can't be loaded, fall back to the end-time check below.
-  }
-  if (id !== latestId) {
-    redirect("/reception/announcement");
-  }
-
-  // Once an announcement's end time has passed it is locked — send the owner
-  // back to the list rather than showing an editor that the backend rejects.
-  if (announcement.endsAt && new Date(announcement.endsAt) <= new Date()) {
-    redirect("/reception/announcement");
-  }
-
   return (
     <div className="max-w-2xl">
       <Link

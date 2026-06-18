@@ -8,9 +8,10 @@ using System.Net;
 namespace backend.Functions.Announcements;
 
 /// <summary>
-/// Owner-only update of an existing announcement. Expired announcements (whose
-/// end time has passed) are locked and cannot be edited. Privileged — the
-/// API-key middleware gates it (the route is not in the public allow-list).
+/// Owner-only update of an existing announcement. Any announcement can be
+/// edited — its live/scheduled/ended/off state is derived from its start/end
+/// times and active flag. Privileged — the API-key middleware gates it (the
+/// route is not in the public allow-list).
 /// </summary>
 public class UpdateAnnouncement
 {
@@ -30,9 +31,6 @@ public class UpdateAnnouncement
         var announcement = await _context.Announcements.FirstOrDefaultAsync(a => a.Id == id);
         if (announcement is null) return req.CreateResponse(HttpStatusCode.NotFound);
 
-        if (AnnouncementWrite.IsExpired(announcement, DateTime.UtcNow))
-            return await Conflict(req, "This announcement has expired and can no longer be edited.");
-
         var dto = await req.ReadFromJsonAsync<UpdateAnnouncementDto>();
         if (dto is null) return await Bad(req, "Request body is required.");
 
@@ -50,13 +48,6 @@ public class UpdateAnnouncement
     private static async Task<HttpResponseData> Bad(HttpRequestData req, string message)
     {
         var resp = req.CreateResponse(HttpStatusCode.BadRequest);
-        await resp.WriteStringAsync(message);
-        return resp;
-    }
-
-    private static async Task<HttpResponseData> Conflict(HttpRequestData req, string message)
-    {
-        var resp = req.CreateResponse(HttpStatusCode.Conflict);
         await resp.WriteStringAsync(message);
         return resp;
     }

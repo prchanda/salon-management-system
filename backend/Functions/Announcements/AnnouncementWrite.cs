@@ -78,10 +78,6 @@ internal static class AnnouncementWrite
         announcement.UpdatedAt = DateTime.UtcNow;
     }
 
-    /// <summary>An announcement is locked once its end time has passed.</summary>
-    public static bool IsExpired(Announcement announcement, DateTime nowUtc) =>
-        announcement.EndsAt.HasValue && announcement.EndsAt.Value <= nowUtc;
-
     private static bool IsSafeHref(string href)
     {
         if (href.StartsWith("/", StringComparison.Ordinal)) return true;

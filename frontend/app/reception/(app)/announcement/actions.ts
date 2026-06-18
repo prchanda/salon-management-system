@@ -132,21 +132,14 @@ export async function updateAnnouncementAction(formData: FormData) {
   }
 
   // redirect() throws NEXT_REDIRECT, so it must run outside the try/catch.
-  let error: "expired" | "failed" | null = null;
+  let failed = false;
   try {
     await api.updateAnnouncement(id, parsed.payload);
-  } catch (e) {
-    // The backend returns 409 Conflict when the announcement has expired.
-    error =
-      e instanceof Error && /\b409\b/.test(e.message) ? "expired" : "failed";
+  } catch {
+    failed = true;
   }
 
-  if (error === "expired") {
-    redirect(
-      errorPath("This announcement has expired and can no longer be edited.")
-    );
-  }
-  if (error === "failed") {
+  if (failed) {
     redirect(errorPath("Could not save the announcement. Please try again."));
   }
 

@@ -15,20 +15,32 @@ type AnnouncementStatus = {
 };
 
 /**
- * Derives a human-friendly status from the active flag + scheduling window.
- * The public bar only ever shows the latest announcement, so any earlier
- * (locked) row can only be Ended (its window passed) or Off (superseded) —
- * never Live/Scheduled. This keeps Status in step with the lock state.
+ * Is this announcement eligible to be shown publicly right now? (active, its
+ * start has arrived, and its end has not passed). Mirrors the backend's public
+ * query so the list agrees with what visitors actually see.
  */
-function statusOf(a: Announcement, now: Date, isLatest: boolean): AnnouncementStatus {
+function isLiveEligible(a: Announcement, now: Date): boolean {
+  if (!a.isActive) return false;
+  if (a.startsAt && new Date(a.startsAt) > now) return false;
+  if (a.endsAt && new Date(a.endsAt) <= now) return false;
+  return true;
+}
+
+/**
+ * Derives a human-friendly status from the active flag + scheduling window.
+ * At most one announcement is Live (the one the public bar shows — passed in
+ * as `liveId`). Every other row resolves to Off (manually unchecked or
+ * superseded), Scheduled (start in the future), or Ended (end has passed).
+ */
+function statusOf(a: Announcement, now: Date, liveId: number | null): AnnouncementStatus {
   const starts = a.startsAt ? new Date(a.startsAt) : null;
   const ends = a.endsAt ? new Date(a.endsAt) : null;
 
+  if (!a.isActive) {
+    return { label: "Off", dotClass: "bg-ink-400", textClass: "text-ink-500" };
+  }
   if (ends && ends <= now) {
     return { label: "Ended", dotClass: "bg-ink-400", textClass: "text-ink-400" };
-  }
-  if (!a.isActive || !isLatest) {
-    return { label: "Off", dotClass: "bg-ink-400", textClass: "text-ink-500" };
   }
   if (starts && starts > now) {
     return {
@@ -37,16 +49,11 @@ function statusOf(a: Announcement, now: Date, isLatest: boolean): AnnouncementSt
       textClass: "text-gold-600",
     };
   }
-  return { label: "Live", dotClass: "bg-green-600", textClass: "text-green-700" };
-}
-
-/**
- * Only the latest announcement (highest id) can be edited, and only while it
- * has not yet ended. Every earlier announcement is locked for history.
- */
-function isEditable(a: Announcement, now: Date, latestId: number): boolean {
-  if (a.id !== latestId) return false;
-  return !a.endsAt || new Date(a.endsAt) > now;
+  if (a.id === liveId) {
+    return { label: "Live", dotClass: "bg-green-600", textClass: "text-green-700" };
+  }
+  // Active and within its window, but a newer announcement is the live one.
+  return { label: "Off", dotClass: "bg-ink-400", textClass: "text-ink-500" };
 }
 
 function formatDateTime(iso?: string | null): string {
@@ -89,10 +96,18 @@ export default async function AnnouncementListPage({
 
   const now = new Date();
   const saved = searchParams.saved === "1";
-  const latestId = announcements.reduce(
-    (max, a) => (a.id > max ? a.id : max),
-    -Infinity
-  );
+  // The single Live announcement = the newest one that is currently eligible to
+  // show (active + within its window), matching the public bar's selection.
+  let liveId: number | null = null;
+  let liveUpdated = -Infinity;
+  for (const a of announcements) {
+    if (!isLiveEligible(a, now)) continue;
+    const u = Date.parse(a.updatedAt);
+    if (u > liveUpdated) {
+      liveUpdated = u;
+      liveId = a.id;
+    }
+  }
 
   return (
     <div>
@@ -101,9 +116,9 @@ export default async function AnnouncementListPage({
           <h1 className="font-serif text-3xl text-ink-900">Announcement bar</h1>
           <p className="mt-1 max-w-2xl text-sm text-ink-500">
             A slim banner shown across the top of every public page — perfect
-            for a flash sale, festival hours, or a holiday notice. Create a new
-            one to take over the bar. Only the current announcement can be
-            edited; once an announcement&apos;s end time passes it is locked.
+            for a flash sale, festival hours, or a holiday notice. Only one
+            announcement is live at a time; the others sit as Scheduled, Ended,
+            or Off. Every announcement stays editable.
           </p>
         </div>
         <Link
@@ -132,22 +147,15 @@ export default async function AnnouncementListPage({
             {/* Mobile: stacked cards */}
             <ul className="divide-y divide-ink-900/5 md:hidden">
               {announcements.map((a) => {
-                const status = statusOf(a, now, a.id === latestId);
-                const editable = isEditable(a, now, latestId);
+                const status = statusOf(a, now, liveId);
                 return (
                   <li key={a.id} className="p-4">
-                    {editable ? (
-                      <Link
-                        href={`/reception/announcement/${a.id}/edit`}
-                        className="block font-serif text-base text-ink-900 hover:text-gold-600"
-                      >
-                        <span className="break-words">{a.message}</span>
-                      </Link>
-                    ) : (
-                      <span className="block break-words font-serif text-base text-ink-500">
-                        {a.message}
-                      </span>
-                    )}
+                    <Link
+                      href={`/reception/announcement/${a.id}/edit`}
+                      className="block font-serif text-base text-ink-900 hover:text-gold-600"
+                    >
+                      <span className="break-words">{a.message}</span>
+                    </Link>
                     <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-ink-600">
                       <span
                         className={`inline-flex items-center gap-1.5 font-semibold uppercase tracking-widest ${status.textClass}`}
@@ -163,18 +171,12 @@ export default async function AnnouncementListPage({
                       <span className="text-[11px] text-ink-400">
                         Updated {formatDateTime(a.updatedAt)}
                       </span>
-                      {editable ? (
-                        <Link
-                          href={`/reception/announcement/${a.id}/edit`}
-                          className="text-[11px] font-semibold uppercase tracking-widest text-gold-600 hover:text-ink-900"
-                        >
-                          Edit
-                        </Link>
-                      ) : (
-                        <span className="text-[11px] font-semibold uppercase tracking-widest text-ink-300">
-                          Locked
-                        </span>
-                      )}
+                      <Link
+                        href={`/reception/announcement/${a.id}/edit`}
+                        className="text-[11px] font-semibold uppercase tracking-widest text-gold-600 hover:text-ink-900"
+                      >
+                        Edit
+                      </Link>
                     </div>
                   </li>
                 );
@@ -195,23 +197,16 @@ export default async function AnnouncementListPage({
                 </thead>
                 <tbody>
                   {announcements.map((a) => {
-                    const status = statusOf(a, now, a.id === latestId);
-                    const editable = isEditable(a, now, latestId);
+                    const status = statusOf(a, now, liveId);
                     return (
                       <tr key={a.id} className="border-t border-ink-900/5">
                         <td className="px-5 py-4">
-                          {editable ? (
-                            <Link
-                              href={`/reception/announcement/${a.id}/edit`}
-                              className="font-serif text-base text-ink-900 hover:text-gold-600"
-                            >
-                              {a.message}
-                            </Link>
-                          ) : (
-                            <span className="font-serif text-base text-ink-500">
-                              {a.message}
-                            </span>
-                          )}
+                          <Link
+                            href={`/reception/announcement/${a.id}/edit`}
+                            className="font-serif text-base text-ink-900 hover:text-gold-600"
+                          >
+                            {a.message}
+                          </Link>
                         </td>
                         <td className="px-5 py-4">
                           <span
@@ -230,18 +225,12 @@ export default async function AnnouncementListPage({
                           {formatDateTime(a.updatedAt)}
                         </td>
                         <td className="px-5 py-4 text-right">
-                          {editable ? (
-                            <Link
-                              href={`/reception/announcement/${a.id}/edit`}
-                              className="text-[11px] font-semibold uppercase tracking-widest text-gold-600 hover:text-ink-900"
-                            >
-                              Edit
-                            </Link>
-                          ) : (
-                            <span className="text-[11px] font-semibold uppercase tracking-widest text-ink-300">
-                              Locked
-                            </span>
-                          )}
+                          <Link
+                            href={`/reception/announcement/${a.id}/edit`}
+                            className="text-[11px] font-semibold uppercase tracking-widest text-gold-600 hover:text-ink-900"
+                          >
+                            Edit
+                          </Link>
                         </td>
                       </tr>
                     );
