@@ -4,7 +4,7 @@ A full-stack salon management platform for **Mr. & Mrs. Cuts**. It combines a
 public-facing marketing/booking website with an internal **reception console**
 for staff and the salon owner to run day-to-day operations.
 
-- **Live frontend:** https://black-desert-038d6da00.7.azurestaticapps.net
+- **Live frontend:** https://www.mrandmrscuts.in
 - **Live API:** https://mrmrscuts-api.azurewebsites.net/api
 
 ---
