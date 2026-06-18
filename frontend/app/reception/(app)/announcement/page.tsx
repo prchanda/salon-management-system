@@ -14,15 +14,20 @@ type AnnouncementStatus = {
   textClass: string;
 };
 
-/** Derives a human-friendly status from the active flag + scheduling window. */
-function statusOf(a: Announcement, now: Date): AnnouncementStatus {
+/**
+ * Derives a human-friendly status from the active flag + scheduling window.
+ * The public bar only ever shows the latest announcement, so any earlier
+ * (locked) row can only be Ended (its window passed) or Off (superseded) —
+ * never Live/Scheduled. This keeps Status in step with the lock state.
+ */
+function statusOf(a: Announcement, now: Date, isLatest: boolean): AnnouncementStatus {
   const starts = a.startsAt ? new Date(a.startsAt) : null;
   const ends = a.endsAt ? new Date(a.endsAt) : null;
 
   if (ends && ends <= now) {
     return { label: "Ended", dotClass: "bg-ink-400", textClass: "text-ink-400" };
   }
-  if (!a.isActive) {
+  if (!a.isActive || !isLatest) {
     return { label: "Off", dotClass: "bg-ink-400", textClass: "text-ink-500" };
   }
   if (starts && starts > now) {
@@ -135,7 +140,7 @@ export default async function AnnouncementListPage({
             </thead>
             <tbody>
               {announcements.map((a) => {
-                const status = statusOf(a, now);
+                const status = statusOf(a, now, a.id === latestId);
                 const editable = isEditable(a, now, latestId);
                 return (
                   <tr key={a.id} className="border-t border-ink-900/5">
