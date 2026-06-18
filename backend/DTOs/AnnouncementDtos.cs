@@ -1,9 +1,9 @@
 namespace backend.DTOs;
 
 /// <summary>
-/// Owner-supplied payload to upsert the singleton announcement bar. All fields
-/// replace the stored values wholesale (this is a singleton editor, not a
-/// partial patch), except that blank optional fields are normalised to null.
+/// Owner-supplied payload to create or update an announcement bar. All fields
+/// replace the stored values wholesale (not a partial patch), except that blank
+/// optional fields are normalised to null.
 /// </summary>
 public class UpdateAnnouncementDto
 {

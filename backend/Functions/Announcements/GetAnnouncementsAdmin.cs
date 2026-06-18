@@ -7,31 +7,31 @@ using System.Net;
 namespace backend.Functions.Announcements;
 
 /// <summary>
-/// Owner-only read of the raw announcement record (regardless of whether it is
-/// currently live), used to pre-fill the reception editor. Returns 200 with a
-/// JSON <c>null</c> body when no announcement has ever been saved.
+/// Owner-only list of every announcement (newest first), used by the reception
+/// announcements page. Returns the raw records regardless of whether each is
+/// currently live. Privileged — not in the public allow-list.
 /// </summary>
-public class GetAnnouncementAdmin
+public class GetAnnouncementsAdmin
 {
     private readonly SalonDbContext _context;
 
-    public GetAnnouncementAdmin(SalonDbContext context)
+    public GetAnnouncementsAdmin(SalonDbContext context)
     {
         _context = context;
     }
 
-    [Function("GetAnnouncementAdmin")]
+    [Function("GetAnnouncementsAdmin")]
     public async Task<HttpResponseData> Run(
         [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "announcement/admin")]
         HttpRequestData req)
     {
-        var announcement = await _context.Announcements
+        var announcements = await _context.Announcements
             .AsNoTracking()
-            .OrderBy(a => a.Id)
-            .FirstOrDefaultAsync();
+            .OrderByDescending(a => a.Id)
+            .ToListAsync();
 
         var response = req.CreateResponse(HttpStatusCode.OK);
-        await response.WriteAsJsonAsync(announcement);
+        await response.WriteAsJsonAsync(announcements);
         return response;
     }
 }

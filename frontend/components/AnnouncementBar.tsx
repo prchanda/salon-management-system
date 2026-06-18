@@ -25,8 +25,26 @@ const THEME: Record<
   },
 };
 
+// Stable DOM id so the pre-paint script can find and hide the bar.
+const BAR_ID = "announcement-bar";
+
 function dismissKey(a: Announcement) {
   return `announcement-dismissed:${a.updatedAt}`;
+}
+
+/**
+ * Announcements are time-windowed. The server already filters by the window,
+ * but a page can be served from a slightly stale ISR/CDN cache around the
+ * start/end boundary — so re-check on the client and hide the bar if we're
+ * outside the window. This keeps the bar consistent across devices instead of
+ * lingering (or appearing early) on whichever cache a device happened to hit.
+ */
+function isWithinWindow(a: Announcement, now: number) {
+  const start = a.startsAt ? Date.parse(a.startsAt) : NaN;
+  const end = a.endsAt ? Date.parse(a.endsAt) : NaN;
+  if (!Number.isNaN(start) && now < start) return false;
+  if (!Number.isNaN(end) && now >= end) return false;
+  return true;
 }
 
 export function AnnouncementBar({
@@ -43,9 +61,14 @@ export function AnnouncementBar({
     try {
       if (localStorage.getItem(dismissKey(announcement)) === "1") {
         setVisible(false);
+        return;
       }
     } catch {
       // localStorage may be unavailable (private mode) — just show the bar.
+    }
+    // Hide if a stale cache served us a bar that is outside its time window.
+    if (!isWithinWindow(announcement, Date.now())) {
+      setVisible(false);
     }
   }, [announcement]);
 
@@ -54,10 +77,20 @@ export function AnnouncementBar({
   const theme = THEME[announcement.theme] ?? THEME.gold;
   const href = announcement.ctaHref ?? "";
   const isInternal = href.startsWith("/");
+  const key = dismissKey(announcement);
+
+  // Runs synchronously while the HTML is parsed — before the first paint — so a
+  // previously dismissed bar is hidden instantly instead of flashing visible
+  // for a frame until the hydration effect above runs.
+  const noFlashScript = `(function(){try{if(localStorage.getItem(${JSON.stringify(
+    key
+  )})==="1"){var e=document.getElementById(${JSON.stringify(
+    BAR_ID
+  )});if(e){e.style.display="none";}}}catch(e){}})();`;
 
   const dismiss = () => {
     try {
-      localStorage.setItem(dismissKey(announcement), "1");
+      localStorage.setItem(key, "1");
     } catch {
       // Ignore — dismissal just won't persist.
     }
@@ -65,7 +98,16 @@ export function AnnouncementBar({
   };
 
   return (
-    <div className={theme.bar} role="region" aria-label="Site announcement">
+    <div
+      id={BAR_ID}
+      className={theme.bar}
+      role="region"
+      aria-label="Site announcement"
+    >
+      <script
+        dangerouslySetInnerHTML={{ __html: noFlashScript }}
+        suppressHydrationWarning
+      />
       <div className="container-page flex items-center gap-3 py-2 text-sm">
         <p className="flex-1 text-center font-medium leading-snug sm:text-[0.95rem]">
           {announcement.message}

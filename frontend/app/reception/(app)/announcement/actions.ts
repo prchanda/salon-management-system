@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { api } from "@/lib/api";
 import { getRole } from "@/app/reception/roles";
-import type { AnnouncementTheme } from "@/lib/types";
+import type { AnnouncementTheme, UpdateAnnouncementPayload } from "@/lib/types";
 
 const THEMES: AnnouncementTheme[] = ["gold", "ink", "blush"];
 
@@ -27,9 +27,12 @@ function istLocalToUtcIso(value: string): string | null {
   return new Date(ms).toISOString();
 }
 
-export async function saveAnnouncementAction(formData: FormData) {
-  await assertOwner();
+type ParseResult =
+  | { ok: true; payload: UpdateAnnouncementPayload }
+  | { ok: false; error: string };
 
+/** Reads and validates the shared announcement form fields. */
+function parseForm(formData: FormData): ParseResult {
   const message = String(formData.get("message") ?? "").trim();
   const themeRaw = String(formData.get("theme") ?? "gold")
     .trim()
@@ -43,36 +46,34 @@ export async function saveAnnouncementAction(formData: FormData) {
   const startsAt = istLocalToUtcIso(String(formData.get("startsAt") ?? ""));
   const endsAt = istLocalToUtcIso(String(formData.get("endsAt") ?? ""));
 
-  const errorPath = (reason: string) =>
-    `/reception/announcement?formError=${encodeURIComponent(reason)}`;
-
   if (message.length < 1 || message.length > 200) {
-    redirect(errorPath("Message must be 1–200 characters."));
+    return { ok: false, error: "Message must be 1–200 characters." };
   }
   if (ctaLabel.length > 40) {
-    redirect(errorPath("Button label must be 40 characters or fewer."));
+    return { ok: false, error: "Button label must be 40 characters or fewer." };
   }
   if ((ctaLabel.length > 0) !== (ctaHref.length > 0)) {
-    redirect(
-      errorPath("Provide both a button label and link, or leave both blank.")
-    );
+    return {
+      ok: false,
+      error: "Provide both a button label and link, or leave both blank.",
+    };
   }
   if (
     ctaHref.length > 0 &&
     !(ctaHref.startsWith("/") || /^https?:\/\//i.test(ctaHref))
   ) {
-    redirect(
-      errorPath("Button link must start with / or http:// or https://.")
-    );
+    return {
+      ok: false,
+      error: "Button link must start with / or http:// or https://.",
+    };
   }
   if (startsAt && endsAt && new Date(endsAt) <= new Date(startsAt)) {
-    redirect(errorPath("The end time must be after the start time."));
+    return { ok: false, error: "The end time must be after the start time." };
   }
 
-  // redirect() throws NEXT_REDIRECT, so it must run outside the try/catch.
-  let failed = false;
-  try {
-    await api.updateAnnouncement({
+  return {
+    ok: true,
+    payload: {
       message,
       ctaLabel: ctaLabel || null,
       ctaHref: ctaHref || null,
@@ -80,16 +81,76 @@ export async function saveAnnouncementAction(formData: FormData) {
       isActive,
       startsAt,
       endsAt,
-    });
+    },
+  };
+}
+
+export async function createAnnouncementAction(formData: FormData) {
+  await assertOwner();
+
+  const errorPath = (reason: string) =>
+    `/reception/announcement/new?formError=${encodeURIComponent(reason)}`;
+
+  const parsed = parseForm(formData);
+  if (!parsed.ok) {
+    redirect(errorPath(parsed.error));
+  }
+
+  // redirect() throws NEXT_REDIRECT, so it must run outside the try/catch.
+  let failed = false;
+  try {
+    await api.createAnnouncement(parsed.payload);
   } catch {
     failed = true;
   }
 
   if (failed) {
+    redirect(errorPath("Could not create the announcement. Please try again."));
+  }
+
+  // Bust the cached public pages so the bar appears for visitors.
+  revalidatePath("/", "layout");
+  revalidatePath("/reception/announcement");
+
+  redirect("/reception/announcement?saved=1");
+}
+
+export async function updateAnnouncementAction(formData: FormData) {
+  await assertOwner();
+
+  const id = Number(formData.get("id"));
+  if (!Number.isFinite(id) || id <= 0) {
+    redirect("/reception/announcement");
+  }
+
+  const errorPath = (reason: string) =>
+    `/reception/announcement/${id}/edit?formError=${encodeURIComponent(reason)}`;
+
+  const parsed = parseForm(formData);
+  if (!parsed.ok) {
+    redirect(errorPath(parsed.error));
+  }
+
+  // redirect() throws NEXT_REDIRECT, so it must run outside the try/catch.
+  let error: "expired" | "failed" | null = null;
+  try {
+    await api.updateAnnouncement(id, parsed.payload);
+  } catch (e) {
+    // The backend returns 409 Conflict when the announcement has expired.
+    error =
+      e instanceof Error && /\b409\b/.test(e.message) ? "expired" : "failed";
+  }
+
+  if (error === "expired") {
+    redirect(
+      errorPath("This announcement has expired and can no longer be edited.")
+    );
+  }
+  if (error === "failed") {
     redirect(errorPath("Could not save the announcement. Please try again."));
   }
 
-  // Bust the cached public pages so the bar appears / updates for visitors.
+  // Bust the cached public pages so the bar updates for visitors.
   revalidatePath("/", "layout");
   revalidatePath("/reception/announcement");
 

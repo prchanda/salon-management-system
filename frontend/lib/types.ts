@@ -246,7 +246,7 @@ export interface UpdateProductPayload {
 
 export type AnnouncementTheme = "gold" | "ink" | "blush";
 
-/** Singleton site-wide announcement / promo bar. */
+/** A site-wide announcement / promo bar. The table keeps a history of these. */
 export interface Announcement {
   id: number;
   message: string;

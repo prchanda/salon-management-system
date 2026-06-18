@@ -1,11 +1,11 @@
 namespace backend.Entities;
 
 /// <summary>
-/// Singleton site-wide announcement / promo bar (e.g. a flash-sale notice).
-/// There is only ever ONE row in this table; the owner edits it from the
-/// reception console. The public site shows the bar only while it is
-/// <see cref="IsActive"/> and the current time falls within the optional
-/// <see cref="StartsAt"/>–<see cref="EndsAt"/> window.
+/// A site-wide announcement / promo bar (e.g. a flash-sale notice). The table
+/// keeps a history of announcements; the owner creates new ones and edits the
+/// current (non-expired) one from the reception console. The public site shows
+/// the most recent bar that is <see cref="IsActive"/> and whose current time
+/// falls within the optional <see cref="StartsAt"/>–<see cref="EndsAt"/> window.
 /// </summary>
 public class Announcement
 {

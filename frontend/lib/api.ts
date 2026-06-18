@@ -144,6 +144,12 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 // against backend load and CDN hit-rate.
 const PUBLIC_REVALIDATE = 300;
 
+// The announcement bar is time-windowed (starts_at / ends_at), so it must turn
+// on and off promptly. A short window keeps the bar consistent across edges /
+// devices around those boundaries instead of lagging up to PUBLIC_REVALIDATE
+// (which can make it appear on one device but not another).
+const ANNOUNCEMENT_REVALIDATE = 60;
+
 export const api = {
   // Public
   getServices: () =>
@@ -242,14 +248,21 @@ export const api = {
   // Public — announcement bar (returns null when nothing is live)
   getAnnouncement: () =>
     request<Announcement | null>("/announcement", {
-      next: { revalidate: PUBLIC_REVALIDATE },
+      next: { revalidate: ANNOUNCEMENT_REVALIDATE },
     }),
 
-  // Reception — announcement bar (owner managed)
-  getAdminAnnouncement: () =>
-    request<Announcement | null>("/announcement/admin"),
-  updateAnnouncement: (payload: UpdateAnnouncementPayload) =>
+  // Reception — announcements (owner managed history)
+  getAdminAnnouncements: () =>
+    request<Announcement[]>("/announcement/admin"),
+  getAdminAnnouncementById: (id: number) =>
+    request<Announcement>(`/announcement/admin/${id}`),
+  createAnnouncement: (payload: UpdateAnnouncementPayload) =>
     request<Announcement>("/announcement", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
+  updateAnnouncement: (id: number, payload: UpdateAnnouncementPayload) =>
+    request<Announcement>(`/announcement/${id}`, {
       method: "PUT",
       body: JSON.stringify(payload),
     }),
