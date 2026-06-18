@@ -17,7 +17,14 @@ function toMini(r: Review): MiniReview {
 
 export function HeroReviewCard({ reviews }: { reviews?: Review[] }) {
   const items = useMemo<MiniReview[]>(
-    () => (reviews ? reviews.map(toMini) : []),
+    () =>
+      reviews
+        ? // Surface concise quotes first — this card is small, so shorter
+          // reviews read better and rarely get clipped by the line clamp.
+          reviews
+            .map(toMini)
+            .sort((a, b) => a.quote.length - b.quote.length)
+        : [],
     [reviews]
   );
   const [index, setIndex] = useState(0);
@@ -40,7 +47,7 @@ export function HeroReviewCard({ reviews }: { reviews?: Review[] }) {
   return (
     <div className="absolute -bottom-6 -left-6 hidden w-56 rounded-2xl bg-cream-50 p-5 shadow-soft sm:block">
       <p className="eyebrow">Guest favourite</p>
-      <div className="relative mt-2 min-h-[5.5rem]">
+      <div className="relative mt-2 min-h-[7rem]">
         {items.map((r, i) => (
           <div
             key={i}
@@ -49,7 +56,7 @@ export function HeroReviewCard({ reviews }: { reviews?: Review[] }) {
               i === index ? "opacity-100" : "pointer-events-none opacity-0"
             }`}
           >
-            <p className="font-serif text-lg leading-tight text-ink-900">
+            <p className="line-clamp-3 font-serif text-lg leading-tight text-ink-900">
               “{r.quote}”
             </p>
             <p className="mt-2 text-xs uppercase tracking-widest text-ink-500">

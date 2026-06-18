@@ -42,7 +42,7 @@ export function RotatingTestimonials({ reviews }: { reviews?: Review[] }) {
       <p className="text-gold-400" aria-hidden>
         ★ ★ ★ ★ ★
       </p>
-      <div className="relative mt-8 min-h-[10rem] sm:min-h-[11rem] lg:min-h-[13rem]">
+      <div className="relative mt-8 min-h-[9rem] sm:min-h-[10.5rem] lg:min-h-[12rem]">
         {items.map((r, i) => (
           <figure
             key={i}
@@ -51,10 +51,10 @@ export function RotatingTestimonials({ reviews }: { reviews?: Review[] }) {
               i === index ? "opacity-100" : "pointer-events-none opacity-0"
             }`}
           >
-            <blockquote className="font-serif text-2xl leading-snug sm:text-3xl lg:text-4xl">
+            <blockquote className="line-clamp-3 font-serif text-2xl leading-snug sm:text-3xl lg:text-4xl">
               “{r.quote}”
             </blockquote>
-            <figcaption className="mt-8 text-[11px] uppercase tracking-widest text-cream-100/70">
+            <figcaption className="mt-6 text-[11px] uppercase tracking-widest text-cream-100/70">
               — {r.author}
             </figcaption>
           </figure>
