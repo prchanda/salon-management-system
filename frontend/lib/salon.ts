@@ -11,6 +11,11 @@ export const SALON = {
   hours: "Mon – Sun · 11:00 AM — 9:00 PM (Thu\u00A0closed)",
   instagram: "https://www.instagram.com/mr_mrs_cuts_/",
   facebook: "https://www.facebook.com/mrandmrscuts",
+  // Where the "Review us on Google" button sends guests. Direct write-review
+  // deep link — opens the Google review dialog in one tap (signed-in users land
+  // straight on the star picker). Place ID: ChIJSyDb4kdxAjoRyAPvm4vG4N4
+  googleReviewUrl:
+    "https://search.google.com/local/writereview?placeid=ChIJSyDb4kdxAjoRyAPvm4vG4N4",
 };
 
 export function waLink(
