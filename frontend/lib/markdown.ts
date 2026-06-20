@@ -102,6 +102,31 @@ export function renderExcerptMarkdown(text: string): string {
 }
 
 /**
+ * Strip Markdown syntax from a snippet to produce clean, single-line plain text
+ * — for listing-card previews, meta descriptions, etc. where formatting and
+ * line breaks aren't wanted. Removes blockquote markers, heading hashes,
+ * emphasis (*/_), inline code backticks, list bullets, and link/image syntax
+ * (keeping the visible label), then collapses all whitespace to single spaces.
+ */
+export function markdownToPlainText(text: string): string {
+  return text
+    .replace(/\r\n/g, "\n")
+    .replace(/!\[([^\]]*)\]\([^)]*\)/g, "$1") // images → alt text
+    .replace(/\[([^\]]+)\]\([^)]*\)/g, "$1") // links → label
+    .replace(/^[ \t]*>+[ \t]?/gm, "") // blockquote markers
+    .replace(/^[ \t]*#{1,6}[ \t]+/gm, "") // heading hashes
+    .replace(/^[ \t]*[-*+][ \t]+/gm, "") // unordered list bullets
+    .replace(/^[ \t]*\d+\.[ \t]+/gm, "") // ordered list markers
+    .replace(/`([^`]+)`/g, "$1") // inline code
+    .replace(/\*\*([^*]+)\*\*/g, "$1") // bold
+    .replace(/\*([^*\n]+)\*/g, "$1") // italics
+    .replace(/__([^_]+)__/g, "$1") // bold (underscore)
+    .replace(/_([^_\n]+)_/g, "$1") // italics (underscore)
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+/**
  * Turn a bare Instagram or Facebook URL into a responsive embed iframe.
  *
  * Security: we only ever build an <iframe> when the whole line matches one of

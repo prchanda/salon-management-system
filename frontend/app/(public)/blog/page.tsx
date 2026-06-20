@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { api } from "@/lib/api";
+import { markdownToPlainText } from "@/lib/markdown";
 import type { PostSummary } from "@/lib/types";
 
 export const metadata = {
@@ -96,7 +97,7 @@ export default async function BlogIndexPage() {
                       {p.title}
                     </h2>
                     <p className="mt-3 line-clamp-3 text-sm leading-relaxed text-ink-600">
-                      {p.excerpt}
+                      {markdownToPlainText(p.excerpt)}
                     </p>
                     <p className="mt-6 text-[11px] uppercase tracking-widest text-ink-400">
                       {formatDate(p.publishedAt ?? p.createdAt)}

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { api } from "@/lib/api";
+import { markdownToPlainText } from "@/lib/markdown";
 import type { AdminPostSummary } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -70,7 +71,7 @@ export default async function ReceptionBlogPage() {
                     </Link>
                     {p.excerpt && (
                       <p className="mt-1 line-clamp-1 text-xs text-ink-500">
-                        {p.excerpt}
+                        {markdownToPlainText(p.excerpt)}
                       </p>
                     )}
                   </td>

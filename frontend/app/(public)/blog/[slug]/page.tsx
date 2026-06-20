@@ -1,7 +1,11 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { api } from "@/lib/api";
-import { renderExcerptMarkdown, renderMarkdown } from "@/lib/markdown";
+import {
+  markdownToPlainText,
+  renderExcerptMarkdown,
+  renderMarkdown,
+} from "@/lib/markdown";
 import type { Post } from "@/lib/types";
 
 export const revalidate = 60;
@@ -31,14 +35,15 @@ export async function generateMetadata({ params }: Props) {
   const post = await safeGetPost(params.slug);
   if (!post) return { title: "Not found" };
   const canonical = `/blog/${post.slug}`;
+  const description = markdownToPlainText(post.excerpt);
   return {
     title: post.title,
-    description: post.excerpt,
+    description,
     alternates: { canonical },
     openGraph: {
       type: "article",
       title: post.title,
-      description: post.excerpt,
+      description,
       url: canonical,
       publishedTime: post.publishedAt ?? undefined,
       modifiedTime: post.updatedAt,
@@ -49,7 +54,7 @@ export async function generateMetadata({ params }: Props) {
     twitter: {
       card: "summary_large_image",
       title: post.title,
-      description: post.excerpt,
+      description,
       images: post.coverImageUrl
         ? [post.coverImageUrl]
         : ["/images/og-image.jpg"],
@@ -84,7 +89,7 @@ export default async function BlogPostPage({ params }: Props) {
     "@context": "https://schema.org",
     "@type": "Article",
     headline: post.title,
-    description: post.excerpt,
+    description: markdownToPlainText(post.excerpt),
     image: post.coverImageUrl
       ? [post.coverImageUrl]
       : ["https://www.mrandmrscuts.in/images/og-image.jpg"],
