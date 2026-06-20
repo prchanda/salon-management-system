@@ -6,6 +6,15 @@ import type { Post } from "@/lib/types";
 
 export const revalidate = 60;
 
+// Hand-authored SEO/accessibility text for specific post covers. Keyed by slug;
+// any post not listed here falls back to its title (see the cover <img> below).
+const COVER_TEXT: Record<string, { alt: string; title: string }> = {
+  "glow-from-within-the-beauty-boosting-power-of-biotin": {
+    alt: "Shiny healthy hair and glowing skin representing biotin benefits for hair, skin, and nails",
+    title: "Glow from Within – Biotin Benefits for Hair, Skin & Nails",
+  },
+};
+
 interface Props {
   params: { slug: string };
 }
@@ -141,7 +150,8 @@ export default async function BlogPostPage({ params }: Props) {
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={post.coverImageUrl}
-              alt=""
+              alt={COVER_TEXT[post.slug]?.alt ?? post.title}
+              title={COVER_TEXT[post.slug]?.title ?? post.title}
               loading="eager"
               decoding="async"
               sizes="(min-width: 1024px) 1024px, 100vw"
