@@ -48,6 +48,17 @@ function renderInline(text: string): string {
 }
 
 /**
+ * Render a short, single-block snippet (e.g. a post excerpt) as inline
+ * Markdown — bold, italics, inline code, links and images — WITHOUT wrapping
+ * it in block-level elements. Safe to drop inside an existing <p>. All input is
+ * HTML-escaped first (see renderInline), so user content cannot inject markup.
+ * Newlines collapse to spaces so a multi-line excerpt stays a single block.
+ */
+export function renderInlineMarkdown(text: string): string {
+  return renderInline(text.replace(/\r\n/g, "\n").replace(/\s*\n\s*/g, " ").trim());
+}
+
+/**
  * Turn a bare Instagram or Facebook URL into a responsive embed iframe.
  *
  * Security: we only ever build an <iframe> when the whole line matches one of
