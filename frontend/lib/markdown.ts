@@ -48,14 +48,26 @@ function renderInline(text: string): string {
 }
 
 /**
- * Render a short, single-block snippet (e.g. a post excerpt) as inline
- * Markdown — bold, italics, inline code, links and images — WITHOUT wrapping
- * it in block-level elements. Safe to drop inside an existing <p>. All input is
- * HTML-escaped first (see renderInline), so user content cannot inject markup.
- * Newlines collapse to spaces so a multi-line excerpt stays a single block.
+ * Render a short snippet (e.g. a post excerpt) as lightweight Markdown:
+ * inline formatting (bold, italics, inline code, links, images) PLUS paragraph
+ * breaks. Blank lines separate paragraphs; single newlines inside a paragraph
+ * collapse to spaces (standard Markdown). Each paragraph is wrapped in a <p> so
+ * the multi-line excerpts authors write keep their structure instead of
+ * becoming one run-on block. Typography (size/colour) is inherited from the
+ * container, so this is meant to sit inside a `.lead` (or similar) wrapper. All
+ * input is HTML-escaped first (see renderInline), so content cannot inject markup.
  */
-export function renderInlineMarkdown(text: string): string {
-  return renderInline(text.replace(/\r\n/g, "\n").replace(/\s*\n\s*/g, " ").trim());
+export function renderExcerptMarkdown(text: string): string {
+  const blocks = text
+    .replace(/\r\n/g, "\n")
+    .split(/\n[ \t]*\n+/) // blank line(s) → paragraph boundary
+    .map((b) => b.replace(/\s*\n\s*/g, " ").trim())
+    .filter(Boolean);
+
+  if (blocks.length === 0) return "";
+  return blocks
+    .map((b) => `<p class="mt-3 first:mt-0">${renderInline(b)}</p>`)
+    .join("");
 }
 
 /**

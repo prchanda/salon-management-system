@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { api } from "@/lib/api";
-import { renderInlineMarkdown, renderMarkdown } from "@/lib/markdown";
+import { renderExcerptMarkdown, renderMarkdown } from "@/lib/markdown";
 import type { Post } from "@/lib/types";
 
 export const revalidate = 60;
@@ -127,9 +127,9 @@ export default async function BlogPostPage({ params }: Props) {
             </p>
           )}
           <h1 className="display mt-4">{post.title}</h1>
-          <p
+          <div
             className="lead mt-5"
-            dangerouslySetInnerHTML={{ __html: renderInlineMarkdown(post.excerpt) }}
+            dangerouslySetInnerHTML={{ __html: renderExcerptMarkdown(post.excerpt) }}
           />
           <p className="mt-6 text-[11px] uppercase tracking-widest text-ink-400">
             {formatDate(post.publishedAt ?? post.createdAt)}
