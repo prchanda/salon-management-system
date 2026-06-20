@@ -105,7 +105,7 @@ export function renderExcerptMarkdown(text: string): string {
  * Strip Markdown syntax from a snippet to produce clean, single-line plain text
  * — for listing-card previews, meta descriptions, etc. where formatting and
  * line breaks aren't wanted. Removes blockquote markers, heading hashes,
- * emphasis (*/_), inline code backticks, list bullets, and link/image syntax
+ * emphasis (asterisks/underscores), inline code backticks, list bullets, and link/image syntax
  * (keeping the visible label), then collapses all whitespace to single spaces.
  */
 export function markdownToPlainText(text: string): string {
