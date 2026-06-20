@@ -53,21 +53,52 @@ function renderInline(text: string): string {
  * breaks. Blank lines separate paragraphs; single newlines inside a paragraph
  * collapse to spaces (standard Markdown). Each paragraph is wrapped in a <p> so
  * the multi-line excerpts authors write keep their structure instead of
- * becoming one run-on block. Typography (size/colour) is inherited from the
- * container, so this is meant to sit inside a `.lead` (or similar) wrapper. All
- * input is HTML-escaped first (see renderInline), so content cannot inject markup.
+ * becoming one run-on block.
+ *
+ * Blockquote support: if the whole excerpt is written as a Markdown blockquote
+ * (every non-empty line starts with ">"), the ">" markers are stripped and the
+ * content is wrapped in an elegant gold-accented callout — so authors can write
+ * `> ...` for a pull-quote-style intro and have it look attractive instead of
+ * rendering the ">" as literal text.
+ *
+ * Typography (size/colour) is inherited from the container, so this is meant to
+ * sit inside a `.lead` (or similar) wrapper. All input is HTML-escaped first
+ * (see renderInline), so content cannot inject markup.
  */
 export function renderExcerptMarkdown(text: string): string {
-  const blocks = text
-    .replace(/\r\n/g, "\n")
+  const normalized = text.replace(/\r\n/g, "\n").trim();
+  if (!normalized) return "";
+
+  // A fully-quoted excerpt: every non-blank line starts with ">".
+  const lines = normalized.split("\n");
+  const nonBlank = lines.filter((l) => l.trim() !== "");
+  const isBlockquote =
+    nonBlank.length > 0 && nonBlank.every((l) => /^\s*>/.test(l));
+
+  // When it's a blockquote, peel off one "> " level from every line.
+  const body = isBlockquote
+    ? lines.map((l) => l.replace(/^\s*>\s?/, "")).join("\n")
+    : normalized;
+
+  const blocks = body
     .split(/\n[ \t]*\n+/) // blank line(s) → paragraph boundary
     .map((b) => b.replace(/\s*\n\s*/g, " ").trim())
     .filter(Boolean);
 
   if (blocks.length === 0) return "";
-  return blocks
+
+  const paras = blocks
     .map((b) => `<p class="mt-3 first:mt-0">${renderInline(b)}</p>`)
     .join("");
+
+  if (isBlockquote) {
+    return (
+      `<blockquote class="not-italic rounded-r-xl border-l-[3px] border-gold-600 bg-cream-100/60 py-5 pl-6 pr-5 text-ink-700">` +
+      paras +
+      `</blockquote>`
+    );
+  }
+  return paras;
 }
 
 /**
