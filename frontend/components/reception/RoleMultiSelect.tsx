@@ -113,7 +113,7 @@ export function RoleMultiSelect({
         <div
           role="listbox"
           aria-multiselectable="true"
-          className="absolute z-20 mt-1 max-h-60 w-full overflow-auto rounded-lg border border-ink-900/15 bg-cream-50 py-1 shadow-soft"
+          className="absolute z-20 mt-1 max-h-[min(22rem,70vh)] w-full overflow-auto rounded-lg border border-ink-900/15 bg-cream-50 py-1 shadow-soft"
         >
           {options.map((role) => {
             const checked = selected.includes(role);
