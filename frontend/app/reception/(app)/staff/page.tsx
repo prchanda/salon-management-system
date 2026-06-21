@@ -227,12 +227,13 @@ function ManualAddStaff({
             <AddField
               id="phone"
               name="phone"
-              label="Phone (10 digits)"
+              label="Phone (optional, 10 digits)"
               type="tel"
+              required={false}
               inputMode="numeric"
               pattern="\d{10}"
               maxLength={10}
-              placeholder="9876543210"
+              placeholder="leave blank if none"
             />
             <AddField
               id="email"

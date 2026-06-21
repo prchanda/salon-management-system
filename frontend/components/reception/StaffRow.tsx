@@ -178,17 +178,16 @@ export function StaffRow({
         </div>
         <label className="block">
           <span className="mb-1 block text-[10px] font-semibold uppercase tracking-widest text-ink-500">
-            Phone (10 digits)
+            Phone (optional, 10 digits)
           </span>
           <input
             name="phone"
             type="tel"
-            required
             inputMode="numeric"
             pattern="\d{10}"
             maxLength={10}
             defaultValue={account.phoneNumber ?? ""}
-            placeholder="9876543210"
+            placeholder="leave blank if none"
             className="w-full rounded-lg border border-ink-900/15 bg-cream-50 px-3 py-2 text-sm text-ink-900 outline-none focus:border-gold-600"
           />
         </label>

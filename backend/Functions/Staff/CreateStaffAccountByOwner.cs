@@ -71,7 +71,9 @@ public class CreateStaffAccountByOwner
         {
             return await Bad(req, "Password must be at least 8 characters.");
         }
-        if (!System.Text.RegularExpressions.Regex.IsMatch(phone, @"^\d{10}$"))
+        // Phone is optional. Validate format only when present.
+        var hasPhone = phone.Length > 0;
+        if (hasPhone && !System.Text.RegularExpressions.Regex.IsMatch(phone, @"^\d{10}$"))
         {
             return await Bad(req, "Phone number must be exactly 10 digits.");
         }
@@ -92,7 +94,7 @@ public class CreateStaffAccountByOwner
         }
 
         var phoneTaken = await _context.Staff.AnyAsync(s => s.PhoneNumber == phone && s.IsActive);
-        if (phoneTaken)
+        if (hasPhone && phoneTaken)
         {
             return await Bad(req, "That phone number is already registered.");
         }
@@ -113,7 +115,7 @@ public class CreateStaffAccountByOwner
         {
             FullName = fullName,
             Role = SalonRoles.Join(roles),
-            PhoneNumber = phone,
+            PhoneNumber = hasPhone ? phone : null,
             Email = hasEmail ? email : null,
             IsActive = true,
             CreatedAt = now,

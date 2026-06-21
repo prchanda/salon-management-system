@@ -399,7 +399,7 @@ export const api = {
   createStaffAccount: (payload: {
     fullName: string;
     roles: string[];
-    phoneNumber: string;
+    phoneNumber?: string;
     email?: string;
     username: string;
     password: string;
@@ -413,7 +413,7 @@ export const api = {
     payload: {
       fullName: string;
       roles: string[];
-      phoneNumber: string;
+      phoneNumber?: string;
       email?: string;
     }
   ) =>

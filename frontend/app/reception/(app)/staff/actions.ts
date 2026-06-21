@@ -34,7 +34,7 @@ export async function createStaffAction(formData: FormData) {
 
   if (fullName.length < 2) redirect(errorPath("Please enter the staff member's full name."));
   if (roles.length === 0) redirect(errorPath("Please select at least one role."));
-  if (!/^\d{10}$/.test(phone)) {
+  if (phone.length > 0 && !/^\d{10}$/.test(phone)) {
     redirect(errorPath("Phone number must be exactly 10 digits."));
   }
   if (email.length > 0 && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
@@ -55,7 +55,7 @@ export async function createStaffAction(formData: FormData) {
     await api.createStaffAccount({
       fullName,
       roles,
-      phoneNumber: phone,
+      phoneNumber: phone.length > 0 ? phone : undefined,
       email: email.length > 0 ? email : undefined,
       username,
       password,
@@ -93,7 +93,7 @@ export async function updateStaffAction(formData: FormData) {
 
   if (fullName.length < 2) redirect(errorPath("Please enter the staff member's full name."));
   if (roles.length === 0) redirect(errorPath("Please select at least one role."));
-  if (!/^\d{10}$/.test(phone)) {
+  if (phone.length > 0 && !/^\d{10}$/.test(phone)) {
     redirect(errorPath("Phone number must be exactly 10 digits."));
   }
   if (email.length > 0 && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
@@ -105,7 +105,7 @@ export async function updateStaffAction(formData: FormData) {
     await api.updateStaffAccount(id, {
       fullName,
       roles,
-      phoneNumber: phone,
+      phoneNumber: phone.length > 0 ? phone : undefined,
       email: email.length > 0 ? email : undefined,
     });
     outcome = { ok: true };

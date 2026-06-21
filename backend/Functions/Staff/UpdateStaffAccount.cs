@@ -66,7 +66,9 @@ public class UpdateStaffAccount
         {
             return await Bad(req, "Full name must be 2 to 80 characters.");
         }
-        if (!System.Text.RegularExpressions.Regex.IsMatch(phone, @"^\d{10}$"))
+        // Phone is optional. Validate format only when present.
+        var hasPhone = phone.Length > 0;
+        if (hasPhone && !System.Text.RegularExpressions.Regex.IsMatch(phone, @"^\d{10}$"))
         {
             return await Bad(req, "Phone number must be exactly 10 digits.");
         }
@@ -82,7 +84,7 @@ public class UpdateStaffAccount
         // Uniqueness among active staff, excluding this same account.
         var phoneTaken = await _context.Staff
             .AnyAsync(s => s.Id != id && s.PhoneNumber == phone && s.IsActive);
-        if (phoneTaken)
+        if (hasPhone && phoneTaken)
         {
             return await Bad(req, "That phone number is already registered to another staff member.");
         }
@@ -99,7 +101,7 @@ public class UpdateStaffAccount
 
         staff.FullName = fullName;
         staff.Role = SalonRoles.Join(roles);
-        staff.PhoneNumber = phone;
+        staff.PhoneNumber = hasPhone ? phone : null;
         staff.Email = hasEmail ? email : null;
 
         await _context.SaveChangesAsync();
