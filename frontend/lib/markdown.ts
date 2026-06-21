@@ -55,15 +55,87 @@ function renderInline(text: string): string {
  * with a single space (a soft wrap).
  */
 function renderListItem(rawLines: string[], markerRe: RegExp): string {
-  const pieces = rawLines.map((l, idx) => ({
-    html: renderInline((idx === 0 ? l.replace(markerRe, "") : l.trim()).trimEnd()),
-    hardBreak: /\s{2,}$/.test(l),
-  }));
-  return pieces
+  // Group lines into paragraphs. An empty string in `rawLines` is a separator
+  // emitted when a "loose" list item has a blank line before an indented
+  // continuation (e.g. a bold lead-in followed by a description paragraph).
+  const paragraphs: string[][] = [[]];
+  rawLines.forEach((l, idx) => {
+    if (idx > 0 && l === "") {
+      paragraphs.push([]);
+      return;
+    }
+    paragraphs[paragraphs.length - 1].push(idx === 0 ? l.replace(markerRe, "") : l);
+  });
+
+  const renderPara = (plines: string[]) => {
+    const pieces = plines.map((l) => ({
+      html: renderInline(l.trim().trimEnd()),
+      hardBreak: /\s{2,}$/.test(l),
+    }));
+    return pieces
+      .map((p, idx) =>
+        idx === pieces.length - 1 ? p.html : p.html + (p.hardBreak ? "<br>" : " ")
+      )
+      .join("");
+  };
+
+  return paragraphs
+    .filter((p) => p.length > 0)
     .map((p, idx) =>
-      idx === pieces.length - 1 ? p.html : p.html + (p.hardBreak ? "<br>" : " ")
+      idx === 0
+        ? renderPara(p)
+        : `<span class="mt-1 block font-normal">${renderPara(p)}</span>`
     )
     .join("");
+}
+
+/**
+ * Starting just after a list marker line, absorb its continuation lines into
+ * `raw` and return the new line index. Handles two cases:
+ *  - "tight" continuations: indented wrapped text immediately under the item.
+ *  - "loose" continuations: a blank line followed by an indented block (a
+ *    description paragraph). The blank line is recorded as an empty string so
+ *    `renderListItem` can render it on its own line inside the <li> instead of
+ *    letting it escape as a flush-left paragraph.
+ */
+function absorbListContinuations(
+  lines: string[],
+  start: number,
+  raw: string[]
+): number {
+  let i = start;
+  const isMarker = (l: string) =>
+    /^\s*[-*]\s+/.test(l) || /^\s*\d+\.\s+/.test(l);
+
+  for (;;) {
+    // Tight continuation: indented, non-blank, not a new list item.
+    if (
+      i < lines.length &&
+      lines[i].trim() !== "" &&
+      /^\s+/.test(lines[i]) &&
+      !isMarker(lines[i])
+    ) {
+      raw.push(lines[i]);
+      i++;
+      continue;
+    }
+
+    // Loose continuation: blank line(s) then an indented block that isn't a
+    // new list item — pull it into this item as a separate paragraph.
+    if (i < lines.length && lines[i].trim() === "") {
+      let j = i;
+      while (j < lines.length && lines[j].trim() === "") j++;
+      if (j < lines.length && /^\s+/.test(lines[j]) && !isMarker(lines[j])) {
+        raw.push("");
+        i = j;
+        continue;
+      }
+    }
+
+    break;
+  }
+
+  return i;
 }
 
 /**
@@ -324,19 +396,7 @@ export function renderMarkdown(md: string): string {
       while (i < lines.length && /^\s*[-*]\s+/.test(lines[i])) {
         const raw = [lines[i]];
         i++;
-        // Absorb indented continuation lines (wrapped text written under the
-        // item) so they stay inside the <li> instead of becoming a separate,
-        // flush-left paragraph.
-        while (
-          i < lines.length &&
-          lines[i].trim() !== "" &&
-          /^\s+/.test(lines[i]) &&
-          !/^\s*[-*]\s+/.test(lines[i]) &&
-          !/^\s*\d+\.\s+/.test(lines[i])
-        ) {
-          raw.push(lines[i]);
-          i++;
-        }
+        i = absorbListContinuations(lines, i, raw);
         items.push(`<li>${renderListItem(raw, /^\s*[-*]\s+/)}</li>`);
       }
       out.push(`<ul class="my-4 list-disc space-y-1 pl-6">${items.join("")}</ul>`);
@@ -349,16 +409,7 @@ export function renderMarkdown(md: string): string {
       while (i < lines.length && /^\s*\d+\.\s+/.test(lines[i])) {
         const raw = [lines[i]];
         i++;
-        while (
-          i < lines.length &&
-          lines[i].trim() !== "" &&
-          /^\s+/.test(lines[i]) &&
-          !/^\s*[-*]\s+/.test(lines[i]) &&
-          !/^\s*\d+\.\s+/.test(lines[i])
-        ) {
-          raw.push(lines[i]);
-          i++;
-        }
+        i = absorbListContinuations(lines, i, raw);
         items.push(`<li>${renderListItem(raw, /^\s*\d+\.\s+/)}</li>`);
       }
       out.push(`<ol class="my-4 list-decimal space-y-1 pl-6">${items.join("")}</ol>`);
