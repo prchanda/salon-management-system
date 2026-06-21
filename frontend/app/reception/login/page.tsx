@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { loginAction } from "../auth";
 import { SubmitButton } from "@/components/SubmitButton";
+import { StatusParamCleaner } from "@/components/reception/StatusParamCleaner";
 
 export const metadata = { title: "Reception Login" };
 
@@ -24,6 +25,7 @@ export default function LoginPage({
 
   return (
     <main className="flex min-h-screen items-center justify-center bg-cream-100 p-6">
+      <StatusParamCleaner params={["reset"]} />
       <div className="w-full max-w-md rounded-2xl bg-cream-50 p-8 shadow-soft">
         <p className="font-serif text-xl text-ink-900">
           Mr. &amp; Mrs. Cuts{" "}

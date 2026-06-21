@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { api } from "@/lib/api";
 import { getRole } from "@/app/reception/roles";
+import { StatusParamCleaner } from "@/components/reception/StatusParamCleaner";
 import type { Service } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -35,6 +36,7 @@ export default async function ReceptionServicesPage({
 
   return (
     <div>
+      <StatusParamCleaner params={["created", "updated"]} />
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <h1 className="font-serif text-3xl text-ink-900">Services</h1>

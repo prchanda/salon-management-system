@@ -14,6 +14,7 @@ import { RoleMultiSelect } from "@/components/reception/RoleMultiSelect";
 import { PasswordField } from "@/components/reception/PasswordField";
 import { StaffRow } from "@/components/reception/StaffRow";
 import { FocusHighlighter } from "@/components/reception/FocusHighlighter";
+import { StatusParamCleaner } from "@/components/reception/StatusParamCleaner";
 import { SALON_ROLES } from "@/lib/salon";
 import type { StaffAccount } from "@/lib/types";
 
@@ -93,6 +94,9 @@ export default async function StaffAccountsPage({
       <Suspense fallback={null}>
         <FocusHighlighter />
       </Suspense>
+      <StatusParamCleaner
+        params={["created", "updated", "reactivated", "t"]}
+      />
       <div>
         <p className="eyebrow">Access control</p>
         <h1 className="mt-2 font-serif text-3xl text-ink-900">

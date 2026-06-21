@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getRole } from "@/app/reception/roles";
 import { api } from "@/lib/api";
+import { StatusParamCleaner } from "@/components/reception/StatusParamCleaner";
 import type { Announcement } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -111,6 +112,7 @@ export default async function AnnouncementListPage({
 
   return (
     <div>
+      <StatusParamCleaner params={["saved"]} />
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between sm:gap-4">
         <div>
           <h1 className="font-serif text-3xl text-ink-900">Announcement bar</h1>

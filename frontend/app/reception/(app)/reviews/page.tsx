@@ -4,6 +4,7 @@ import { api } from "@/lib/api";
 import { getRole } from "@/app/reception/roles";
 import { SubmitButton } from "@/components/SubmitButton";
 import { FocusHighlighter } from "@/components/reception/FocusHighlighter";
+import { StatusParamCleaner } from "@/components/reception/StatusParamCleaner";
 import type { Review } from "@/lib/types";
 import { approveReviewAction, deleteReviewAction } from "./actions";
 
@@ -74,6 +75,7 @@ export default async function ReceptionReviewsPage({
       <Suspense fallback={null}>
         <FocusHighlighter />
       </Suspense>
+      <StatusParamCleaner params={["approved", "deleted"]} />
       <div>
         <p className="eyebrow">Moderation</p>
         <h1 className="mt-2 font-serif text-3xl text-ink-900">Reviews</h1>
