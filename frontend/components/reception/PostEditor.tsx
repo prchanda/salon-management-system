@@ -224,15 +224,22 @@ export function PostEditor({ initial }: Props) {
           </label>
           <div className="mt-2 flex items-start gap-4">
             {coverImageUrl ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={coverImageUrl}
-                alt=""
-                className="h-24 w-32 rounded-lg object-cover"
-              />
+              <div className="relative h-24 w-32 shrink-0">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={coverImageUrl}
+                  alt=""
+                  className="h-24 w-32 rounded-lg object-cover"
+                />
+                {uploading && (
+                  <div className="absolute inset-0 flex items-center justify-center rounded-lg bg-ink-900/40 text-cream-50">
+                    <Spinner light />
+                  </div>
+                )}
+              </div>
             ) : (
               <div className="flex h-24 w-32 items-center justify-center rounded-lg bg-cream-100 text-[11px] uppercase tracking-widest text-ink-400">
-                No image
+                {uploading ? <Spinner /> : "No image"}
               </div>
             )}
             <div className="flex-1 space-y-2">
@@ -251,7 +258,14 @@ export function PostEditor({ initial }: Props) {
                   disabled={uploading}
                   className="hidden"
                 />
-                {uploading ? "Optimizing & uploading…" : "Upload image"}
+                {uploading ? (
+                  <>
+                    <Spinner />
+                    Optimizing &amp; uploading…
+                  </>
+                ) : (
+                  "Upload image"
+                )}
               </label>
               {uploadInfo && !uploading && (
                 <p className="text-[11px] text-green-700">{uploadInfo}</p>
