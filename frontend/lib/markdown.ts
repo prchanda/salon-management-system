@@ -48,6 +48,25 @@ function renderInline(text: string): string {
 }
 
 /**
+ * Render the lines that make up a single list item. The first line has its
+ * marker (bullet or number) stripped; any further lines are wrapped/continuation
+ * text the author indented under the item. Lines are joined with a <br> when the
+ * previous line ended in a Markdown hard break (two+ trailing spaces), otherwise
+ * with a single space (a soft wrap).
+ */
+function renderListItem(rawLines: string[], markerRe: RegExp): string {
+  const pieces = rawLines.map((l, idx) => ({
+    html: renderInline((idx === 0 ? l.replace(markerRe, "") : l.trim()).trimEnd()),
+    hardBreak: /\s{2,}$/.test(l),
+  }));
+  return pieces
+    .map((p, idx) =>
+      idx === pieces.length - 1 ? p.html : p.html + (p.hardBreak ? "<br>" : " ")
+    )
+    .join("");
+}
+
+/**
  * Render a short snippet (e.g. a post excerpt) as lightweight Markdown:
  * inline formatting (bold, italics, inline code, links, images) PLUS paragraph
  * breaks. Blank lines separate paragraphs; single newlines inside a paragraph
@@ -303,8 +322,22 @@ export function renderMarkdown(md: string): string {
     if (/^\s*[-*]\s+/.test(line)) {
       const items: string[] = [];
       while (i < lines.length && /^\s*[-*]\s+/.test(lines[i])) {
-        items.push(`<li>${renderInline(lines[i].replace(/^\s*[-*]\s+/, ""))}</li>`);
+        const raw = [lines[i]];
         i++;
+        // Absorb indented continuation lines (wrapped text written under the
+        // item) so they stay inside the <li> instead of becoming a separate,
+        // flush-left paragraph.
+        while (
+          i < lines.length &&
+          lines[i].trim() !== "" &&
+          /^\s+/.test(lines[i]) &&
+          !/^\s*[-*]\s+/.test(lines[i]) &&
+          !/^\s*\d+\.\s+/.test(lines[i])
+        ) {
+          raw.push(lines[i]);
+          i++;
+        }
+        items.push(`<li>${renderListItem(raw, /^\s*[-*]\s+/)}</li>`);
       }
       out.push(`<ul class="my-4 list-disc space-y-1 pl-6">${items.join("")}</ul>`);
       continue;
@@ -314,8 +347,19 @@ export function renderMarkdown(md: string): string {
     if (/^\s*\d+\.\s+/.test(line)) {
       const items: string[] = [];
       while (i < lines.length && /^\s*\d+\.\s+/.test(lines[i])) {
-        items.push(`<li>${renderInline(lines[i].replace(/^\s*\d+\.\s+/, ""))}</li>`);
+        const raw = [lines[i]];
         i++;
+        while (
+          i < lines.length &&
+          lines[i].trim() !== "" &&
+          /^\s+/.test(lines[i]) &&
+          !/^\s*[-*]\s+/.test(lines[i]) &&
+          !/^\s*\d+\.\s+/.test(lines[i])
+        ) {
+          raw.push(lines[i]);
+          i++;
+        }
+        items.push(`<li>${renderListItem(raw, /^\s*\d+\.\s+/)}</li>`);
       }
       out.push(`<ol class="my-4 list-decimal space-y-1 pl-6">${items.join("")}</ol>`);
       continue;
