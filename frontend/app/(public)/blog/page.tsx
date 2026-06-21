@@ -73,7 +73,7 @@ export default async function BlogIndexPage() {
                   className="group flex h-full flex-col overflow-hidden rounded-2xl border border-ink-900/10 bg-cream-50 shadow-soft transition hover:-translate-y-0.5 hover:shadow-lg"
                 >
                   {p.coverImageUrl ? (
-                    <div className="relative aspect-[4/3] overflow-hidden bg-cream-100">
+                    <div className="relative aspect-[3/2] overflow-hidden bg-cream-100">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
                         src={p.coverImageUrl}
@@ -85,7 +85,7 @@ export default async function BlogIndexPage() {
                       />
                     </div>
                   ) : (
-                    <div className="aspect-[4/3] bg-gradient-to-br from-cream-100 to-cream-200" />
+                    <div className="aspect-[3/2] bg-gradient-to-br from-cream-100 to-cream-200" />
                   )}
                   <div className="flex flex-1 flex-col p-6">
                     {tags.length > 0 && (
