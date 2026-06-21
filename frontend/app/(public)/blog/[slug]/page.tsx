@@ -17,6 +17,10 @@ const COVER_TEXT: Record<string, { alt: string; title: string }> = {
     alt: "Shiny healthy hair and glowing skin representing biotin benefits for hair, skin, and nails",
     title: "Glow from Within – Biotin Benefits for Hair, Skin & Nails",
   },
+  "from-root-to-strength-understanding-dht-and-the-power-of-dht-blockers": {
+    alt: "Illustration of DHT effects on hair follicles and DHT blocker solutions for hair growth and scalp health",
+    title: "DHT Blockers for Hair Growth and Hair Loss Prevention",
+  },
 };
 
 interface Props {
