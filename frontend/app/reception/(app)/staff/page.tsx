@@ -130,7 +130,7 @@ export default async function StaffAccountsPage({
         </p>
       )}
 
-      <ManualAddStaff error={formError} created={created} />
+      <ManualAddStaff error={formError} created={created} createdToken={updatedToken} />
 
       <Section
         title={`Pending approval (${pending.length})`}
@@ -173,19 +173,22 @@ export default async function StaffAccountsPage({
 function ManualAddStaff({
   error,
   created,
+  createdToken,
 }: {
   error: string | null;
   created: boolean;
+  createdToken: string | null;
 }) {
   return (
     <section>
       {/* `<details>` is uncontrolled: the user toggles `open` directly on the
           DOM node. Since `open={error !== null}` is `false` both before and
           after a successful create, React sees no prop change and leaves the
-          user-opened panel open. Keying on `created` forces a fresh remount so
-          the panel collapses once the account is created. */}
+          user-opened panel open. Keying on a per-create token forces a fresh
+          remount so the panel collapses after every successful create
+          (including consecutive ones). */}
       <details
-        key={created ? "created" : "idle"}
+        key={created ? `created-${createdToken ?? "1"}` : "idle"}
         open={error !== null}
         className="group rounded-2xl bg-cream-50 shadow-soft"
       >

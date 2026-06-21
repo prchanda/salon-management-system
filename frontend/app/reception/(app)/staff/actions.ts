@@ -72,7 +72,9 @@ export async function createStaffAction(formData: FormData) {
   revalidatePath("/reception/staff");
   // A new account may add a bookable specialist — refresh the public dropdown.
   revalidatePublicStaff();
-  redirect("/reception/staff?created=1");
+  // The `t` token always changes so the manual-add panel reliably collapses
+  // even on consecutive creates (where `created=1` alone is unchanged).
+  redirect(`/reception/staff?created=1&t=${Date.now()}`);
 }
 
 export async function updateStaffAction(formData: FormData) {
