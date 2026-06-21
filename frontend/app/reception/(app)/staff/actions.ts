@@ -120,7 +120,9 @@ export async function updateStaffAction(formData: FormData) {
   revalidatePath("/reception/staff");
   // Name/role edits surface on the public booking dropdown — refresh it.
   revalidatePublicStaff();
-  redirect(`/reception/staff?updated=${id}`);
+  // The `t` token always changes so the client editor reliably collapses even
+  // on consecutive edits of the same row (where `updated` alone is unchanged).
+  redirect(`/reception/staff?updated=${id}&t=${Date.now()}`);
 }
 
 /** Pulls the backend's `{ "message": "…" }` text out of an api request error. */

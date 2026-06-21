@@ -27,7 +27,12 @@ export function StaffRow({
   dateLabel: string;
   initialEditOpen: boolean;
   editError: string | null;
-  justUpdated: boolean;
+  /**
+   * A token that changes on every successful save of THIS row (null when this
+   * row wasn't the one updated). Whenever it changes to a truthy value, the
+   * inline editor collapses — robust even across consecutive edits.
+   */
+  justUpdated: string | null;
   approveAction: RowAction;
   rejectAction: RowAction;
   updateAction: RowAction;
@@ -39,7 +44,8 @@ export function StaffRow({
   const [reactivating, setReactivating] = useState(false);
 
   // After a successful save the page re-renders but React keeps this
-  // component's state, so collapse the editor back to read mode.
+  // component's state, so collapse the editor back to read mode. The token
+  // changes on every save, so this fires even on repeat edits of the same row.
   useEffect(() => {
     if (justUpdated) setEditing(false);
   }, [justUpdated]);
@@ -270,8 +276,16 @@ export function StaffRow({
         </td>
         <td className="px-5 py-3 text-ink-700">{account.username}</td>
         <td className="px-5 py-3 text-xs text-ink-600">
-          <div>{account.phoneNumber || "—"}</div>
-          <div className="text-ink-500">{account.email || "—"}</div>
+          {account.phoneNumber || account.email ? (
+            <>
+              {account.phoneNumber && <div>{account.phoneNumber}</div>}
+              {account.email && (
+                <div className="text-ink-500">{account.email}</div>
+              )}
+            </>
+          ) : (
+            <span className="text-ink-400">—</span>
+          )}
         </td>
         <td className="px-5 py-3 text-xs text-ink-600">{dateLabel}</td>
         <td className="px-5 py-3">

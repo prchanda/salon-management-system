@@ -43,6 +43,7 @@ export default async function StaffAccountsPage({
     formError?: string;
     created?: string;
     updated?: string;
+    t?: string;
     editId?: string;
     editError?: string;
     reactivateMsg?: string;
@@ -81,6 +82,8 @@ export default async function StaffAccountsPage({
   const created = searchParams.created === "1";
   const updatedId = searchParams.updated ? Number(searchParams.updated) : null;
   const updated = updatedId !== null && Number.isFinite(updatedId);
+  // A per-save token so the inline editor closes even on repeat edits.
+  const updatedToken = searchParams.t ?? (updated ? String(updatedId) : null);
   const editId = searchParams.editId ? Number(searchParams.editId) : null;
   const editError = searchParams.editError ?? null;
   const reactivated = searchParams.reactivated === "1";
@@ -137,6 +140,7 @@ export default async function StaffAccountsPage({
         editId={editId}
         editError={editError}
         justUpdatedId={updated ? updatedId : null}
+        updatedToken={updatedToken}
       />
 
       <Section
@@ -147,6 +151,7 @@ export default async function StaffAccountsPage({
         editId={editId}
         editError={editError}
         justUpdatedId={updated ? updatedId : null}
+        updatedToken={updatedToken}
       />
 
       {deactivated.length > 0 && (
@@ -158,6 +163,7 @@ export default async function StaffAccountsPage({
           editId={editId}
           editError={editError}
           justUpdatedId={updated ? updatedId : null}
+          updatedToken={updatedToken}
         />
       )}
     </div>
@@ -321,6 +327,7 @@ function Section({
   editId,
   editError,
   justUpdatedId,
+  updatedToken,
 }: {
   title: string;
   empty: string;
@@ -329,6 +336,7 @@ function Section({
   editId: number | null;
   editError: string | null;
   justUpdatedId: number | null;
+  updatedToken: string | null;
 }) {
   return (
     <section>
@@ -351,7 +359,7 @@ function Section({
                   )}
                   initialEditOpen={editId === a.id}
                   editError={editId === a.id ? editError : null}
-                  justUpdated={justUpdatedId === a.id}
+                  justUpdated={justUpdatedId === a.id ? updatedToken : null}
                   approveAction={approveStaffAction}
                   rejectAction={rejectStaffAction}
                   updateAction={updateStaffAction}
@@ -386,7 +394,7 @@ function Section({
                       )}
                       initialEditOpen={editId === a.id}
                       editError={editId === a.id ? editError : null}
-                      justUpdated={justUpdatedId === a.id}
+                      justUpdated={justUpdatedId === a.id ? updatedToken : null}
                       approveAction={approveStaffAction}
                       rejectAction={rejectStaffAction}
                       updateAction={updateStaffAction}
