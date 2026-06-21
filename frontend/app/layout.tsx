@@ -1,8 +1,11 @@
 import type { Metadata } from "next";
 import { Inter, Playfair_Display } from "next/font/google";
 import { Suspense } from "react";
+import { GoogleAnalytics } from "@next/third-parties/google";
 import { NavigationProgress } from "@/components/NavigationProgress";
 import "./globals.css";
+
+const GA_MEASUREMENT_ID = process.env.NEXT_PUBLIC_GA_ID;
 
 const SITE_URL = "https://www.mrandmrscuts.in";
 const SITE_NAME = "Mr. & Mrs. Cuts Salon";
@@ -95,6 +98,7 @@ export default function RootLayout({
         </Suspense>
         {children}
       </body>
+      {GA_MEASUREMENT_ID ? <GoogleAnalytics gaId={GA_MEASUREMENT_ID} /> : null}
     </html>
   );
 }

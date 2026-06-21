@@ -19,6 +19,7 @@ jobs:
       # Apps application setting (SUPABASE_SERVICE_ROLE_KEY).
       NEXT_PUBLIC_API_BASE_URL: https://mrmrscuts-api.azurewebsites.net/api
       NEXT_PUBLIC_SUPABASE_URL: https://ejfusrjqqhlorshtolee.supabase.co
+      NEXT_PUBLIC_GA_ID: G-2LP59J58Y3
     steps:
       - uses: actions/checkout@v4
         with:
