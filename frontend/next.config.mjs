@@ -41,17 +41,22 @@ const nextConfig = {
     // so the deployed policy stays strict.
     const scriptSrc =
       process.env.NODE_ENV === "development"
-        ? "script-src 'self' 'unsafe-inline' 'unsafe-eval'"
-        : "script-src 'self' 'unsafe-inline'";
+        ? "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com"
+        : "script-src 'self' 'unsafe-inline' https://www.googletagmanager.com";
 
     // Client components fetch public endpoints directly from the browser. In
     // dev that backend is the local Functions host on http://localhost:7071,
     // which must be whitelisted in connect-src (and we must not force-upgrade
     // it to https). Production talks to the deployed API over https.
     const isDev = process.env.NODE_ENV === "development";
+    // Google Analytics (GA4) beacons hit www.google-analytics.com and the
+    // regional *.google-analytics.com / *.analytics.google.com collect
+    // endpoints; the gtag loader also pings www.googletagmanager.com.
+    const gaConnect =
+      "https://www.google-analytics.com https://*.google-analytics.com https://*.analytics.google.com https://www.googletagmanager.com";
     const connectSrc = isDev
-      ? "connect-src 'self' http://localhost:7071 ws://localhost:* https://*.supabase.co https://mrmrscuts-api.azurewebsites.net"
-      : "connect-src 'self' https://*.supabase.co https://mrmrscuts-api.azurewebsites.net";
+      ? `connect-src 'self' http://localhost:7071 ws://localhost:* https://*.supabase.co https://mrmrscuts-api.azurewebsites.net ${gaConnect}`
+      : `connect-src 'self' https://*.supabase.co https://mrmrscuts-api.azurewebsites.net ${gaConnect}`;
 
     const csp = [
       "default-src 'self'",
