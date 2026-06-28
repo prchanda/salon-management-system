@@ -47,9 +47,11 @@ public class UpdateStaffAccount
 
         // The owner's profile is managed via configuration (OwnerSeeder) and
         // would be overwritten on the next restart, so block editing it here.
+        // The IT-admin account is config-managed (AdminSeeder) in the same way;
+        // it is also an owner row, so this single check covers both.
         if (staff.IsOwner)
         {
-            return await Bad(req, "The owner profile is managed in configuration and cannot be edited here.");
+            return await Bad(req, "This account is managed in configuration and cannot be edited here.");
         }
 
         var fullName = (dto.FullName ?? string.Empty).Trim();

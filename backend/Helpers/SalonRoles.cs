@@ -74,4 +74,16 @@ public static class SalonRoles
         (stored ?? string.Empty)
             .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
             .ToList();
+
+    /// <summary>
+    /// True if the stored role string contains at least one recognised salon
+    /// specialist role. Used to decide whether a staff row represents a
+    /// bookable specialist (so system accounts like the IT-admin, whose role is
+    /// not in the catalogue, are excluded from the roster).
+    /// </summary>
+    public static bool HasAny(string? stored)
+    {
+        var lookup = All.Select(r => r.ToLowerInvariant()).ToHashSet();
+        return Split(stored).Any(r => lookup.Contains(r.ToLowerInvariant()));
+    }
 }

@@ -76,6 +76,7 @@ _ = Task.Run(async () =>
             using var scope = host.Services.CreateScope();
             var db = scope.ServiceProvider.GetRequiredService<SalonDbContext>();
             OwnerSeeder.Seed(db, builder.Configuration);
+            AdminSeeder.Seed(db, builder.Configuration);
             break;
         }
         catch (Exception ex)

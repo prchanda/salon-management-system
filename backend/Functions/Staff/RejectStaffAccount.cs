@@ -42,7 +42,8 @@ public class RejectStaffAccount
         }
 
         // The owner account can never be revoked — doing so would lock the
-        // salon out of its own admin tools.
+        // salon out of its own admin tools. The IT-admin is also an owner row,
+        // so this single check protects it too.
         if (staff.IsOwner)
         {
             return req.CreateResponse(HttpStatusCode.Forbidden);

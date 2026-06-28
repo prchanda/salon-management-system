@@ -36,15 +36,21 @@ public class GetStaff
 
         // Project to a public-safe shape (no credentials, no contact details)
         // and split the stored role string into a roles array for the UI.
-        var result = staff.Select(s => new
-        {
-            s.Id,
-            s.FullName,
-            s.Role,
-            Roles = SalonRoles.Split(s.Role),
-            s.IsActive,
-            s.CreatedAt,
-        });
+        // Only rows that hold a real salon specialist role appear in the roster
+        // and booking pickers — this keeps the bookable owner visible while
+        // excluding system accounts such as the IT-admin (role "Admin"), which
+        // is owner-privileged but not a member of the salon roster.
+        var result = staff
+            .Where(s => SalonRoles.HasAny(s.Role))
+            .Select(s => new
+            {
+                s.Id,
+                s.FullName,
+                s.Role,
+                Roles = SalonRoles.Split(s.Role),
+                s.IsActive,
+                s.CreatedAt,
+            });
 
         var response = req.CreateResponse(HttpStatusCode.OK);
 
