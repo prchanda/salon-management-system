@@ -1,6 +1,8 @@
 using backend.Data;
+using backend.Helpers;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
 namespace backend.Functions;
@@ -32,12 +34,20 @@ public class KeepWarm
         Timeout = TimeSpan.FromSeconds(20),
     };
 
+    // Ensures the config-driven account seeding is attempted at most once per
+    // worker process. The startup background task is best-effort and has not
+    // proven reliable on the Consumption host, so this guaranteed timer trigger
+    // is the dependable place to make sure the owner/admin accounts exist.
+    private static int _seedAttempted;
+
     private readonly SalonDbContext _context;
+    private readonly IConfiguration _config;
     private readonly ILogger<KeepWarm> _logger;
 
-    public KeepWarm(SalonDbContext context, ILogger<KeepWarm> logger)
+    public KeepWarm(SalonDbContext context, IConfiguration config, ILogger<KeepWarm> logger)
     {
         _context = context;
+        _config = config;
         _logger = logger;
     }
 
@@ -58,7 +68,36 @@ public class KeepWarm
             _logger.LogWarning(ex, "[KeepWarm] DB warm-up ping failed.");
         }
 
+        EnsureAccountsSeeded();
+
         await WarmFrontendAsync();
+    }
+
+    /// <summary>
+    /// Idempotently ensures the config-driven owner and admin accounts exist.
+    /// Both seeders are no-ops once their row is present, so this is cheap (two
+    /// indexed username lookups) and safe to run from the warm-up tick. Guarded
+    /// to run at most once per worker process; the DB lookups make it safe even
+    /// if it runs again after a scale-out brings up a new instance.
+    /// </summary>
+    private void EnsureAccountsSeeded()
+    {
+        if (Interlocked.Exchange(ref _seedAttempted, 1) == 1)
+        {
+            return;
+        }
+
+        try
+        {
+            OwnerSeeder.Seed(_context, _config);
+            AdminSeeder.Seed(_context, _config);
+        }
+        catch (Exception ex)
+        {
+            // Allow a later tick to retry if this attempt failed transiently.
+            Interlocked.Exchange(ref _seedAttempted, 0);
+            _logger.LogWarning(ex, "[KeepWarm] Account seeding failed; will retry on a later tick.");
+        }
     }
 
     /// <summary>
