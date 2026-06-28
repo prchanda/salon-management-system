@@ -231,9 +231,10 @@ export function BookingForm({
             const roleLabel = s.roles?.length
               ? s.roles.join(", ")
               : s.role;
+            const firstName = s.fullName.trim().split(/\s+/)[0];
             return (
               <option key={s.id} value={s.id}>
-                {s.fullName}
+                {firstName}
                 {roleLabel ? ` (${roleLabel})` : ""}
               </option>
             );
