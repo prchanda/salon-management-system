@@ -222,7 +222,7 @@ export default async function ReceptionProductsPage() {
                           </span>
                         )}
                       </td>
-                      <td className="px-5 py-4 text-xs text-ink-500">
+                      <td className="whitespace-nowrap px-5 py-4 text-xs text-ink-500">
                         {formatDate(p.updatedAt)}
                       </td>
                       <td className="px-5 py-4 text-right">
