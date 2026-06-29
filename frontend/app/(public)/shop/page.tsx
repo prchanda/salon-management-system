@@ -82,7 +82,11 @@ export default async function ShopIndexPage() {
               );
               if (inCat.length === 0) return null;
               return (
-                <div key={c} id={`category-${slugify(c)}`}>
+                <div
+                  key={c}
+                  id={`category-${slugify(c)}`}
+                  className="scroll-mt-28"
+                >
                   <h2 className="font-serif text-2xl text-ink-900">{c}</h2>
                   <div className="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                     {inCat.map((p) => (
