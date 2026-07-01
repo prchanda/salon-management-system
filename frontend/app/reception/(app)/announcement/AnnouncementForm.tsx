@@ -120,7 +120,7 @@ export function AnnouncementForm({
       </p>
 
       <div className="grid gap-6 sm:grid-cols-2">
-        <label className="block">
+        <label className="block min-w-0">
           <span className="mb-1 block text-[10px] font-semibold uppercase tracking-widest text-ink-500">
             Start time (optional)
           </span>
@@ -129,10 +129,10 @@ export function AnnouncementForm({
             id="startsAt"
             name="startsAt"
             defaultValue={utcIsoToIstLocalInput(initial?.startsAt)}
-            className="date-input w-full rounded-lg border border-ink-900/10 bg-cream-50 px-4 py-2.5 text-sm text-ink-900 outline-none ring-gold-600/30 transition focus:border-gold-600 focus:ring-2"
+            className="date-input w-full min-w-0 rounded-lg border border-ink-900/10 bg-cream-50 px-4 py-2.5 text-sm text-ink-900 outline-none ring-gold-600/30 transition focus:border-gold-600 focus:ring-2"
           />
         </label>
-        <label className="block">
+        <label className="block min-w-0">
           <span className="mb-1 block text-[10px] font-semibold uppercase tracking-widest text-ink-500">
             End time (optional)
           </span>
@@ -141,7 +141,7 @@ export function AnnouncementForm({
             id="endsAt"
             name="endsAt"
             defaultValue={utcIsoToIstLocalInput(initial?.endsAt)}
-            className="date-input w-full rounded-lg border border-ink-900/10 bg-cream-50 px-4 py-2.5 text-sm text-ink-900 outline-none ring-gold-600/30 transition focus:border-gold-600 focus:ring-2"
+            className="date-input w-full min-w-0 rounded-lg border border-ink-900/10 bg-cream-50 px-4 py-2.5 text-sm text-ink-900 outline-none ring-gold-600/30 transition focus:border-gold-600 focus:ring-2"
           />
         </label>
       </div>
