@@ -61,47 +61,87 @@ export default async function CustomersListPage({
       </form>
 
       <div className="overflow-hidden rounded-2xl bg-cream-50 shadow-soft">
-        <table className="w-full text-sm">
-          <thead className="border-b border-ink-900/10 bg-cream-100 text-left text-[10px] uppercase tracking-widest text-ink-500">
-            <tr>
-              <th className="px-5 py-3">Name</th>
-              <th className="px-5 py-3">Phone</th>
-              <th className="px-5 py-3">Notes</th>
-              <th className="px-5 py-3 text-right">Joined</th>
-            </tr>
-          </thead>
-          <tbody>
-            {customers.length === 0 && (
-              <tr>
-                <td colSpan={4} className="px-5 py-10 text-center text-ink-500">
-                  No customers match.
-                </td>
-              </tr>
-            )}
-            {customers.map((c) => (
-              <tr
-                key={c.id}
-                className="border-b border-ink-900/5 last:border-b-0 hover:bg-cream-100"
-              >
-                <td className="px-5 py-3">
-                  <Link
-                    href={`/reception/customers/${c.id}`}
-                    className="font-semibold text-ink-900 hover:text-gold-600"
-                  >
-                    {c.fullName}
-                  </Link>
-                </td>
-                <td className="px-5 py-3 text-ink-600">{c.phoneNumber}</td>
-                <td className="px-5 py-3 text-ink-500">
-                  {c.notes ? c.notes.slice(0, 60) : "—"}
-                </td>
-                <td className="px-5 py-3 text-right text-ink-500">
-                  {new Date(c.createdAt).toLocaleDateString("en-IN")}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        {customers.length === 0 ? (
+          <p className="px-5 py-10 text-center text-sm text-ink-500">
+            No customers match.
+          </p>
+        ) : (
+          <>
+            {/* Mobile: stacked card list (< md) */}
+            <ul className="divide-y divide-ink-900/5 md:hidden">
+              {customers.map((c) => (
+                <li key={c.id} className="space-y-1.5 p-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <Link
+                      href={`/reception/customers/${c.id}`}
+                      className="min-w-0 font-serif text-base font-semibold text-ink-900 break-words hover:text-gold-600"
+                    >
+                      {c.fullName}
+                    </Link>
+                    <span className="shrink-0 text-xs text-ink-500">
+                      {new Date(c.createdAt).toLocaleDateString("en-IN")}
+                    </span>
+                  </div>
+                  {c.phoneNumber && (
+                    <p className="text-xs text-ink-600">
+                      <a
+                        href={`tel:${c.phoneNumber.replace(/[^\d+]/g, "")}`}
+                        className="hover:text-gold-600"
+                      >
+                        {c.phoneNumber}
+                      </a>
+                    </p>
+                  )}
+                  {c.notes && (
+                    <p className="text-xs text-ink-500 break-words">
+                      {c.notes.slice(0, 80)}
+                    </p>
+                  )}
+                </li>
+              ))}
+            </ul>
+
+            {/* Desktop: full table (md+) */}
+            <div className="hidden md:block md:overflow-x-auto">
+              <table className="w-full min-w-[640px] text-sm">
+                <thead className="border-b border-ink-900/10 bg-cream-100 text-left text-[10px] uppercase tracking-widest text-ink-500">
+                  <tr>
+                    <th className="px-5 py-3">Name</th>
+                    <th className="px-5 py-3">Phone</th>
+                    <th className="px-5 py-3">Notes</th>
+                    <th className="px-5 py-3 text-right">Joined</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {customers.map((c) => (
+                    <tr
+                      key={c.id}
+                      className="border-b border-ink-900/5 last:border-b-0 hover:bg-cream-100"
+                    >
+                      <td className="px-5 py-3">
+                        <Link
+                          href={`/reception/customers/${c.id}`}
+                          className="font-semibold text-ink-900 hover:text-gold-600"
+                        >
+                          {c.fullName}
+                        </Link>
+                      </td>
+                      <td className="px-5 py-3 text-ink-600">
+                        {c.phoneNumber}
+                      </td>
+                      <td className="px-5 py-3 text-ink-500">
+                        {c.notes ? c.notes.slice(0, 60) : "—"}
+                      </td>
+                      <td className="px-5 py-3 text-right text-ink-500">
+                        {new Date(c.createdAt).toLocaleDateString("en-IN")}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );
