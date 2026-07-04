@@ -295,9 +295,7 @@ export default async function ReceptionOrdersPage({
                     <p className="text-xs text-ink-500">
                       {formatDateTime(o.createdAt)}
                     </p>
-                    <div>
-                      <OrderStatusControl order={o} />
-                    </div>
+                    <OrderStatusControl order={o} align="start" />
                   </div>
 
                   <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-ink-600">

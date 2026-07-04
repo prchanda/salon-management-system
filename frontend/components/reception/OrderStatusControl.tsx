@@ -52,9 +52,13 @@ const ACTIONS_BY_STATUS: Record<string, ActionDef[]> = {
 
 interface Props {
   order: ProductOrder;
+  /** Horizontal alignment of the badge/buttons stack. Defaults to "end"
+   *  (right-aligned) to suit the desktop table's Status column; the mobile
+   *  card passes "start" so the controls hug the left edge with no dead space. */
+  align?: "start" | "end";
 }
 
-export function OrderStatusControl({ order }: Props) {
+export function OrderStatusControl({ order, align = "end" }: Props) {
   const router = useRouter();
   const [, startTransition] = useTransition();
   const [busyAction, setBusyAction] = useState<LifecycleAction | null>(null);
@@ -169,15 +173,23 @@ export function OrderStatusControl({ order }: Props) {
   }
 
   return (
-    <div className="flex flex-col items-end gap-2">
+    <div
+      className={`flex flex-col gap-2 ${
+        align === "start" ? "items-start" : "items-end"
+      }`}
+    >
       <StatusBadge status={order.status} />
       {actions.length > 0 && (
-        <div className="flex flex-wrap items-center justify-end gap-1.5 md:w-36 md:flex-col md:flex-nowrap md:items-stretch">
+        <div
+          className={`flex flex-wrap items-center gap-1.5 ${
+            align === "start" ? "justify-start" : "justify-end"
+          }`}
+        >
           {actions.map((def) => {
             const isBusy = busyAction === def.action;
             const isDisabled = busyAction !== null;
             const base =
-              "inline-flex items-center justify-center gap-1.5 rounded-lg border px-2.5 py-1 text-[11px] font-semibold uppercase tracking-widest transition-colors disabled:cursor-not-allowed disabled:opacity-50";
+              "inline-flex items-center justify-center gap-1.5 whitespace-nowrap rounded-lg border px-2.5 py-1 text-[11px] font-semibold uppercase tracking-widest transition-colors disabled:cursor-not-allowed disabled:opacity-50";
             const tone =
               def.variant === "primary"
                 ? "border-gold-600 bg-gold-600 text-white hover:bg-gold-700"
@@ -199,7 +211,11 @@ export function OrderStatusControl({ order }: Props) {
         </div>
       )}
       {error && (
-        <span className="max-w-[16rem] text-right text-[10px] text-red-700">
+        <span
+          className={`max-w-[16rem] text-[10px] text-red-700 ${
+            align === "start" ? "text-left" : "text-right"
+          }`}
+        >
           {error}
         </span>
       )}
