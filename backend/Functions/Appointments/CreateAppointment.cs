@@ -192,6 +192,24 @@ public class CreateAppointment
 
         await _context.SaveChangesAsync();
 
+        // Best-effort owner notification. Runs after the booking is safely
+        // persisted and swallows its own failures, so it never blocks or fails
+        // the booking.
+        var serviceName = await _context.Services
+            .Where(s => s.Id == appointment.ServiceId)
+            .Select(s => s.ServiceName)
+            .FirstOrDefaultAsync() ?? "Service";
+        string? staffName = null;
+        if (appointment.StaffId.HasValue)
+        {
+            staffName = await _context.Staff
+                .Where(s => s.Id == appointment.StaffId.Value)
+                .Select(s => s.FullName)
+                .FirstOrDefaultAsync();
+        }
+        await OwnerNotifier.NotifyNewAppointmentAsync(
+            _context, appointment, customer, serviceName, staffName);
+
         var response = req.CreateResponse(HttpStatusCode.Created);
 
         await response.WriteAsJsonAsync(new

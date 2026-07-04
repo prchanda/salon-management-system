@@ -1,6 +1,7 @@
 using backend.Data;
 using backend.DTOs;
 using backend.Entities;
+using backend.Helpers;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.EntityFrameworkCore;
@@ -108,6 +109,11 @@ public class CreateProductOrder
         }
 
         await _context.SaveChangesAsync();
+
+        // Best-effort owner notification. Runs after the order is safely
+        // persisted and swallows its own failures, so it never blocks or fails
+        // the order.
+        await OwnerNotifier.NotifyNewProductOrderAsync(_context, order);
 
         var response = req.CreateResponse(HttpStatusCode.Created);
         await response.WriteAsJsonAsync(order);
