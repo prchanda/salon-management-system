@@ -283,16 +283,19 @@ export default async function ReceptionOrdersPage({
                   data-focus-id={`order-${o.id}`}
                   className="space-y-3 p-4"
                 >
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0">
-                      <p className="font-serif text-base text-ink-900 break-words">
+                  <div className="space-y-2">
+                    <div className="flex items-start justify-between gap-3">
+                      <p className="min-w-0 font-serif text-base text-ink-900 break-words">
                         {o.customerName}
                       </p>
-                      <p className="mt-0.5 text-[11px] uppercase tracking-widest text-ink-400">
-                        {formatDateTime(o.createdAt)} · #{o.id}
-                      </p>
+                      <span className="shrink-0 text-[11px] tabular-nums text-ink-400">
+                        #{o.id}
+                      </span>
                     </div>
-                    <div className="shrink-0">
+                    <p className="text-xs text-ink-500">
+                      {formatDateTime(o.createdAt)}
+                    </p>
+                    <div>
                       <OrderStatusControl order={o} />
                     </div>
                   </div>
