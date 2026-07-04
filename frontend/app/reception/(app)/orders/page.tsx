@@ -83,12 +83,12 @@ export default async function ReceptionOrdersPage({
   searchParams: SearchParams;
 }) {
   const q = (searchParams.q ?? "").trim().toLowerCase();
-  const rawStatus = (searchParams.status ?? "All").trim();
+  const rawStatus = (searchParams.status ?? "Pending").trim();
   const status: StatusOption = (STATUS_OPTIONS as readonly string[]).includes(
     rawStatus
   )
     ? (rawStatus as StatusOption)
-    : "All";
+    : "Pending";
   const rawRange = (searchParams.range ?? "all").trim();
   const range: RangeOption = (
     RANGE_OPTIONS.map((r) => r.value) as readonly string[]
@@ -141,7 +141,7 @@ export default async function ReceptionOrdersPage({
     { count: 0, pending: 0, revenue: 0 }
   );
 
-  const hasFilters = !!q || status !== "All" || range !== "all";
+  const hasFilters = !!q || status !== "Pending" || range !== "all";
 
   return (
     <div>
