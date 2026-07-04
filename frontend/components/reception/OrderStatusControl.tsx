@@ -172,12 +172,12 @@ export function OrderStatusControl({ order }: Props) {
     <div className="flex flex-col items-end gap-2">
       <StatusBadge status={order.status} />
       {actions.length > 0 && (
-        <div className="flex flex-wrap items-center justify-end gap-1.5">
+        <div className="flex flex-wrap items-center justify-end gap-1.5 md:w-36 md:flex-col md:flex-nowrap md:items-stretch">
           {actions.map((def) => {
             const isBusy = busyAction === def.action;
             const isDisabled = busyAction !== null;
             const base =
-              "inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1 text-[11px] font-semibold uppercase tracking-widest transition-colors disabled:cursor-not-allowed disabled:opacity-50";
+              "inline-flex items-center justify-center gap-1.5 rounded-lg border px-2.5 py-1 text-[11px] font-semibold uppercase tracking-widest transition-colors disabled:cursor-not-allowed disabled:opacity-50";
             const tone =
               def.variant === "primary"
                 ? "border-gold-600 bg-gold-600 text-white hover:bg-gold-700"
