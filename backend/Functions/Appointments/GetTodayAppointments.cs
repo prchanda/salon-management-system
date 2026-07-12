@@ -1,4 +1,5 @@
 using backend.Data;
+using backend.Helpers;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.EntityFrameworkCore;
@@ -32,7 +33,7 @@ public class GetTodayAppointments
 
         var date = !string.IsNullOrWhiteSpace(dateRaw) && DateOnly.TryParse(dateRaw, out var parsed)
             ? parsed
-            : DateOnly.FromDateTime(DateTime.UtcNow);
+            : IstTime.Today;
 
         long? staffIdFilter = null;
         if (!string.IsNullOrWhiteSpace(staffIdRaw) && long.TryParse(staffIdRaw, out var sid))

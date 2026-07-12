@@ -1,4 +1,5 @@
 using backend.Data;
+using backend.Helpers;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.EntityFrameworkCore;
@@ -31,7 +32,7 @@ public class GetDaySummary
 
         var date = !string.IsNullOrWhiteSpace(dateRaw) && DateOnly.TryParse(dateRaw, out var parsed)
             ? parsed
-            : DateOnly.FromDateTime(DateTime.UtcNow);
+            : IstTime.Today;
 
         var appointments = await _context.Appointments
             .AsNoTracking()
@@ -40,11 +41,14 @@ public class GetDaySummary
             .Where(x => x.AppointmentDate == date)
             .ToListAsync();
 
-        var dayStartUtc = DateTime.SpecifyKind(date.ToDateTime(TimeOnly.MinValue), DateTimeKind.Utc);
-        var dayEndUtc = DateTime.SpecifyKind(date.ToDateTime(TimeOnly.MaxValue), DateTimeKind.Utc);
+        // Product orders / new customers are stored in UTC, so the "day" window
+        // is the IST day translated to its UTC bounds (start inclusive, next-day
+        // start exclusive).
+        var dayStartUtc = IstTime.StartOfDayUtc(date);
+        var dayEndUtc = IstTime.StartOfDayUtc(date.AddDays(1));
 
         var newCustomers = await _context.Customers
-            .CountAsync(c => c.CreatedAt >= dayStartUtc && c.CreatedAt <= dayEndUtc);
+            .CountAsync(c => c.CreatedAt >= dayStartUtc && c.CreatedAt < dayEndUtc);
 
         var byStaff = appointments
             .GroupBy(a => new { a.StaffId, StaffName = a.Staff?.FullName ?? "Unassigned" })
@@ -89,10 +93,10 @@ public class GetDaySummary
         var revenue = appointments.Where(x => x.Status == "Done").Sum(x => x.AmountPaid ?? 0);
         var avgTicket = doneCount > 0 ? Math.Round(revenue / doneCount, 2) : 0m;
 
-        // Shop / product orders placed on this date (UTC window mirrors customer count).
+        // Shop / product orders placed on this date (IST window mirrors customer count).
         var productOrders = await _context.ProductOrders
             .AsNoTracking()
-            .Where(o => o.CreatedAt >= dayStartUtc && o.CreatedAt <= dayEndUtc)
+            .Where(o => o.CreatedAt >= dayStartUtc && o.CreatedAt < dayEndUtc)
             .ToListAsync();
 
         var completedOrders = productOrders.Where(o => o.Status == "Completed").ToList();

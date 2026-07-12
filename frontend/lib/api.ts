@@ -9,6 +9,7 @@ import type {
   CreateProductPayload,
   CreateReviewPayload,
   CreateServicePayload,
+  BusinessReport,
   Customer,
   CustomerHistory,
   DaySummary,
@@ -442,4 +443,8 @@ export const api = {
   // Reception — reports
   getDaySummary: (date?: string) =>
     request<DaySummary>(`/reports/day-summary${date ? `?date=${date}` : ""}`),
+  getBusinessReport: (months?: number) =>
+    request<BusinessReport>(
+      `/reports/business${months ? `?months=${months}` : ""}`
+    ),
 };

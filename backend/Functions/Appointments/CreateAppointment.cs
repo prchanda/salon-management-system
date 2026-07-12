@@ -90,7 +90,7 @@ public class CreateAppointment
             return await BadRequest(req, "Notes are too long.");
         }
 
-        var today = DateOnly.FromDateTime(DateTime.UtcNow);
+        var today = IstTime.Today;
         // Allow a one-day backstop for timezone differences (salon is in IST).
         if (dto.AppointmentDate < today.AddDays(-1) ||
             dto.AppointmentDate > today.AddDays(MaxBookingDaysAhead))

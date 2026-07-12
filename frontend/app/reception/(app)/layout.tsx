@@ -16,6 +16,7 @@ const nav = [
   { href: "/reception/dormant", label: "Re-engage", ownerOnly: true },
   { href: "/reception/orders", label: "Orders", ownerOnly: true },
   { href: "/reception/summary", label: "Day summary", ownerOnly: true },
+  { href: "/reception/reports", label: "Reports", ownerOnly: true },
   { href: "/reception/services", label: "Services", ownerOnly: true },
   { href: "/reception/products", label: "Shop", ownerOnly: true },
   { href: "/reception/blog", label: "Journal", ownerOnly: true },

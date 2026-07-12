@@ -355,6 +355,60 @@ export interface DaySummary {
   }[];
 }
 
+export interface BusinessReportMonth {
+  month: string; // YYYY-MM
+  label: string; // "Feb 2026"
+  serviceRevenue: number;
+  productRevenue: number;
+  totalRevenue: number;
+  appointmentsDone: number;
+  ordersCompleted: number;
+  newCustomers: number;
+  avgTicket: number;
+  isCurrent: boolean;
+}
+
+export interface BusinessReport {
+  rangeMonths: number;
+  rangeStart: string;
+  months: BusinessReportMonth[];
+  current: {
+    month: string;
+    label: string;
+    totalRevenue: number;
+    prevTotalRevenue: number;
+    momGrowthPct: number | null;
+    projectedTotalRevenue: number;
+    daysElapsed: number;
+    daysInMonth: number;
+  };
+  totals: {
+    serviceRevenue: number;
+    productRevenue: number;
+    totalRevenue: number;
+    appointmentsDone: number;
+    ordersCompleted: number;
+    newCustomers: number;
+  };
+  topStaff: {
+    staffId: number | null;
+    staffName: string;
+    done: number;
+    revenue: number;
+  }[];
+  topServices: {
+    serviceId: number | null;
+    serviceName: string;
+    done: number;
+    revenue: number;
+  }[];
+  paymentMix: {
+    method: string;
+    count: number;
+    revenue: number;
+  }[];
+}
+
 export type NotificationKind = "booking" | "order" | "review" | "signup";
 
 export interface NotificationEvent {

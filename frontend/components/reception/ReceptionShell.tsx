@@ -322,6 +322,15 @@ function NavIcon({ href, active }: { href: string; active: boolean }) {
           <path d="M7 14l4-4 3 3 5-6" />
         </svg>
       );
+    case "/reception/reports":
+      return (
+        <svg {...props}>
+          <path d="M3 3v18h18" />
+          <rect x="7" y="12" width="3" height="6" rx="0.5" />
+          <rect x="12" y="8" width="3" height="10" rx="0.5" />
+          <rect x="17" y="5" width="3" height="13" rx="0.5" />
+        </svg>
+      );
     case "/reception/services":
       return (
         <svg {...props}>
