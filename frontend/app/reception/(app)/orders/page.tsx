@@ -267,7 +267,7 @@ export default async function ReceptionOrdersPage({
               <>
                 No orders match the current filters.{" "}
                 <Link
-                  href="/reception/orders"
+                  href="/reception/orders?status=All"
                   className="font-semibold text-gold-600 hover:text-ink-900"
                 >
                   Clear filters
