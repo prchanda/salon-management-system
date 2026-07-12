@@ -164,7 +164,10 @@ export default async function ReceptionOrdersPage({
         </Link>
       </div>
 
-      <form className="mt-6 flex flex-wrap items-end gap-3">
+      <form
+        key={`${q}|${status}|${range}`}
+        className="mt-6 flex flex-wrap items-end gap-3"
+      >
         <div className="w-full sm:flex-1 sm:min-w-[16rem]">
           <label
             htmlFor="orders-q"
