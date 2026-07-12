@@ -38,6 +38,13 @@ public class MarkAppointmentDone
 
         var status = string.IsNullOrWhiteSpace(dto.Status) ? "Done" : dto.Status;
 
+        if (status == "Done" && appointment.StaffId == null)
+        {
+            var badRequest = req.CreateResponse(HttpStatusCode.BadRequest);
+            await badRequest.WriteAsJsonAsync(new { message = "A specialist must be assigned before closing the appointment." });
+            return badRequest;
+        }
+
         appointment.Status = status;
         appointment.CompletedAt = DateTime.UtcNow;
 
